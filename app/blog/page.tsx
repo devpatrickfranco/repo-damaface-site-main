@@ -1,9 +1,14 @@
 // app/blog/page.tsx
+'use client';
+
 
 import Link from 'next/link';
 import Image from 'next/image';
 import { prisma } from '@/lib/prisma';
 import { ArrowRight, Calendar, User } from 'lucide-react';
+import Header from '@/components/Header';
+import Footer from '@/components/Footer';
+import BlogFilters from './BlogFilters';
 
 // Função para formatar a data de forma amigável
 function formatDate(date: Date | null) {
@@ -16,24 +21,25 @@ function formatDate(date: Date | null) {
 }
 
 export default async function BlogPage() {
-  // Buscamos no banco de dados os posts que estão publicados
-  const posts = await prisma.post.findMany({
-    where: {
-      published: true, // Apenas posts publicados
-    },
-    orderBy: {
-      publishedAt: 'desc', // Posts mais recentes primeiro
-    },
-    include: {
-      author: {
-        select: { name: true }, // Incluímos o nome do autor para exibição
+  // Busca categorias e tags para filtros
+  const [categories, tags, posts] = await Promise.all([
+    prisma.category.findMany(),
+    prisma.tag.findMany(),
+    prisma.post.findMany({
+      where: { published: true },
+      orderBy: { publishedAt: 'desc' },
+      include: {
+        author: { select: { name: true } },
+        categories: true,
+        tags: true,
       },
-    },
-  });
+    })
+  ]);
 
   return (
-    // Usando classes de estilização similares às do seu componente BestSellers
+
     <section className="section-padding bg-gray-900/30">
+      <Header />
       <div className="container">
         <div className="text-center mb-16">
           <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold mb-6">
@@ -45,12 +51,15 @@ export default async function BlogPage() {
           </p>
         </div>
 
+        {/* Filtros de busca e seleção */}
+        <BlogFilters categories={categories} tags={tags} onFilter={() => {}} />
+
         {posts.length === 0 ? (
           <div className="text-center text-gray-400">
             <p>Nenhum post publicado no momento. Volte em breve!</p>
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-32">
             {posts.map((post) => (
               <Link
                 key={post.id}
@@ -101,6 +110,7 @@ export default async function BlogPage() {
           </div>
         )}
       </div>
+      <Footer />
     </section>
   );
 }

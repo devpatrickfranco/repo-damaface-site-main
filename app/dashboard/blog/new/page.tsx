@@ -8,6 +8,7 @@ import Link from 'next/link';
 import { useState } from 'react';
 import TiptapEditor from '@/app/dashboard/components/Editor';
 import ImageUploader from '@/app/dashboard/components/ImageUploader';
+import CategoryTagSelector from '@/app/dashboard/blog/components/CategoryTagSelector';
 
 // Componente para o botão, para mostrar o estado de "pending"
 function SubmitButton() {
@@ -60,6 +61,9 @@ export default function NewPostPage() {
 
         {/* --- COMPONENTE DE IMAGEM ADICIONADO AQUI --- */}
         <ImageUploader />
+
+      {/* Seleção de categorias e tags */}
+      <CategoryTagSelector />
 
         <div>
           <label className="block text-sm font-medium text-gray-300 mb-1">Conteúdo</label>

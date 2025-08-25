@@ -13,6 +13,10 @@ export default async function EditPostPage({ params }: EditPageProps) {
   const { id } = params;
   const post = await prisma.post.findUnique({
     where: { id },
+    include: {
+      categories: true,
+      tags: true,
+    },
   });
 
   // Se o post não existir, mostra uma página 404

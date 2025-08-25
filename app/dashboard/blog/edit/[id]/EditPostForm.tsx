@@ -5,10 +5,11 @@ import { useFormStatus } from 'react-dom';
 import { useActionState } from 'react';
 import { updatePost, State } from '@/app/dashboard/blog/actions';
 import Link from 'next/link';
-import type { Post } from '@prisma/client';
+import type { Post, Category, Tag } from '@prisma/client';
 import { useState } from 'react';
 import TiptapEditor from '@/app/dashboard/components/Editor';
 import ImageUploader from '@/app/dashboard/components/ImageUploader';
+import CategoryTagSelector from '@/app/dashboard/blog/components/CategoryTagSelector';
 
 function SubmitButton() {
   const { pending } = useFormStatus();
@@ -19,7 +20,8 @@ function SubmitButton() {
   );
 }
 
-export default function EditPostForm({ post }: { post: Post }) {
+type PostWithRelations = Post & { categories: Category[]; tags: Tag[] };
+export default function EditPostForm({ post }: { post: PostWithRelations }) {
   const initialState: State = { message: null, errors: {} };
   const updatePostWithId = updatePost.bind(null, post.id);
   const [state, dispatch] = useActionState(updatePostWithId, initialState);
@@ -43,6 +45,9 @@ export default function EditPostForm({ post }: { post: Post }) {
 
         {/* --- COMPONENTE DE IMAGEM COM VALOR PADRÃO --- */}
         <ImageUploader defaultValue={post.coverImage} />
+
+    {/* Seleção de categorias e tags */}
+    <CategoryTagSelector selectedCategories={post.categories?.map(c => c.id) || []} selectedTags={post.tags?.map(t => t.id) || []} />
 
         <div>
           <label className="block text-sm font-medium text-gray-300 mb-1">Conteúdo</label>

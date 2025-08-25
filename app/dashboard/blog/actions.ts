@@ -66,23 +66,33 @@ export async function createPost(prevState: State, formData: FormData): Promise<
     return { errors: validatedFields.error.flatten().fieldErrors, message: 'Erro de validação.' };
   }
   
-  const { title, slug, content, published } = validatedFields.data;
 
+  const { title, slug, content, published } = validatedFields.data;
   const coverImagePath = await handleImageUpload(formData);
   if (!coverImagePath) {
     return { message: "A imagem de capa é obrigatória." };
   }
 
+  // Recebe os IDs das categorias e tags do formData
+  const categoryIds = formData.getAll('categories');
+  const tagIds = formData.getAll('tags');
+
   try {
     await prisma.post.create({
-      data: { 
-        title, 
-        slug, 
-        content, 
-        published, 
-        coverImage: coverImagePath, // Salva o caminho da imagem
-        authorId: session.user.id, 
-        publishedAt: published ? new Date() : null 
+      data: {
+        title,
+        slug,
+        content,
+        published,
+        coverImage: coverImagePath,
+        authorId: session.user.id,
+        publishedAt: published ? new Date() : null,
+        categories: {
+          connect: categoryIds.map(id => ({ id: String(id) }))
+        },
+        tags: {
+          connect: tagIds.map(id => ({ id: String(id) }))
+        }
       }
     });
   } catch (error) {
@@ -111,17 +121,27 @@ export async function updatePost(id: string, prevState: State, formData: FormDat
   // Se nenhuma nova imagem foi enviada, o `handleImageUpload` retornará null.
   // Nesse caso, NÃO atualizamos o campo `coverImage` no banco.
 
+
+  // Recebe os IDs das categorias e tags do formData
+  const categoryIds = formData.getAll('categories');
+  const tagIds = formData.getAll('tags');
+
   try {
     await prisma.post.update({
       where: { id },
-      data: { 
-        title, 
-        slug, 
-        content, 
-        published, 
+      data: {
+        title,
+        slug,
+        content,
+        published,
         publishedAt: published ? new Date() : null,
-        // Atualiza a imagem apenas se um novo caminho foi gerado
         ...(coverImagePath && { coverImage: coverImagePath }),
+        categories: {
+          set: categoryIds.map(id => ({ id: String(id) }))
+        },
+        tags: {
+          set: tagIds.map(id => ({ id: String(id) }))
+        }
       }
     });
   } catch (error) {
