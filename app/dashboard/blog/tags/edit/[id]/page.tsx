@@ -1,5 +1,5 @@
 import { prisma } from '@/lib/prisma';
-import { updateTag } from '../../action';
+import { updateTag } from '../../actions';
 
 export default async function EditTagPage({ params }: { params: { id: string } }) {  
     const tag = await prisma.tag.findUnique({ where: { id: params.id } });
