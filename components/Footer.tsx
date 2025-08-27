@@ -18,13 +18,13 @@ const Footer = () => {
     { name: 'Tratamentos Faciais', href: '/facial' },
     { name: 'Tratamentos Corporais', href: '/corporal' },
     { name: 'Procedimentos Não Invasivos', href: '/nao-invasivos' },
-    { name: 'Seja um Franqueado', href: '/franquia' }
+    { name: 'Seja um Franqueado', href: 'https://franquia.damaface.com.br/' }
   ];
 
   const company = [
-    { name: 'Blog', href: '/blog' },
-    { name: 'Sobre Nós', href: '/sobre' },
-    { name: 'Contato', href: '/contato' },
+    // { name: 'Blog', href: '/blog' },
+    // { name: 'Sobre Nós', href: '/sobre' },
+    // { name: 'Contato', href: '/contato' },
     { name: 'Política de Privacidade', href: '/privacidade' }
   ];
 
@@ -55,7 +55,7 @@ const Footer = () => {
             <div className="space-y-3 text-sm">
               <div className="flex items-center space-x-3 text-gray-400">
                 <Phone className="w-4 h-4 text-brand-pink" />
-                <span>(11) 99999-9999</span>
+                <span>(19) 99553-4809</span>
               </div>
               <div className="flex items-center space-x-3 text-gray-400">
                 <Mail className="w-4 h-4 text-brand-pink" />
@@ -63,14 +63,14 @@ const Footer = () => {
               </div>
               <div className="flex items-start space-x-3 text-gray-400">
                 <MapPin className="w-4 h-4 text-brand-pink mt-0.5" />
-                <span>Rua das Flores, 123<br />Vila Madalena - São Paulo/SP<br />CEP: 05435-000</span>
+                <span>R. Gustavo Ambrust, 36 <br />Nova Campinas - Campinas/SP<br />CEP: 13092-106</span>
               </div>
             </div>
 
             {/* Social Links */}
             <div className="flex space-x-4 mt-6">
               <a
-                href="https://instagram.com/damaface"
+                href="https://instagram.com/damafacefranquias"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="p-2 bg-gray-800 rounded-lg text-gray-400 hover:text-brand-pink hover:bg-brand-pink/10 transition-colors"
@@ -78,7 +78,7 @@ const Footer = () => {
                 <Instagram className="w-5 h-5" />
               </a>
               <a
-                href="https://facebook.com/damaface"
+                href="https://facebook.com/profile.php?id=61555121465049"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="p-2 bg-gray-800 rounded-lg text-gray-400 hover:text-brand-pink hover:bg-brand-pink/10 transition-colors"
@@ -174,7 +174,7 @@ const Footer = () => {
         <div className="border-t border-gray-800 py-6">
           <div className="flex flex-col md:flex-row items-center justify-between text-sm text-gray-500">
             <p>
-              © 2024 DamaFace Clínica de Estética. Todos os direitos reservados.
+              © 2025 DamaFace Clínica de Estética. Todos os direitos reservados.
             </p>
             
             <div className="flex space-x-6 mt-4 md:mt-0">

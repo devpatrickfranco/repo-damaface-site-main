@@ -23,17 +23,17 @@ const Header = () => {
     { name: "Facial", href: "/facial" },
     { name: "Corporal", href: "/corporal" },
     { name: "Não Invasivos", href: "/nao-invasivos" },
-    { name: "Franquia", href: "/franquia" },
-    { name: "Blog", href: "/blog" },
-    { name: "Contato", href: "/contato" },
+    { name: "Franquia", href: "https://franquia.damaface.com.br/" },
+    // { name: "Blog", href: "/blog" },
+    // { name: "Contato", href: "/contato" },
   ]
 
   const handleWhatsAppClick = () => {
-    window.open("https://wa.me/5511999999999?text=Olá! Gostaria de agendar uma avaliação.", "_blank")
+    window.open("#contact", "_self")
   }
 
   const handleFranchiseClick = () => {
-    window.open("https://wa.me/5511999999999?text=Olá! Tenho interesse em ser franqueado DamaFace.", "_blank")
+    window.open("https://franquia.damaface.com.br/", "_blank")
   }
 
   const handleNavClick = () => {

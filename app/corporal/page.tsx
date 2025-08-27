@@ -31,7 +31,7 @@ const corporalProcedures = [
       id: "peim",
       name: "PEIM",
       description: "Tratamento injetável para eliminar vasinhos e microvarizes corporais",
-      price: "A partir de R$ 400",
+      price: "A partir de R$ 199,00",
       image: "/images/procedimentos/peim/gerais/peim-1.png",
       rating: 4.6,
       duration: "30-45 min",

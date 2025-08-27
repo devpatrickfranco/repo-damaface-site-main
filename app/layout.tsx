@@ -3,7 +3,6 @@ import "./globals.css"
 import type { Metadata } from "next"
 import { Inter } from "next/font/google"
 import ScrollAnimations from "@/components/ScrollAnimations"
-import NextAuthProvider from './components/NextAuthProvider'
 
 const inter = Inter({
   subsets: ["latin"],
@@ -93,9 +92,7 @@ export default function RootLayout({
           }}
         />
         <div className="min-h-screen bg-black">
-        <NextAuthProvider>
           {children}
-        </NextAuthProvider>
           <ScrollAnimations />
         </div>
       </body>

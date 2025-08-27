@@ -35,7 +35,7 @@ const Contact = () => {
   };
 
   return (
-    <section className="section-padding bg-gradient-to-br from-gray-900/80 to-black/40">
+    <section id="contact" className="section-padding bg-gradient-to-br from-gray-900/80 to-black/40">
       <div className="container">
         {/* Header */}
         <div className="text-center mb-16 animate-on-scroll">

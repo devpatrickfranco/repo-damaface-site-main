@@ -26,7 +26,7 @@ const Franchise = () => {
   ];
 
   const handleFranchiseClick = () => {
-    window.open('https://wa.me/5511999999999?text=Olá! Tenho interesse em ser franqueado DamaFace.', '_blank');
+    window.open('https://franquia.damaface.com.br', '_blank');
   };
 
   return (
@@ -70,7 +70,7 @@ const Franchise = () => {
                 <div className="text-sm text-gray-400">Franquias Ativas</div>
               </div>
               <div className="text-center p-4 bg-gray-800/30 rounded-xl border border-gray-700">
-                <div className="text-2xl font-bold text-brand-pink mb-1">ROI 18%</div>
+                <div className="text-2xl font-bold text-brand-pink mb-1">ROI 68%</div>
                 <div className="text-sm text-gray-400">Retorno Médio</div>
               </div>
             </div>
@@ -85,8 +85,8 @@ const Franchise = () => {
 
             {/* Contact Info */}
             <div className="text-sm text-gray-400">
-              <p>📞 Central de Franquias: (11) 99999-9999</p>
-              <p>📧 franquias@damaface.com.br</p>
+              <p>📞 Central de Franquias: (19) 99553-4809</p>
+              <p>📧 franquia@damaface.com.br</p>
             </div>
           </div>
 
