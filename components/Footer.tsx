@@ -184,7 +184,7 @@ const Footer = () => {
               <Link href="/privacidade" className="hover:text-brand-pink transition-colors">
                 Política de Privacidade
               </Link>
-              <span>CNPJ: 00.000.000/0001-00</span>
+              <span>CNPJ: 31.336.419/0001-42</span>
             </div>
           </div>
         </div>

@@ -24,12 +24,12 @@ const Header = () => {
     { name: "Corporal", href: "/corporal" },
     { name: "Não Invasivos", href: "/nao-invasivos" },
     { name: "Franquia", href: "https://franquia.damaface.com.br/" },
-    // { name: "Blog", href: "/blog" },
+    { name: "Blog", href: "/blog" },
     // { name: "Contato", href: "/contato" },
   ]
 
   const handleWhatsAppClick = () => {
-    window.open("#contact", "_self")
+    window.open("https://typebot.damaface.com.br/agendar", "_self")
   }
 
   const handleFranchiseClick = () => {

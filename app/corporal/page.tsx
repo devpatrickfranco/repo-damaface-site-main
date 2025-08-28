@@ -8,94 +8,64 @@ import Image from "next/image"
 export default function CorporalPage() {
 const corporalProcedures = [ 
     {
-      id: "bioestimulador-de-colageno-corporal",
+      id: "bioestimulador-corporal",
       name: "Bioestimulador de Colágeno Corporal",
       description: "Estimula a produção natural de colágeno, promovendo firmeza e melhora da qualidade da pele corporal",
-      price: "A partir de R$ 900",
+      price: "A partir de R$ 2.500",
       image: "/images/procedimentos/.corporal/bioestimulador-coporal/gerais/bioestimulador-coporal-1.jpg",
-      rating: 4.8,
+      rating: 5,
       duration: "45-60 min",
-      sessions: "2-3 sessões",
-    },
-    {
-      id: "fios-de-sustentacao-corporal",
-      name: "Fios de Sustentação Corporal",
-      description: "Promove efeito lifting em regiões do corpo com flacidez sem necessidade de cirurgia",
-      price: "A partir de R$ 1.500",
-      image: "/images/procedimentos/.corporal/fios-corporal/gerais/fios-corporal-1.png",
-      rating: 4.7,
-      duration: "60-90 min",
       sessions: "1 sessão",
     },
     {
       id: "peim",
       name: "PEIM",
       description: "Tratamento injetável para eliminar vasinhos e microvarizes corporais",
-      price: "A partir de R$ 199,00",
+      price: "A partir de R$ 189,00",
       image: "/images/procedimentos/peim/gerais/peim-1.png",
-      rating: 4.6,
+      rating: 4.8,
       duration: "30-45 min",
-      sessions: "1-3 sessões",
+      sessions: "1 sessão",
     },
     {
       id: "preenchimento-de-gluteo",
       name: "Preenchimento de Glúteo",
       description: "Proporciona maior volume, contorno e firmeza aos glúteos com ácido hialurônico ou bioestimuladores",
-      price: "A partir de R$ 2.500",
+      price: "Sob consulta",
       image: "/images/procedimentos/.corporal/preenchimento-de-gluteo/gerais/preenchimento-de-gluteo-1.png",
       rating: 4.9,
       duration: "60-90 min",
-      sessions: "1 sessão",
+      sessions: "Variável",
     },
     {
       id: "enzimas-para-gordura-localizada",
       name: "Enzimas para Gordura Localizada",
       description: "Aplicação de enzimas que auxiliam na quebra da gordura localizada em regiões específicas",
-      price: "A partir de R$ 500",
+      price: "A partir de R$ 389,00",
       image: "/images/procedimentos/.corporal/gordura-localizada/gerais/gordura-localizada-1.jpg",
       rating: 4.7,
       duration: "30-45 min",
-      sessions: "4-8 sessões",
-    },
-    {
-      id: "intradermoterapia",
-      name: "Intradermoterapia",
-      description: "Técnica de injeções intradérmicas para tratamento de gordura localizada, celulite e flacidez",
-      price: "A partir de R$ 450",
-      image: "/images/procedimentos/.corporal/intradermoterapia/gerais/intradermaterapia-1.jpg",
-      rating: 4.7,
-      duration: "30-45 min",
-      sessions: "4-6 sessões",
+      sessions: "1 sessão",
     },
     {
       id: "massagem-relaxante",
       name: "Massagem Relaxante",
       description: "Alivia tensões musculares, promove bem-estar e relaxamento físico e mental",
-      price: "A partir de R$ 200",
+      price: "A partir de R$ 199,00",
       image: "/images/procedimentos/.corporal/massagem-relaxante/gerais/massagem-relaxante-1.png",
       rating: 4.9,
       duration: "60 min",
-      sessions: "Sessões avulsas",
+      sessions: "1 sessão",
     },
     {
       id: "massagem-modeladora",
       name: "Massagem Modeladora",
       description: "Modela o corpo, reduz medidas e melhora o contorno corporal",
-      price: "A partir de R$ 350",
+      price: "A partir de R$ 199,00",
       image: "/images/procedimentos/.corporal/massagem-modeladora/gerais/massagem-modeladora-1.png",
       rating: 4.7,
       duration: "60-75 min",
-      sessions: "8-10 sessões",
-    },
-    {
-      id: "pump-up",
-      name: "Pump Up",
-      description: "Técnica não invasiva para levantar e modelar os glúteos através de sucção a vácuo",
-      price: "A partir de R$ 600",
-      image: "/images/procedimentos/.corporal/pump-up/gerais/pump-up-1.png",
-      rating: 4.6,
-      duration: "40-60 min",
-      sessions: "6-10 sessões",
+      sessions: "1 sessão",
     },
   ];
 
@@ -141,7 +111,7 @@ const corporalProcedures = [
                   <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
                 </Link>
                 <a
-                  href="https://wa.me/5511999999999?text=Olá! Gostaria de agendar uma avaliação para tratamentos corporais."
+                  href="https://typebot.damaface.com.br/agendar"
                   target="_blank"
                   className="btn-secondary"
                   rel="noreferrer"
@@ -193,7 +163,7 @@ const corporalProcedures = [
                     </h3>
                     <div className="flex items-center space-x-1 text-brand-pink">
                       <Star className="w-4 h-4 fill-current" />
-                      <span className="text-sm font-medium">{procedure.rating}</span>
+                      <span className="text-sm font-medium">{procedure.rating}/5</span>
                     </div>
                   </div>
 

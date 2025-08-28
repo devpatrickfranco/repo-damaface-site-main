@@ -4,7 +4,7 @@ import { ArrowRight } from 'lucide-react';
 
 const Hero = () => {
   const handleWhatsAppClick = () => {
-    window.open('https://wa.me/5511999999999?text=Olá! Gostaria de agendar minha avaliação gratuita.', '_blank');
+    window.open('https://typebot.damaface.com.br/agendar Gostaria de agendar minha avaliação gratuita.', '_blank');
   };
 
   return (
@@ -56,11 +56,11 @@ const Hero = () => {
           {/* Stats */}
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-8 mt-12 pt-12 border-t border-gray-800/50">
             <div className="text-center lg:text-left animate-fade-up">
-              <div className="text-3xl lg:text-4xl font-bold text-brand-pink mb-2">500+</div>
+              <div className="text-3xl lg:text-4xl font-bold text-brand-pink mb-2">1.2M </div>
               <div className="text-gray-400">Clientes Satisfeitos</div>
             </div>
             <div className="text-center lg:text-left animate-fade-up" style={{animationDelay: '0.1s'}}>
-              <div className="text-3xl lg:text-4xl font-bold text-brand-pink mb-2">10+</div>
+              <div className="text-3xl lg:text-4xl font-bold text-brand-pink mb-2">5+</div>
               <div className="text-gray-400">Anos de Experiência</div>
             </div>
             <div className="text-center lg:text-left animate-fade-up" style={{animationDelay: '0.2s'}}>

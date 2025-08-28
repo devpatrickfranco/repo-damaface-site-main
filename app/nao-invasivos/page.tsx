@@ -11,62 +11,72 @@ const nonInvasiveProcedures = [
       id: "ultraformer",
       name: "Ultraformer",
       description: "Tecnologia de ultrassom micro e macrofocado para efeito lifting e tratamento da flacidez facial e corporal",
-      price: "A partir de R$ 1.200",
+      price: "Sob consulta",
       image: "/images/categorias/não-invasivo-1.png",
       rating: 4.8,
       duration: "30-60 min",
-      sessions: "1-2 sessões",
+      sessions: "Variável",
     },
     {
       id: "lavieen",
       name: "Lavieen",
       description: "Laser que promove rejuvenescimento, melhora textura da pele, manchas e poros dilatados",
-      price: "A partir de R$ 1.000",
+      price: "Sob consulta",
       image: "/images/procedimentos/.nao-invasivo/lavieen/gerais/laser-lavieen-1.png",
       rating: 4.7,
       duration: "30-45 min",
-      sessions: "2-4 sessões",
+      sessions: "Variável",
     },
     {
       id: "criolipolise",
       name: "Criolipólise",
       description: "Redução de gordura localizada através do congelamento das células adiposas",
-      price: "A partir de R$ 800",
+      price: "Sob consulta",
       image: "/images/procedimentos/.nao-invasivo/criolipolise/gerais/criolipolis-1.png",
       rating: 4.8,
       duration: "60-90 min",
-      sessions: "1-3 sessões",
+      sessions: "Variável",
     },
     {
       id: "laser-co2",
       name: "Laser CO2 Fracionado",
       description: "Rejuvenesce a pele, reduz rugas, cicatrizes e melhora a textura",
-      price: "A partir de R$ 800",
+      price: "Sob consulta",
       image: "/images/procedimentos/.nao-invasivo/laser-co2/gerais/laser-co2-1.png",
       rating: 4.7,
       duration: "30-45 min",
-      sessions: "3-5 sessões",
+      sessions: "Variável",
     },
     {
       id: "depilacao-a-laser",
       name: "Depilação a Laser",
       description: "Elimina os pelos de forma progressiva e duradoura, deixando a pele lisa e macia",
-      price: "A partir de R$ 150",
+      price: "Sob consulta",
       image: "/images/procedimentos/.nao-invasivo/depilacao-laser/gerais/depilacao-laser-1.png",
       rating: 4.9,
       duration: "20-40 min",
-      sessions: "6-10 sessões",
+      sessions: "Variável",
     },
     {
       id: "limpeza-de-pele",
       name: "Limpeza de Pele Profunda",
       description: "Remove impurezas, cravos e células mortas, deixando a pele renovada",
-      price: "A partir de R$ 200",
+      price: "A partir de R$ 199,00",
       image: "/images/procedimentos/.nao-invasivo/limpeza-de-pele/gerais/limpeza-de-pele-1.png",
       rating: 4.9,
       duration: "60-90 min",
-      sessions: "Mensal",
+      sessions: "1 sessão",
     },
+    {
+      id: "microagulhamento",
+      name: "Microagulhamento",
+      description: "Estimula a renovação celular, melhora textura da pele e reduz cicatrizes e manchas",
+      price: "A partir de R$ 489,00",
+      image: "/images/procedimentos/microagulhamento/gerais/microagulhamento-1.png",
+      rating: 4.8,
+      duration: "40-60 min",
+      sessions: "1 sessões",
+    }
   ];
 
 
@@ -112,7 +122,7 @@ const nonInvasiveProcedures = [
                   <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
                 </Link>
                 <a
-                  href="https://wa.me/5511999999999?text=Olá! Gostaria de agendar uma avaliação para tratamentos não invasivos."
+                  href="https://typebot.damaface.com.br/agendar Gostaria de agendar uma avaliação para tratamentos não invasivos."
                   target="_blank"
                   className="btn-secondary"
                   rel="noreferrer"
@@ -164,7 +174,7 @@ const nonInvasiveProcedures = [
                     </h3>
                     <div className="flex items-center space-x-1 text-brand-pink">
                       <Star className="w-4 h-4 fill-current" />
-                      <span className="text-sm font-medium">{procedure.rating}</span>
+                      <span className="text-sm font-medium">{procedure.rating}/5</span>
                     </div>
                   </div>
 

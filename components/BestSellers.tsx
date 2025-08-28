@@ -20,7 +20,7 @@ const BestSellers = () => {
       id: 'full-face',
       name: 'Harmonização Facial Full Face',
       description: 'Redefine os contornos do rosto, promovendo equilíbrio e rejuvenescimento natural.',
-      price: 'A partir de R$ 4.450,00',
+      price: 'Sob consulta',
       image: '/images/procedimentos/full-face/gerais/full-face-1.png',
       rating: 4.8,
       category: 'facial'
@@ -29,7 +29,7 @@ const BestSellers = () => {
       id: 'bioestimulador',
       name: 'Bioestimulador de Colágeno',
       description: 'Estimula a produção natural de colágeno, rejuvenescendo a pele',
-      price: 'A partir de R$ 1.350,00',
+      price: 'A partir de R$ 1.799,00',
       image: '/images/procedimentos/bioestimulador/gerais/bioestimulador-1.jpeg',
       rating: 4.8,
       category: 'facial'
@@ -47,7 +47,7 @@ const BestSellers = () => {
       id: 'fios-sustentacao',
       name: 'Fios de Sustentação',
       description: 'Lifting facial sem cirurgia com efeito lifting imediato',
-      price: 'A partir de R$ 1.190,00',
+      price: 'A partir de R$ 349,00',
       image: '/images/procedimentos/fios/gerais/fios-1.png',
       rating: 4.7,
       category: 'facial'
@@ -56,7 +56,7 @@ const BestSellers = () => {
       id: 'peim',
       name: 'Peim',
       description: 'Secagem de Vasinhos',
-      price: 'A partir de R$ 199,00',
+      price: 'A partir de R$ 189,00',
       image: '/images/procedimentos/peim/gerais/peim-1.png',
       rating: 4.8,
       category: 'facial'

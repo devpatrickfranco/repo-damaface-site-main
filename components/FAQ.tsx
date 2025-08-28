@@ -112,7 +112,7 @@ const FAQ = () => {
             Não encontrou a resposta que procura?
           </p>
           <button
-            onClick={() => window.open('https://wa.me/5511999999999?text=Olá! Tenho uma dúvida sobre os tratamentos.', '_blank')}
+            onClick={() => window.open('https://typebot.damaface.com.br/agendar Tenho uma dúvida sobre os tratamentos.', '_blank')}
             className="btn-primary"
           >
             Fale conosco no WhatsApp

@@ -70,8 +70,8 @@ const Franchise = () => {
                 <div className="text-sm text-gray-400">Franquias Ativas</div>
               </div>
               <div className="text-center p-4 bg-gray-800/30 rounded-xl border border-gray-700">
-                <div className="text-2xl font-bold text-brand-pink mb-1">ROI 68%</div>
-                <div className="text-sm text-gray-400">Retorno Médio</div>
+                <div className="text-2xl font-bold text-brand-pink mb-1">12-24</div>
+                <div className="text-sm text-gray-400">Payback</div>
               </div>
             </div>
  
@@ -116,9 +116,9 @@ const Franchise = () => {
             <div className="mt-8 p-6 bg-gradient-to-r from-brand-pink/10 to-purple-500/10 rounded-xl border border-brand-pink/20">
               <h3 className="text-xl font-semibold text-white mb-3">Investimento</h3>
               <div className="space-y-2 text-sm">
-                <p className="text-gray-300">Taxa de Franquia: <span className="text-brand-pink font-semibold">R$ 45.000</span></p>
-                <p className="text-gray-300">Capital de Giro: <span className="text-brand-pink font-semibold">R$ 80.000</span></p>
-                <p className="text-gray-300">Investimento Total: <span className="text-brand-pink font-semibold">a partir de R$ 150.000</span></p>
+                <p className="text-gray-300">Taxa de Franquia: <span className="text-brand-pink font-semibold">R$ 47.900</span></p>
+                <p className="text-gray-300">Implantação: <span className="text-brand-pink font-semibold">R$ 79.900</span></p>
+                <p className="text-gray-300">Investimento inicial: <span className="text-brand-pink font-semibold">a partir de R$ 127.000</span></p>
               </div>
             </div>
           </div>

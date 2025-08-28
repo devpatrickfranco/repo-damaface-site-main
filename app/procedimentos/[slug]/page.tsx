@@ -18,20 +18,16 @@ export function generateStaticParams() {
     { slug: "bioestimulador-de-colageno" },
     { slug: "preenchimento-facial" },
     { slug: "fios-de-sustentacao" },
-    { slug: "lipo-papada" },
-    { slug: "microagulhamento" },
+    { slug: "lipo-de-papada" },
     { slug: "skinbooster" },
     { slug: "peeling-quimico" },
     // Corporal
-    { slug: "bioestimulador-de-colageno-corporal" },
-    { slug: "fios-de-sustentacao-corporal" },
+    { slug: "bioestimulador-corporal" },
     { slug: "peim" },
     { slug: "preenchimento-de-gluteo" },
     { slug: "enzimas-para-gordura-localizada" },
-    { slug: "intradermoterapia" },
     { slug: "massagem-relaxante" },
     { slug: "massagem-modeladora" },
-    { slug: "pump-up" },
     // Não Invasivos
     { slug: "ultraformer" },
     { slug: "lavieen" },
@@ -39,6 +35,8 @@ export function generateStaticParams() {
     { slug: "laser-co2" },
     { slug: "depilacao-a-laser" },
     { slug: "limpeza-de-pele" },
+    { slug: "microagulhamento" },
+
   ]
 }
 

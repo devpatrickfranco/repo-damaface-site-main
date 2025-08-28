@@ -20,7 +20,7 @@ const Categories = () => {
       icon: <Zap className="w-8 h-8" />,
       href: '/corporal',
       image: '/images/categorias/corporal-1.png',
-      treatments: ['Criolipólise', 'Criofrequência', 'Celulite', 'Flacidez'],
+      treatments: ['Criolipólise', 'Criofrequência', 'Emagrecimento', 'Flacidez'],
       color: 'from-blue-500/20 to-brand-pink/20'
     },
     {

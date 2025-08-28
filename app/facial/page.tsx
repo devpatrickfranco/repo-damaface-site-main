@@ -21,9 +21,9 @@ const facialProcedures = [
     id: "harmonizacao-facial",
     name: "Harmonização Facial",
     description: "Redefine os contornos do rosto, promovendo equilíbrio e rejuvenescimento natural",
-    price: "A partir de R$ 4.450,00",
+    price: "Sob consulta",
     image: "/images/procedimentos/full-face/gerais/full-face-1.png",
-    rating: 4.8,
+    rating: 5,
     duration: "60-90 min",
     sessions: "Variável",
   },
@@ -31,11 +31,11 @@ const facialProcedures = [
     id: "bioestimulador-de-colageno",
     name: "Bioestimulador de Colágeno",
     description: "Estimula a produção natural de colágeno, rejuvenescendo a pele",
-    price: "A partir de R$ 1.350,00",
+    price: "A partir de R$ 1.799,00",
     image: "/images/procedimentos/bioestimulador/gerais/bioestimulador-1.jpeg",
-    rating: 4.8,
+    rating: 5,
     duration: "45-60 min",
-    sessions: "2-3 sessões",
+    sessions: "Variável",
   },
   {
     id: "preenchimento-facial",
@@ -51,9 +51,9 @@ const facialProcedures = [
     id: "fios-de-sustentacao",
     name: "Fios de Sustentação",
     description: "Lifting facial sem cirurgia com efeito lifting imediato",
-    price: "A partir de R$ 1.200,00",
+    price: "A partir de R$ 349,00",
     image: "/lifting-facial-threads.png",
-    rating: 4.7,
+    rating: 4.9,
     duration: "45-60 min",
     sessions: "1 sessão",
   },
@@ -61,41 +61,31 @@ const facialProcedures = [
     id: "skinbooster",
     name: "Skinbooster",
     description: "Hidratação profunda e melhora da qualidade da pele",
-    price: "A partir de R$ 600,00",
+    price: "A partir de R$ 990,00",
     image: "/images/procedimentos/skinbooster/gerais/skinbooster-1.png",
     rating: 4.8,
     duration: "30-45 min",
-    sessions: "3 sessões",
+    sessions: "1 sessão",
   },
   {
-    id: "lipo-papada",
+    id: "lipo-de-papada",
     name: "Lipo de Papada",
     description: "Reduz a gordura localizada abaixo do queixo, afinando o contorno facial",
-    price: "A partir de R$ 1.000,00",
+    price: "A partir de R$ 489,00",
     image: "/images/procedimentos/lipo-de-papada/gerais/lipo-de-papada-1.png",
     rating: 4.7,
     duration: "40-60 min",
-    sessions: "1-2 sessões",
-  },
-  {
-    id: "microagulhamento",
-    name: "Microagulhamento",
-    description: "Estimula a renovação celular, melhora textura da pele e reduz cicatrizes e manchas",
-    price: "A partir de R$ 500,00",
-    image: "/images/procedimentos/microagulhamento/gerais/microagulhamento-1.png",
-    rating: 4.8,
-    duration: "40-60 min",
-    sessions: "3-4 sessões",
+    sessions: "1 sessão",
   },
   {
     id: "peeling-quimico",
     name: "Peeling Químico",
     description: "Promove a renovação da pele, clareando manchas e suavizando linhas finas",
-    price: "A partir de R$ 400,00",
+    price: "A partir de R$ 389,00",
     image: "images/procedimentos/peeling-quimico/gerais/peeling-quimico-1.png",
     rating: 4.7,
     duration: "30-45 min",
-    sessions: "2-4 sessões",
+    sessions: "1 sessão",
   },
 ];
 
@@ -141,7 +131,7 @@ const facialProcedures = [
                   <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
                 </Link>
                 <a
-                  href="https://wa.me/5511999999999?text=Olá! Gostaria de agendar uma avaliação para tratamentos faciais."
+                  href="https://typebot.damaface.com.br/agendar Gostaria de agendar uma avaliação para tratamentos faciais."
                   target="_blank"
                   className="btn-secondary"
                   rel="noreferrer"
@@ -192,7 +182,7 @@ const facialProcedures = [
                     </h3>
                     <div className="flex items-center space-x-1 text-brand-pink">
                       <Star className="w-4 h-4 fill-current" />
-                      <span className="text-sm font-medium">{procedure.rating}</span>
+                      <span className="text-sm font-medium">{procedure.rating}/5</span>
                     </div>
                   </div>
 

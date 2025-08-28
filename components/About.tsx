@@ -55,7 +55,7 @@ const About = () => {
               <span className="block text-brand-pink">DamaFace</span>
             </h2>
             <p className="text-lg text-gray-300 mb-6 leading-relaxed">
-              Com mais de 10 anos de experiência no mercado de estética, 
+              Com mais de 5 anos de experiência no mercado de estética, 
               a DamaFace se consolidou como referência em tratamentos faciais 
               e corporais, oferecendo resultados naturais e duradouros.
             </p>
@@ -69,11 +69,11 @@ const About = () => {
             {/* Stats */}
             <div className="grid grid-cols-2 gap-6">
               <div className="text-center lg:text-left">
-                <div className="text-3xl font-bold text-brand-pink mb-2">500+</div>
+                <div className="text-3xl font-bold text-brand-pink mb-2">1.2M</div>
                 <div className="text-gray-400 text-sm">Clientes Atendidos</div>
               </div>
               <div className="text-center lg:text-left">
-                <div className="text-3xl font-bold text-brand-pink mb-2">10+</div>
+                <div className="text-3xl font-bold text-brand-pink mb-2">5+</div>
                 <div className="text-gray-400 text-sm">Anos no Mercado</div>
               </div>
             </div>

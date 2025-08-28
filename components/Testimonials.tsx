@@ -60,7 +60,7 @@ const Testimonials = () => {
   }, []);
 
   const handleWhatsAppClick = () => {
-    window.open('https://wa.me/5511999999999?text=Olá! Vi os depoimentos e gostaria de saber mais sobre os tratamentos.', '_blank');
+    window.open('https://typebot.damaface.com.br/agendar Vi os depoimentos e gostaria de saber mais sobre os tratamentos.', '_blank');
   };
 
   return (
@@ -157,30 +157,17 @@ const Testimonials = () => {
             <div className="text-gray-400 text-sm">Taxa de Satisfação</div>
           </div>
           <div className="text-center p-6 bg-gray-900/30 rounded-xl border border-gray-800">
-            <div className="text-3xl font-bold text-brand-pink mb-2">1M+</div>
+            <div className="text-3xl font-bold text-brand-pink mb-2">1.2M</div>
             <div className="text-gray-400 text-sm">Clientes Atendidos</div>
           </div>
           <div className="text-center p-6 bg-gray-900/30 rounded-xl border border-gray-800">
-            <div className="text-3xl font-bold text-brand-pink mb-2">4.9</div>
+            <div className="text-3xl font-bold text-brand-pink mb-2">4.9/5</div>
             <div className="text-gray-400 text-sm">Avaliação Média</div>
           </div>
           <div className="text-center p-6 bg-gray-900/30 rounded-xl border border-gray-800">
-            <div className="text-3xl font-bold text-brand-pink mb-2">95%</div>
+            <div className="text-3xl font-bold text-brand-pink mb-2">90%</div>
             <div className="text-gray-400 text-sm">Clientes Retornam</div>
           </div>
-        </div>
-
-        {/* CTA */}
-        <div className="text-center animate-on-scroll">
-          <button
-            onClick={handleWhatsAppClick}
-            className="btn-primary text-lg"
-          >
-            Veja mais resultados no WhatsApp
-          </button>
-          <p className="text-gray-400 text-sm mt-4">
-            Converse com nossa equipe e veja mais depoimentos e resultados
-          </p>
         </div>
       </div>
     </section>
