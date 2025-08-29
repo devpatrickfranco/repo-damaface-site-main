@@ -2,20 +2,22 @@ import { Metadata } from "next";
 import { getAllPosts, getPostBySlug } from "@/lib/posts";
 import BlogClientPage from "./BlogClientPage";
 
-export const revalidate = 60; // 🔹 já pronto pro futuro (ISR)
+export const revalidate = 60; // 🔹 ISR habilitado
 
-type PageProps = {
+type BlogPageProps = {
   params: { slug: string };
 };
 
-// Static params (enquanto for mock/local)
+// Geração de rotas estáticas
 export async function generateStaticParams() {
   const posts = await getAllPosts();
   return posts.map((post) => ({ slug: post.slug }));
 }
 
 // Metadata dinâmica
-export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
+export async function generateMetadata(
+  { params }: BlogPageProps
+): Promise<Metadata> {
   const post = await getPostBySlug(params.slug);
 
   if (!post) {
@@ -33,8 +35,8 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   };
 }
 
-// Server component que injeta os dados no Client
-export default async function BlogPage({ params }: PageProps) {
+// Server Component principal
+export default async function BlogPage({ params }: BlogPageProps) {
   const post = await getPostBySlug(params.slug);
 
   if (!post) {
