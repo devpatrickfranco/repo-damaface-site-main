@@ -12,9 +12,10 @@ export async function generateStaticParams() {
 
 // Metadata dinâmica
 export async function generateMetadata(
-  { params }: { params: { slug: string } }
+  { params }: { params: Promise<{ slug: string }> }
 ): Promise<Metadata> {
-  const post = await getPostBySlug(params.slug);
+  const { slug } = await params;
+  const post = await getPostBySlug(slug);
 
   if (!post) {
     return { title: "Post não encontrado" };
@@ -33,9 +34,10 @@ export async function generateMetadata(
 
 // Server Component principal
 export default async function BlogPage(
-  { params }: { params: { slug: string } }
+  { params }: { params: Promise<{ slug: string }> }
 ) {
-  const post = await getPostBySlug(params.slug);
+  const { slug } = await params;
+  const post = await getPostBySlug(slug);
 
   if (!post) {
     return <div>Post não encontrado</div>;
