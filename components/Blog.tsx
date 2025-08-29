@@ -1,9 +1,54 @@
 'use client';
 
-import { Calendar, ArrowRight, Clock } from 'lucide-react';
 import Link from 'next/link';
+import toast from 'react-hot-toast';
+import { newsletter } from '@/lib/utils'
+import { useState } from 'react';
+import { Calendar, ArrowRight, Clock } from 'lucide-react';
 
 const Blog = () => {
+  const [email, setEmail] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
+
+  const handleSubscribe = async () => {
+    if (!email.trim()) {
+      toast.error('Por favor, digite seu email');
+      return;
+    }
+
+    // Validação básica de email
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      toast.error('Por favor, digite um email válido');
+      return;
+    }
+
+    setIsLoading(true);
+    
+    try {
+      await newsletter(email);
+      
+      // Sucesso
+      toast.success('Newsletter cadastrada com sucesso! 🎉');
+      setEmail(''); // Limpa o campo
+      
+    } catch (error) {
+      // Erro
+      toast.error('Ops! Algo deu errado. Tente novamente.');
+      console.error('Erro ao cadastrar newsletter:', error);
+      
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Função para envio com Enter
+  const handleKeyPress = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter') {
+      handleSubscribe();
+    }
+  };
+
   const posts = [
     {
       id: 1,
@@ -122,11 +167,19 @@ const Blog = () => {
             <div className="flex flex-col sm:flex-row gap-4">
               <input
                 type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                onKeyPress={handleKeyPress}
                 placeholder="Seu melhor e-mail"
+                disabled={isLoading}
                 className="flex-1 px-4 py-3 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-brand-pink transition-colors"
               />
-              <button className="btn-primary">
-                Assinar Newsletter
+              <button 
+                onClick={handleSubscribe} 
+                disabled={isLoading}
+                className="btn-primary disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {isLoading ? 'Cadastrando...' : 'Assinar Newsletter'}
               </button>
             </div>
           </div>

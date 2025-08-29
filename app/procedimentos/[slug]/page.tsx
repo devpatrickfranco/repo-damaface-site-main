@@ -36,7 +36,6 @@ export function generateStaticParams() {
     { slug: "depilacao-a-laser" },
     { slug: "limpeza-de-pele" },
     { slug: "microagulhamento" },
-
   ]
 }
 

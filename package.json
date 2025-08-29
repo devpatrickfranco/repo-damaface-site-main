@@ -1,5 +1,5 @@
 {
-  "name": "my-v0-project",
+  "name": "site-institucional-damaface",
   "version": "0.1.0",
   "private": true,
   "scripts": {
@@ -51,6 +51,7 @@
     "@tiptap/starter-kit": "^3.3.0",
     "@types/mdx": "^2.0.13",
     "autoprefixer": "^10.4.20",
+    "axios": "^1.11.0",
     "bcrypt": "^6.0.0",
     "bcryptjs": "^3.0.2",
     "class-variance-authority": "^0.7.1",
@@ -71,6 +72,7 @@
     "react-day-picker": "latest",
     "react-dom": "^19",
     "react-hook-form": "latest",
+    "react-hot-toast": "^2.6.0",
     "react-resizable-panels": "latest",
     "recharts": "latest",
     "sonner": "latest",

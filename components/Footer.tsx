@@ -2,17 +2,85 @@
 
 import Link from 'next/link';
 import Image from 'next/image';
-import { Phone, Mail, MapPin, Instagram, Facebook } from 'lucide-react';
+import toast from 'react-hot-toast';
+import Modal  from './Modal'
+
+import { Phone, Mail, MapPin, Instagram, Facebook } from 'lucide-react'
+import { useState } from 'react'
+import { newsletter } from '@/lib/utils'
+
 
 const Footer = () => {
+
+  const [email, setEmail] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
+
+  const handleSubscribe = async () => {
+    if (!email.trim()) {
+      toast.error('Por favor, digite seu email');
+      return;
+    }
+
+    // Validação básica de email
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      toast.error('Por favor, digite um email válido');
+      return;
+    }
+
+    setIsLoading(true);
+    
+    try {
+      await newsletter(email);
+      
+      // Sucesso
+      toast.success('Newsletter cadastrada com sucesso! 🎉');
+      setEmail(''); // Limpa o campo
+      
+    } catch (error) {
+      // Erro
+      toast.error('Ops! Algo deu errado. Tente novamente.');
+      console.error('Erro ao cadastrar newsletter:', error);
+      
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Função para envio com Enter
+  const handleKeyPress = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter') {
+      handleSubscribe();
+    }
+  };
+
   const quickLinks = [
-    { name: 'Botox', href: '/facial/botox' },
-    { name: 'Preenchimento Labial', href: '/facial/preenchimento-labial' },
-    { name: 'Bioestimulador', href: '/facial/bioestimulador' },
-    { name: 'Criolipólise', href: '/corporal/criolipolise' },
-    { name: 'Limpeza de Pele', href: '/nao-invasivos/limpeza-de-pele' },
-    { name: 'Peeling Químico', href: '/nao-invasivos/peeling-quimico' }
+    // Facial
+    { name: 'Harmonização Facial', href: '/procedimentos/harmonizacao-facial' },
+    { name: 'Toxina Botulínica', href: '/procedimentos/toxina-botulinica' },
+    { name: 'Bioestimulador de Colágeno', href: '/procedimentos/bioestimulador-de-colageno' },
+    { name: 'Preenchimento Facial', href: '/procedimentos/preenchimento-facial' },
+    { name: 'Fios de Sustentação', href: '/procedimentos/fios-de-sustentacao' },
+    { name: 'Lipo de Papada', href: '/procedimentos/lipo-de-papada' },
+    { name: 'Skinbooster', href: '/procedimentos/skinbooster' },
+    { name: 'Peeling Químico', href: '/procedimentos/peeling-quimico' },
+    // Corporal
+    { name: 'Bioestimulador Corporal', href: '/procedimentos/bioestimulador-corporal' },
+    { name: 'PEIM', href: '/procedimentos/peim' },
+    { name: 'Preenchimento de Glúteo', href: '/procedimentos/preenchimento-de-gluteo' },
+    { name: 'Enzimas para Gordura Localizada', href: '/procedimentos/enzimas-para-gordura-localizada' },
+    { name: 'Massagem Relaxante', href: '/procedimentos/massagem-relaxante' },
+    { name: 'Massagem Modeladora', href: '/procedimentos/massagem-modeladora' },
+    // Não Invasivos
+    { name: 'Ultraformer', href: '/procedimentos/ultraformer' },
+    { name: 'Lavieen', href: '/procedimentos/lavieen' },
+    { name: 'Criolipólise', href: '/procedimentos/criolipolise' },
+    { name: 'Laser CO2', href: '/procedimentos/laser-co2' },
+    { name: 'Depilação a Laser', href: '/procedimentos/depilacao-a-laser' },
+    { name: 'Limpeza de Pele', href: '/procedimentos/limpeza-de-pele' },
+    { name: 'Microagulhamento', href: '/procedimentos/microagulhamento' }
   ];
+
 
   const services = [
     { name: 'Tratamentos Faciais', href: '/facial' },
@@ -159,12 +227,19 @@ const Footer = () => {
             </p>
             <div className="flex gap-3">
               <input
-                type="email"
-                placeholder="Seu e-mail"
+                 type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                onKeyPress={handleKeyPress}
+                placeholder="Seu melhor e-mail"
+                disabled={isLoading}
                 className="flex-1 px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-500 text-sm focus:outline-none focus:border-brand-pink transition-colors"
               />
-              <button className="bg-brand-pink hover:bg-brand-pink/90 text-white px-6 py-2 rounded-lg font-medium text-sm transition-colors">
-                Assinar
+              <button 
+                onClick={handleSubscribe} 
+                disabled={isLoading}
+                className="bg-brand-pink hover:bg-brand-pink/90 text-white px-6 py-2 rounded-lg font-medium text-sm transition-colors">
+                {isLoading ? 'Cadastrando...' : 'Assinar Newsletter'}
               </button>
             </div>
           </div>
@@ -178,12 +253,94 @@ const Footer = () => {
             </p>
             
             <div className="flex space-x-6 mt-4 md:mt-0">
-              <Link href="/termos" className="hover:text-brand-pink transition-colors">
-                Termos de Uso
-              </Link>
-              <Link href="/privacidade" className="hover:text-brand-pink transition-colors">
-                Política de Privacidade
-              </Link>
+              <Modal 
+                title="Termos de Uso" 
+                content={`
+              Termos de Uso do Site DamaFace
+
+              Estes Termos de Uso regem o uso do site DamaFace (damaface.com). Ao acessar ou usar o site, você concorda com estes termos e condições.
+
+              Uso do Site:
+
+              Você concorda em usar o site DamaFace apenas para fins legais e de acordo com estes Termos de Uso.
+
+              Você é responsável por garantir que todas as informações fornecidas durante o uso do site sejam precisas, completas e atualizadas.
+
+              Você concorda em não usar o site de forma que possa danificar, desativar, sobrecarregar ou prejudicar o funcionamento do site ou interferir no uso e gozo de qualquer outra parte.
+
+              Propriedade Intelectual:
+
+              O site DamaFace e todo o seu conteúdo, incluindo textos, gráficos, logotipos, imagens, vídeos, áudios e software, são de propriedade exclusiva ou licenciados para nós e estão protegidos por leis de direitos autorais e outras leis de propriedade intelectual.
+
+              Você concorda em não reproduzir, distribuir, modificar, criar trabalhos derivados, exibir publicamente, realizar publicamente, republicar, baixar, armazenar ou transmitir qualquer parte do conteúdo do site sem a nossa autorização prévia por escrito.
+
+              Links para Outros Sites:
+
+              O site DamaFace pode conter links para sites de terceiros que não são controlados ou operados por nós. Não nos responsabilizamos pelo conteúdo, políticas de privacidade ou práticas de qualquer site de terceiros.
+
+              O uso de sites de terceiros está sujeito aos termos e condições e políticas de privacidade desses sites.
+
+              Limitação de Responsabilidade:
+
+              O site DamaFace é fornecido "como está" e "conforme disponível", sem garantias de qualquer tipo, expressas ou implícitas.
+
+              Não garantimos que o site seja livre de erros ou que seu acesso será ininterrupto.
+
+              Em nenhuma circunstância seremos responsáveis por quaisquer danos diretos, indiretos, incidentais, especiais, consequentes ou punitivos decorrentes do uso ou incapacidade de usar o site.
+
+              Alterações nos Termos de Uso:
+
+              Reservamo-nos o direito de modificar ou substituir estes Termos de Uso a qualquer momento, e tais alterações entrarão em vigor imediatamente após serem publicadas no site.
+
+              Ao continuar a acessar ou usar o site após quaisquer alterações nos Termos de Uso, você concorda em ficar vinculado aos Termos de Uso revisados.
+
+              Se tiver alguma dúvida ou preocupação sobre estes Termos de Uso, entre em contato conosco através do e-mail contato@damaface.com.br
+              `} 
+              />
+
+              <Modal 
+                title="Política de Privacidade" 
+                content={`
+              Política de Privacidade do Site DamaFace
+
+              A privacidade dos nossos visitantes é extremamente importante para nós. Esta política de privacidade descreve os tipos de informações pessoais que são recebidas e coletadas pelo site DamaFace (damaface.com) e como essas informações são utilizadas.
+
+              Informações que Coletamos:
+
+              Informações Pessoais Voluntárias: Podemos coletar informações pessoais que você nos fornece voluntariamente ao preencher formulários no site, como nome, endereço de e-mail, número de telefone e outras informações relevantes para a interação com o site.
+
+              Informações de Navegação: O nosso servidor registra automaticamente informações como o seu endereço IP, tipo de navegador, páginas de referência/saída e URLs, horários de acesso e cliques para analisar tendências, administrar o site, rastrear o movimento do usuário e reunir informações demográficas.
+
+              Uso das Informações:
+
+              Melhoria do Site: Utilizamos as informações coletadas para entender como os usuários utilizam o site e para melhorar a sua experiência de navegação.
+
+              Comunicação: Podemos utilizar o seu endereço de e-mail para responder às suas dúvidas, fornecer informações solicitadas ou enviar atualizações sobre o site e seus serviços, desde que tenhamos obtido o seu consentimento para fazê-lo.
+
+              Marketing: Podemos utilizar informações de contato para enviar comunicações de marketing sobre produtos, serviços, promoções ou eventos especiais, sempre que tenhamos obtido o seu consentimento para fazê-lo.
+
+              Proteção das Informações:
+
+              Tomamos precauções razoáveis para proteger as informações pessoais dos nossos usuários contra acesso não autorizado, alteração, divulgação ou destruição.
+              Cookies e Tecnologias Semelhantes:
+
+              O site DamaFace utiliza cookies e outras tecnologias de rastreamento para personalizar a sua experiência de navegação e para coletar informações sobre como você interage com o site.
+
+              Você pode controlar o uso de cookies nas configurações do seu navegador. No entanto, desativar os cookies pode afetar a sua capacidade de utilizar algumas partes do site.
+
+              Compartilhamento de Informações:
+
+              Não vendemos, comercializamos ou alugamos informações pessoais dos nossos usuários a terceiros.
+
+              Podemos compartilhar informações pessoais com terceiros que nos prestam serviços de suporte, desde que essas partes concordem em manter a confidencialidade das informações.
+
+              Alterações na Política de Privacidade:
+
+              Reservamo-nos o direito de fazer alterações nesta política de privacidade a qualquer momento, e tais alterações entrarão em vigor imediatamente após serem publicadas no site.
+              Ao utilizar o site DamaFace, você concorda com esta política de privacidade. Se tiver alguma dúvida ou preocupação sobre esta política, entre em contato conosco através do e-mail contato@damaface.com.br
+              `} 
+              />
+
               <span>CNPJ: 31.336.419/0001-42</span>
             </div>
           </div>

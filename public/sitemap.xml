@@ -1,155 +1,186 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+
   <!-- Página Principal -->
   <url>
-    <loc>https://damaface.com.br/</loc>
-    <lastmod>2024-01-15</lastmod>
+    <loc>https://www.seudominio.com.br/</loc>
+    <lastmod>2025-08-29</lastmod>
     <changefreq>weekly</changefreq>
     <priority>1.0</priority>
   </url>
-  
-  <!-- Páginas de Categorias -->
+
+  <!-- Páginas de Categoria -->
   <url>
-    <loc>https://damaface.com.br/facial</loc>
-    <lastmod>2024-01-15</lastmod>
+    <loc>https://www.seudominio.com.br/blog</loc>
+    <lastmod>2025-08-29</lastmod>
     <changefreq>weekly</changefreq>
-    <priority>0.9</priority>
+    <priority>0.8</priority>
   </url>
-  
   <url>
-    <loc>https://damaface.com.br/corporal</loc>
-    <lastmod>2024-01-15</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.9</priority>
-  </url>
-  
-  <url>
-    <loc>https://damaface.com.br/nao-invasivos</loc>
-    <lastmod>2024-01-15</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.9</priority>
-  </url>
-  
-  <!-- Páginas de Procedimentos Faciais -->
-  <url>
-    <loc>https://damaface.com.br/procedimentos/botox</loc>
-    <lastmod>2024-01-15</lastmod>
+    <loc>https://www.seudominio.com.br/corporal</loc>
+    <lastmod>2025-08-29</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
-  
   <url>
-    <loc>https://damaface.com.br/procedimentos/preenchimento-labial</loc>
-    <lastmod>2024-01-15</lastmod>
+    <loc>https://www.seudominio.com.br/facial</loc>
+    <lastmod>2025-08-29</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
-  
   <url>
-    <loc>https://damaface.com.br/procedimentos/bioestimulador-colageno</loc>
-    <lastmod>2024-01-15</lastmod>
+    <loc>https://www.seudominio.com.br/nao-invasivos</loc>
+    <lastmod>2025-08-29</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
-  
+
+  <!-- Posts do Blog -->
   <url>
-    <loc>https://damaface.com.br/procedimentos/fios-pdo</loc>
-    <lastmod>2024-01-15</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.8</priority>
-  </url>
-  
-  <url>
-    <loc>https://damaface.com.br/procedimentos/skinbooster</loc>
-    <lastmod>2024-01-15</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.8</priority>
-  </url>
-  
-  <url>
-    <loc>https://damaface.com.br/procedimentos/peeling-quimico</loc>
-    <lastmod>2024-01-15</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.8</priority>
-  </url>
-  
-  <!-- Páginas de Procedimentos Corporais -->
-  <url>
-    <loc>https://damaface.com.br/procedimentos/lipoaspiração-vaser</loc>
-    <lastmod>2024-01-15</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.7</priority>
-  </url>
-  
-  <url>
-    <loc>https://damaface.com.br/procedimentos/abdominoplastia</loc>
-    <lastmod>2024-01-15</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.7</priority>
-  </url>
-  
-  <url>
-    <loc>https://damaface.com.br/procedimentos/mamoplastia</loc>
-    <lastmod>2024-01-15</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.7</priority>
-  </url>
-  
-  <url>
-    <loc>https://damaface.com.br/procedimentos/gluteoplastia</loc>
-    <lastmod>2024-01-15</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.7</priority>
-  </url>
-  
-  <!-- Páginas de Procedimentos Não Invasivos -->
-  <url>
-    <loc>https://damaface.com.br/procedimentos/criolipólise</loc>
-    <lastmod>2024-01-15</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.7</priority>
-  </url>
-  
-  <url>
-    <loc>https://damaface.com.br/procedimentos/radiofrequencia</loc>
-    <lastmod>2024-01-15</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.7</priority>
-  </url>
-  
-  <url>
-    <loc>https://damaface.com.br/procedimentos/laser-co2</loc>
-    <lastmod>2024-01-15</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.7</priority>
-  </url>
-  
-  <url>
-    <loc>https://damaface.com.br/procedimentos/microagulhamento</loc>
-    <lastmod>2024-01-15</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.7</priority>
-  </url>
-  
-  <!-- Outras Páginas -->
-  <url>
-    <loc>https://damaface.com.br/franquia</loc>
-    <lastmod>2024-01-15</lastmod>
+    <loc>https://www.seudominio.com.br/blog/beneficios-botox-rugas-expressao</loc>
+    <lastmod>2025-08-29</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
   </url>
-  
   <url>
-    <loc>https://damaface.com.br/blog</loc>
-    <lastmod>2024-01-15</lastmod>
-    <changefreq>weekly</changefreq>
+    <loc>https://www.seudominio.com.br/blog/harmonizacao-facial-guia-completo</loc>
+    <lastmod>2025-08-29</lastmod>
+    <changefreq>monthly</changefreq>
     <priority>0.6</priority>
   </url>
-  
   <url>
-    <loc>https://damaface.com.br/contato</loc>
-    <lastmod>2024-01-15</lastmod>
+    <loc>https://www.seudominio.com.br/blog/cuidados-pos-procedimento-dicas</loc>
+    <lastmod>2025-08-29</lastmod>
     <changefreq>monthly</changefreq>
-    <priority>0.5</priority>
+    <priority>0.6</priority>
   </url>
+
+  <!-- Páginas de Procedimentos -->
+  <url>
+    <loc>https://www.seudominio.com.br/procedimentos/harmonizacao-facial</loc>
+    <lastmod>2025-08-29</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://www.seudominio.com.br/procedimentos/toxina-botulinica</loc>
+    <lastmod>2025-08-29</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://www.seudominio.com.br/procedimentos/bioestimulador-de-colageno</loc>
+    <lastmod>2025-08-29</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://www.seudominio.com.br/procedimentos/preenchimento-facial</loc>
+    <lastmod>2025-08-29</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://www.seudominio.com.br/procedimentos/fios-de-sustentacao</loc>
+    <lastmod>2025-08-29</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://www.seudominio.com.br/procedimentos/lipo-de-papada</loc>
+    <lastmod>2025-08-29</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://www.seudominio.com.br/procedimentos/skinbooster</loc>
+    <lastmod>2025-08-29</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://www.seudominio.com.br/procedimentos/peeling-quimico</loc>
+    <lastmod>2025-08-29</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://www.seudominio.com.br/procedimentos/bioestimulador-corporal</loc>
+    <lastmod>2025-08-29</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://www.seudominio.com.br/procedimentos/peim</loc>
+    <lastmod>2025-08-29</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://www.seudominio.com.br/procedimentos/preenchimento-de-gluteo</loc>
+    <lastmod>2025-08-29</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://www.seudominio.com.br/procedimentos/enzimas-para-gordura-localizada</loc>
+    <lastmod>2025-08-29</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://www.seudominio.com.br/procedimentos/massagem-relaxante</loc>
+    <lastmod>2025-08-29</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://www.seudominio.com.br/procedimentos/massagem-modeladora</loc>
+    <lastmod>2025-08-29</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://www.seudominio.com.br/procedimentos/ultraformer</loc>
+    <lastmod>2025-08-29</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://www.seudominio.com.br/procedimentos/lavieen</loc>
+    <lastmod>2025-08-29</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://www.seudominio.com.br/procedimentos/criolipolise</loc>
+    <lastmod>2025-08-29</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://www.seudominio.com.br/procedimentos/laser-co2</loc>
+    <lastmod>2025-08-29</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://www.seudominio.com.br/procedimentos/depilacao-a-laser</loc>
+    <lastmod>2025-08-29</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://www.seudominio.com.br/procedimentos/limpeza-de-pele</loc>
+    <lastmod>2025-08-29</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://www.seudominio.com.br/procedimentos/microagulhamento</loc>
+    <lastmod>2025-08-29</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+
 </urlset>
