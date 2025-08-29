@@ -2,11 +2,7 @@ import { Metadata } from "next";
 import { getAllPosts, getPostBySlug } from "@/lib/posts";
 import BlogClientPage from "./BlogClientPage";
 
-export const revalidate = 60; // 🔹 ISR habilitado
-
-type BlogPageProps = {
-  params: { slug: string };
-};
+export const revalidate = 60;
 
 // Geração de rotas estáticas
 export async function generateStaticParams() {
@@ -16,7 +12,7 @@ export async function generateStaticParams() {
 
 // Metadata dinâmica
 export async function generateMetadata(
-  { params }: BlogPageProps
+  { params }: { params: { slug: string } }
 ): Promise<Metadata> {
   const post = await getPostBySlug(params.slug);
 
@@ -36,7 +32,9 @@ export async function generateMetadata(
 }
 
 // Server Component principal
-export default async function BlogPage({ params }: BlogPageProps) {
+export default async function BlogPage(
+  { params }: { params: { slug: string } }
+) {
   const post = await getPostBySlug(params.slug);
 
   if (!post) {
