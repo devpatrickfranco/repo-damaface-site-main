@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { Plus, Minus } from 'lucide-react';
+import { CtaButtonWhatsapp } from './CtaButtonWhatsapp';
 
 const FAQ = () => {
   const [openItems, setOpenItems] = useState<Set<number>>(new Set([0])); // First item open by default
@@ -117,6 +118,9 @@ const FAQ = () => {
           >
             Fale conosco no WhatsApp
           </button>
+        <div className="flex justify-center gap-6 text-center mt-12 animate-on-scroll">
+          <CtaButtonWhatsapp />
+        </div>
         </div>
       </div>
     </section>

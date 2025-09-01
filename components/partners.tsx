@@ -1,6 +1,7 @@
 'use client';
 
 import { Star, Award, Shield, Heart } from 'lucide-react';
+import { CtaButtonWhatsapp } from './CtaButtonWhatsapp';
 
 const Partners = () => {
   const partners = [
@@ -37,7 +38,7 @@ const Partners = () => {
       name: 'Rennova',
       description: 'Excelência em tratamentos estéticos e dermocosméticos',
       logo: '/images/partners/logo-rennova.png',
-      products: ['Rennova Peel', 'Rennova Skin Booster', 'Rennova Filler'],
+      products: ['Toxina Nabota', 'Bioestimuladores Elleva e Diamond', 'Linha completa de preenchedores'],
       certification: 'Distribuidor Oficial',
       rating: 4.9
     }
@@ -188,7 +189,7 @@ const Partners = () => {
                 <div className="text-xs text-gray-400">Produtos Originais</div>
               </div>
               <div>
-                <div className="text-2xl font-bold text-brand-pink mb-1">15+</div>
+                <div className="text-2xl font-bold text-brand-pink mb-1">6+</div>
                 <div className="text-xs text-gray-400">Marcas Parceiras</div>
               </div>
               <div>
@@ -202,6 +203,9 @@ const Partners = () => {
             </div>
           </div>
         </div>
+      </div>
+      <div className="flex justify-center gap-6 text-center mt-12 animate-on-scroll">
+        <CtaButtonWhatsapp className='mt-12' />
       </div>
     </section>
   );

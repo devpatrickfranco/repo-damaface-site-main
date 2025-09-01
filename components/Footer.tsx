@@ -90,10 +90,9 @@ const Footer = () => {
   ];
 
   const company = [
-    // { name: 'Blog', href: '/blog' },
-    // { name: 'Sobre Nós', href: '/sobre' },
+    { name: 'Blog', href: '/blog' },
+    { name: 'Sobre Nós', href: '/#about' },
     // { name: 'Contato', href: '/contato' },
-    { name: 'Política de Privacidade', href: '/privacidade' }
   ];
 
   return (

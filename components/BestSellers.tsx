@@ -1,8 +1,10 @@
 'use client';
 
-import { Star, ArrowRight } from 'lucide-react';
 import Link from 'next/link';
 import Image from 'next/image';
+
+import { Star, ArrowRight } from 'lucide-react';
+import { CtaButtonWhatsapp } from './CtaButtonWhatsapp'
 
 const BestSellers = () => {
   const treatments = [
@@ -150,10 +152,11 @@ const BestSellers = () => {
           })}
         </div>
 
-        <div className="text-center mt-12 animate-on-scroll">
+        <div className="flex gap-6 text-center mt-12 animate-on-scroll justify-center">
           <Link href="/facial" className="btn-primary">
             Ver Todos os Tratamentos
           </Link>
+          <CtaButtonWhatsapp />
         </div>
       </div>
     </section>

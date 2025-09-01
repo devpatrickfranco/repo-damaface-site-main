@@ -4,6 +4,7 @@ import { useState, useEffect } from "react"
 import Link from "next/link"
 import Image from "next/image"
 import { Menu, X, Phone, Users } from "lucide-react"
+import { CtaButtonWhatsapp } from "./CtaButtonWhatsapp"
 
 const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
@@ -80,16 +81,7 @@ const Header = () => {
 
           {/* CTA Buttons */}
           <div className="hidden lg:flex items-center space-x-2">
-            <button
-              onClick={handleWhatsAppClick}
-              className="relative flex items-center space-x-2 bg-green-600 text-white font-semibold py-2 px-5 rounded-full transition-all duration-300 overflow-hidden group hover:shadow-lg hover:shadow-green-600/25 min-h-[40px] h-12"
-              style={{ fontSize: "1rem" }}
-            >
-              <div className="absolute inset-0 bg-gradient-to-r from-green-500 to-green-700 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-              <div className="absolute inset-0 bg-white/10 opacity-0 group-hover:opacity-100 transition-all duration-500 transform scale-x-0 group-hover:scale-x-100 origin-left"></div>
-              <Phone className="w-5 h-5 relative z-10 transition-transform duration-300 group-hover:scale-110" />
-              <span className="relative z-10">Avaliação WhatsApp</span>
-            </button>
+            <CtaButtonWhatsapp />
             <button
               onClick={handleFranchiseClick}
               className="relative flex items-center space-x-2 bg-brand-pink text-white font-semibold py-2 px-5 rounded-full transition-all duration-300 overflow-hidden group hover:shadow-lg hover:shadow-brand-pink/25 min-h-[40px] h-12"

@@ -1,6 +1,7 @@
 'use client';
 
 import { Award, Users, Clock, Shield } from 'lucide-react';
+import { CtaButtonWhatsapp } from './CtaButtonWhatsapp';
 
 const About = () => {
   const team = [
@@ -45,7 +46,7 @@ const About = () => {
   ];
 
   return (
-    <section className="section-padding bg-gray-900/20">
+    <section id='about' className="section-padding bg-gray-900/20">
       <div className="container">
         {/* About Section */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center mb-20">
@@ -166,6 +167,9 @@ const About = () => {
             ))}
           </div>
         </div>
+      </div>
+      <div className="flex justify-center gap-6 text-center mt-12 animate-on-scroll">
+        <CtaButtonWhatsapp className='mt-12'/>
       </div>
     </section>
   );

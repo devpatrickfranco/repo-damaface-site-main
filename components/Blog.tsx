@@ -52,36 +52,36 @@ const Blog = () => {
   const posts = [
     {
       id: 1,
-      title: 'Botox: Tudo que você precisa saber antes do procedimento',
-      excerpt: 'Descubra os cuidados, benefícios e resultados esperados do tratamento com toxina botulínica para rugas de expressão.',
+      title: 'Os Benefícios do Botox para Rugas de Expressão', // Título corrigido
+      excerpt: 'Descubra como o botox pode suavizar rugas de expressão de forma natural e segura, proporcionando um visual mais jovem e descansado.', // Excerpt do post completo
       author: 'Dra. Maria Silva',
-      date: '2024-01-15',
+      date: '2024-01-15', // Mantida a mesma data
       readTime: '5 min',
-      category: 'Procedimentos',
-      image: 'https://images.pexels.com/photos/3985360/pexels-photo-3985360.jpeg?auto=compress&cs=tinysrgb&w=500&h=300&fit=crop',
-      slug: 'botox-tudo-que-voce-precisa-saber'
+      category: 'Procedimentos Faciais', // Categoria corrigida
+      image: 'https://images.pexels.com/photos/3985360/pexels-photo-3985360.jpeg?auto=compress&cs=tinysrgb&w=500&h=300&fit=crop', // Imagem mantida (é a mesma do coverImage)
+      slug: 'beneficios-botox-rugas-expressao' // Slug corrigido
     },
     {
       id: 2,
-      title: 'Preenchimento Labial: Como conseguir lábios naturais',
-      excerpt: 'Técnicas modernas e dicas importantes para obter volume e definição labial com aparência natural e harmoniosa.',
+      title: 'Harmonização Facial: O que Você Precisa Saber', // Título corrigido
+      excerpt: 'Um guia completo sobre harmonização facial, desde os procedimentos mais comuns até os cuidados pós-tratamento.', // Excerpt do post completo
       author: 'Dr. João Santos',
-      date: '2024-01-10',
+      date: '2024-01-10', // Mantida a mesma data
       readTime: '4 min',
-      category: 'Harmonização',
-      image: 'https://images.pexels.com/photos/3985357/pexels-photo-3985357.jpeg?auto=compress&cs=tinysrgb&w=500&h=300&fit=crop',
-      slug: 'preenchimento-labial-labios-naturais'
+      category: 'Harmonização', // Categoria mantida
+      image: 'https://images.pexels.com/photos/3985327/pexels-photo-3985327.jpeg?auto=compress&cs=tinysrgb&w=500&h=300&fit=crop', // Imagem alterada para match do post 2
+      slug: 'harmonizacao-facial-guia-completo' // Slug corrigido
     },
     {
       id: 3,
-      title: 'Skincare anti-idade: Rotina para pele jovem por mais tempo',
-      excerpt: 'Monte uma rotina de cuidados eficaz com produtos e procedimentos que previnem e tratam os sinais do envelhecimento.',
-      author: 'Dra. Ana Costa',
-      date: '2024-01-05',
+      title: 'Cuidados Pós-Procedimento: Dicas Essenciais', // Título corrigido
+      excerpt: 'Saiba quais cuidados são fundamentais após realizar procedimentos estéticos para garantir os melhores resultados.', // Excerpt do post completo
+      author: 'Dr. João Santos',
+      date: '2024-01-05', // Mantida a mesma data
       readTime: '6 min',
-      category: 'Cuidados',
-      image: 'https://images.pexels.com/photos/3985327/pexels-photo-3985327.jpeg?auto=compress&cs=tinysrgb&w=500&h=300&fit=crop',
-      slug: 'skincare-anti-idade-pele-jovem'
+      category: 'Cuidados', // Categoria mantida
+      image: 'https://images.pexels.com/photos/3985329/pexels-photo-3985329.jpeg?auto=compress&cs=tinysrgb&w=500&h=300&fit=crop', // Imagem alterada para match do post 3
+      slug: 'cuidados-pos-procedimento-dicas' // Slug corrigido
     }
   ];
 
@@ -167,7 +167,6 @@ const Blog = () => {
             <div className="flex flex-col sm:flex-row gap-4">
               <input
                 type="email"
-                value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 onKeyPress={handleKeyPress}
                 placeholder="Seu melhor e-mail"

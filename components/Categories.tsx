@@ -2,6 +2,7 @@
 
 import { ArrowRight, Sparkles, Zap, Heart } from 'lucide-react';
 import Link from 'next/link';
+import { CtaButtonWhatsapp } from './CtaButtonWhatsapp';
 
 const Categories = () => {
   const categories = [
@@ -105,6 +106,9 @@ const Categories = () => {
           ))}
         </div>
       </div>
+        <div className="flex justify-center gap-6 text-center mt-12 animate-on-scroll">
+          <CtaButtonWhatsapp className='mt-12' />
+        </div>
     </section>
   );
 };

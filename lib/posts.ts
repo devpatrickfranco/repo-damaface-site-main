@@ -16,7 +16,7 @@ export type Post = {
   publishedAt: string;
 };
 
-// 🔹 mock estático (você já tem pronto)
+// mock estático
 export const posts: Post[] = [
     {
     id: '1',
@@ -103,66 +103,87 @@ export const posts: Post[] = [
     excerpt: 'Um guia completo sobre harmonização facial, desde os procedimentos mais comuns até os cuidados pós-tratamento.',
     content: `
       <h2>O que é Harmonização Facial?</h2>
+      <br>
+
       <p>A harmonização facial é um conjunto de procedimentos estéticos minimamente invasivos que tem como objetivo equilibrar e realçar os traços naturais do rosto. Através de técnicas como preenchimento com ácido hialurônico, aplicação de toxina botulínica e bioestimuladores, é possível corrigir assimetrias e proporcionar um aspecto mais jovem e harmônico.</p>
-      
+      <br>
+
       <h2>Principais procedimentos da harmonização facial</h2>
+      <br>
+
       <h3>1. Preenchimento com Ácido Hialurônico</h3>
       <p>O ácido hialurônico é uma substância naturalmente presente em nosso organismo, responsável pela hidratação e volume da pele. Quando aplicado como preenchimento, pode:</p>
+      <br>
       <ul>
-        <li>Aumentar o volume dos lábios</li>
-        <li>Definir o contorno facial</li>
-        <li>Preencher sulcos e rugas</li>
-        <li>Projetar o queixo e mandíbula</li>
-        <li>Harmonizar o nariz (rinomodelação)</li>
+        <li>- Aumentar o volume dos lábios</li>
+        <li>- Definir o contorno facial</li>
+        <li>- Preencher sulcos e rugas</li>
+        <li>- Projetar o queixo e mandíbula</li>
+        <li>- Harmonizar o nariz (rinomodelação)</li>
       </ul>
-      
+      <br>
+
       <h3>2. Toxina Botulínica (Botox)</h3>
       <p>Utilizada para relaxar músculos específicos, a toxina botulínica é eficaz para:</p>
+      <br>
+
       <ul>
-        <li>Suavizar rugas de expressão</li>
-        <li>Levantar as sobrancelhas</li>
-        <li>Reduzir a hipertrofia do músculo masseter</li>
-        <li>Tratar o sorriso gengival</li>
+        <li>- Suavizar rugas de expressão</li>
+        <li>- Levantar as sobrancelhas</li>
+        <li>- Reduzir a hipertrofia do músculo masseter</li>
+        <li>- Tratar o sorriso gengival</li>
       </ul>
-      
+      <br>
+
       <h3>3. Bioestimuladores de Colágeno</h3>
       <p>Substâncias que estimulam a produção natural de colágeno, proporcionando:</p>
+      <br>
+      
       <ul>
-        <li>Melhora da qualidade da pele</li>
-        <li>Aumento da firmeza e elasticidade</li>
-        <li>Resultados progressivos e naturais</li>
-        <li>Efeito lifting suave</li>
+        <li>- Melhora da qualidade da pele</li>
+        <li>- Aumento da firmeza e elasticidade</li>
+        <li>- Resultados progressivos e naturais</li>
+        <li>- Efeito lifting suave</li>
       </ul>
       
       <h2>Benefícios da harmonização facial</h2>
+      <br>
+
       <ul>
-        <li><strong>Resultados naturais:</strong> Realça a beleza natural sem alterar drasticamente a aparência</li>
-        <li><strong>Procedimentos minimamente invasivos:</strong> Não requer cirurgia</li>
-        <li><strong>Recuperação rápida:</strong> Permite retorno às atividades normais rapidamente</li>
-        <li><strong>Resultados imediatos:</strong> Muitos procedimentos mostram resultados logo após a aplicação</li>
-        <li><strong>Reversibilidade:</strong> A maioria dos procedimentos pode ser revertida se necessário</li>
+        <li>- <strong>Resultados naturais:</strong> Realça a beleza natural sem alterar drasticamente a aparência</li>
+        <li>- <strong>Procedimentos minimamente invasivos:</strong> Não requer cirurgia</li>
+        <li>- <strong>Recuperação rápida:</strong> Permite retorno às atividades normais rapidamente</li>
+        <li>- <strong>Resultados imediatos:</strong> Muitos procedimentos mostram resultados logo após a aplicação</li>
+        <li>- <strong>Reversibilidade:</strong> A maioria dos procedimentos pode ser revertida se necessário</li>
       </ul>
-      
+      <br>
+
       <h2>Planejamento personalizado</h2>
       <p>Cada rosto é único, por isso a harmonização facial deve ser sempre personalizada. O profissional deve considerar:</p>
+      <br>
+
       <ul>
-        <li>Formato do rosto</li>
-        <li>Proporções faciais</li>
-        <li>Idade e tipo de pele</li>
-        <li>Expectativas do paciente</li>
-        <li>Histórico médico</li>
+        <li>- Formato do rosto</li>
+        <li>- Proporções faciais</li>
+        <li>- Idade e tipo de pele</li>
+        <li>- Expectativas do paciente</li>
+        <li>- Histórico médico</li>
       </ul>
-      
+      <br>
+
       <h2>Cuidados importantes</h2>
       <p>Para garantir os melhores resultados e segurança:</p>
+      <br>
+
       <ul>
-        <li>Escolha sempre profissionais qualificados</li>
-        <li>Realize consulta prévia detalhada</li>
-        <li>Siga todas as orientações pós-procedimento</li>
-        <li>Mantenha expectativas realistas</li>
-        <li>Realize manutenções conforme orientação</li>
+        <li>- Escolha sempre profissionais qualificados</li>
+        <li>- Realize consulta prévia detalhada</li>
+        <li>- Siga todas as orientações pós-procedimento</li>
+        <li>- Mantenha expectativas realistas</li>
+        <li>- Realize manutenções conforme orientação</li>
       </ul>
-      
+      <br>
+
       <h2>Conclusão</h2>
       <p>A harmonização facial é uma excelente opção para quem busca realçar sua beleza natural de forma segura e eficaz. Com o acompanhamento de profissionais qualificados e o uso de produtos de qualidade, é possível alcançar resultados surpreendentes e duradouros.</p>
     `,
@@ -190,91 +211,125 @@ export const posts: Post[] = [
     excerpt: 'Saiba quais cuidados são fundamentais após realizar procedimentos estéticos para garantir os melhores resultados.',
     content: `
       <h2>A importância dos cuidados pós-procedimento</h2>
+      <br>
+
       <p>Os cuidados após procedimentos estéticos são fundamentais para garantir a eficácia do tratamento, minimizar riscos de complicações e acelerar o processo de recuperação. Seguir corretamente as orientações médicas pode fazer toda a diferença no resultado final.</p>
-      
+      <br>
+
       <h2>Cuidados gerais para todos os procedimentos</h2>
       <h3>Primeiras 24 horas</h3>
+      <br>
+
       <ul>
-        <li><strong>Evite tocar ou massagear a área tratada:</strong> Isso pode deslocar o produto aplicado ou causar irritação</li>
-        <li><strong>Não se deite de bruços:</strong> Mantenha a cabeça elevada para reduzir o inchaço</li>
-        <li><strong>Evite exercícios físicos intensos:</strong> Atividades que aumentem a circulação podem interferir no resultado</li>
-        <li><strong>Não consuma bebidas alcoólicas:</strong> O álcool pode aumentar o risco de hematomas</li>
-        <li><strong>Evite exposição ao calor excessivo:</strong> Saunas, banhos muito quentes e exposição solar direta</li>
+        <li>- <strong>Evite tocar ou massagear a área tratada:</strong> Isso pode deslocar o produto aplicado ou causar irritação</li>
+        <li>- <strong>Não se deite de bruços:</strong> Mantenha a cabeça elevada para reduzir o inchaço</li>
+        <li>- <strong>Evite exercícios físicos intensos:</strong> Atividades que aumentem a circulação podem interferir no resultado</li>
+        <li>- <strong>Não consuma bebidas alcoólicas:</strong> O álcool pode aumentar o risco de hematomas</li>
+        <li>- <strong>Evite exposição ao calor excessivo:</strong> Saunas, banhos muito quentes e exposição solar direta</li>
       </ul>
+      <br>
       
       <h2>Cuidados específicos por tipo de procedimento</h2>
-      <h3>Botox e Toxina Botulínica</h3>
+      <h3>Botox / Toxina Botulínica</h3>
+      <br>
+      
       <ul>
-        <li>Não deitar por pelo menos 4 horas após a aplicação</li>
-        <li>Evitar massagens faciais por 2 semanas</li>
-        <li>Não fazer movimentos faciais exagerados nas primeiras horas</li>
-        <li>Evitar tratamentos com calor (laser, radiofrequência) por 2 semanas</li>
+        <li>- Não deitar por pelo menos 4 horas após a aplicação</li>
+        <li>- Evitar massagens faciais por 2 semanas</li>
+        <li>- Não fazer movimentos faciais exagerados nas primeiras horas</li>
+        <li>- Evitar tratamentos com calor (laser, radiofrequência) por 2 semanas</li>
       </ul>
+      <br>
       
       <h3>Preenchimentos com Ácido Hialurônico</h3>
+      <br>
+      
       <ul>
-        <li>Aplicar gelo nas primeiras horas para reduzir inchaço</li>
-        <li>Evitar maquiagem por 24 horas</li>
-        <li>Não fazer tratamentos dentários por 2 semanas (para preenchimento labial)</li>
-        <li>Dormir com a cabeça elevada nos primeiros dias</li>
-        <li>Evitar alimentos muito quentes ou frios (preenchimento labial)</li>
+        <li>- Aplicar gelo nas primeiras horas para reduzir inchaço</li>
+        <li>- Evitar maquiagem por 24 horas</li>
+        <li>- Não fazer tratamentos dentários por 2 semanas (para preenchimento labial)</li>
+        <li>- Dormir com a cabeça elevada nos primeiros dias</li>
+        <li>- Evitar alimentos muito quentes ou frios (preenchimento labial)</li>
       </ul>
+      <br>
       
       <h3>Bioestimuladores</h3>
       <ul>
-        <li>Massagear suavemente conforme orientação médica</li>
-        <li>Manter hidratação adequada da pele</li>
-        <li>Usar protetor solar diariamente</li>
-        <li>Evitar outros procedimentos na área por 30 dias</li>
+        <li>- Massagear suavemente conforme orientação médica</li>
+        <li>- Manter hidratação adequada da pele</li>
+        <li>- Usar protetor solar diariamente</li>
+        <li>- Evitar outros procedimentos na área por 30 dias</li>
       </ul>
+      <br>
       
       <h2>Sinais de alerta - quando procurar ajuda</h2>
       <p>Procure seu médico imediatamente se apresentar:</p>
+      <br>
+      
       <ul>
-        <li>Dor intensa que não melhora com analgésicos</li>
-        <li>Inchaço excessivo ou que piora após 48 horas</li>
-        <li>Vermelhidão intensa ou que se espalha</li>
-        <li>Febre</li>
-        <li>Secreção purulenta</li>
-        <li>Alterações na visão</li>
-        <li>Dificuldade para engolir ou falar</li>
-        <li>Assimetrias importantes</li>
+        <li>- Dor intensa que não melhora com analgésicos</li>
+        <li>- Inchaço excessivo ou que piora após 48 horas</li>
+        <li>- Vermelhidão intensa ou que se espalha</li>
+        <li>- Febre</li>
+        <li>- Secreção purulenta</li>
+        <li>- Alterações na visão</li>
+        <li>- Dificuldade para engolir ou falar</li>
+        <li>- Assimetrias importantes</li>
       </ul>
+      <br>
       
       <h2>Dicas para acelerar a recuperação</h2>
       <h3>Alimentação</h3>
+      <br>
+      
       <ul>
-        <li>Consuma alimentos ricos em vitamina C (frutas cítricas, acerola)</li>
-        <li>Inclua proteínas de qualidade na dieta</li>
-        <li>Mantenha-se bem hidratado</li>
-        <li>Evite alimentos muito salgados que podem aumentar o inchaço</li>
+        <li>- Consuma alimentos ricos em vitamina C (frutas cítricas, acerola...)</li>
+        <li>- Inclua proteínas de qualidade na dieta</li>
+        <li>- Mantenha-se bem hidratado</li>
+        <li>- Evite alimentos muito salgados que podem aumentar o inchaço</li>
       </ul>
+      <br>
       
       <h3>Cuidados com a pele</h3>
+      <br>
+      
       <ul>
-        <li>Use produtos suaves e hipoalergênicos</li>
-        <li>Mantenha a pele limpa e hidratada</li>
-        <li>Use protetor solar diariamente (FPS mínimo 30)</li>
-        <li>Evite produtos com ácidos nos primeiros dias</li>
+        <li>- Use produtos suaves e hipoalergênicos</li>
+        <li>- Mantenha a pele limpa e hidratada</li>
+        <li>- Use protetor solar diariamente (FPS mínimo 30)</li>
+        <li>- Evite produtos com ácidos nos primeiros dias</li>
       </ul>
+      <br>
       
       <h3>Estilo de vida</h3>
+      <br>
+      
       <ul>
-        <li>Durma bem - o sono é fundamental para a recuperação</li>
-        <li>Evite estresse excessivo</li>
-        <li>Não fume - o cigarro prejudica a cicatrização</li>
-        <li>Mantenha atividade física leve após liberação médica</li>
+        <li>- Durma bem - o sono é fundamental para a recuperação</li>
+        <li>- Evite estresse excessivo</li>
+        <li>- Não fume - o cigarro prejudica a cicatrização</li>
+        <li>- Mantenha atividade física leve após liberação médica</li>
       </ul>
+      <br>
       
       <h2>Cronograma de recuperação</h2>
       <h3>Primeira semana</h3>
-      <p>Período mais crítico onde os cuidados devem ser rigorosamente seguidos. Inchaço e pequenos hematomas são normais.</p>
+      <br>
+      
+      <p>- Período mais crítico onde os cuidados devem ser rigorosamente seguidos. Inchaço e pequenos hematomas são normais.</p>
+      <br>
       
       <h3>Segunda semana</h3>
-      <p>Melhora significativa do inchaço. Alguns procedimentos já mostram resultado próximo ao final.</p>
+      <br>
+      
+      <p>- Melhora significativa do inchaço. Alguns procedimentos já mostram resultado próximo ao final.</p>
+      <br>
       
       <h3>Primeiro mês</h3>
-      <p>Resultado se estabiliza. Momento ideal para avaliar se há necessidade de retoques.</p>
+      <br>
+
+      <p>- Resultado se estabiliza. Momento ideal para avaliar se há necessidade de retoques.</p>
+      <br>
       
       <h2>Conclusão</h2>
       <p>Os cuidados pós-procedimento são tão importantes quanto o procedimento em si. Seguir corretamente todas as orientações médicas garante não apenas melhores resultados, mas também sua segurança e bem-estar. Lembre-se: cada pessoa tem um tempo de recuperação diferente, seja paciente e mantenha contato regular com seu médico.</p>
@@ -282,7 +337,7 @@ export const posts: Post[] = [
     coverImage: 'https://images.pexels.com/photos/3985329/pexels-photo-3985329.jpeg',
     published: true,
     author: {
-      name: 'Dra. Ana Costa',
+      name: 'Dr. João Santos',
       avatar: 'https://images.pexels.com/photos/5327656/pexels-photo-5327656.jpeg'
     },
     categories: [
@@ -300,7 +355,7 @@ export const posts: Post[] = [
 
 export async function getAllPosts() {
   return posts;
-}
+} 
 
 export async function getPostBySlug(slug: string) {
   return posts.find((p) => p.slug === slug);

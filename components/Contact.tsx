@@ -149,9 +149,12 @@ const Contact = () => {
                   <p className="text-brand-pink font-medium mb-1">
                     Segunda a Sexta: {unidade.atendimento.segunda_sexta[0]}h às {unidade.atendimento.segunda_sexta[1]}h
                     <br />
-                    Sábado: {unidade.atendimento.sabado[0]}h às {unidade.atendimento.sabado[1]}h
+                    Sabado: {""}
+                    {unidade.atendimento.sabado.length === 0
+                      ? "Fechado"
+                      : `${unidade.atendimento.sabado[0]}h às ${unidade.atendimento.sabado[1]}h`}
                     <br />
-                    Domingo:{" "}
+                    Domingo: {""}
                     {unidade.atendimento.domingo.length === 0
                       ? "Fechado"
                       : `${unidade.atendimento.domingo[0]}h às ${unidade.atendimento.domingo[1]}h`}

@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { Star, Quote, ChevronLeft, ChevronRight } from 'lucide-react';
+import { CtaButtonWhatsapp } from './CtaButtonWhatsapp';
 
 const Testimonials = () => {
   const [currentSlide, setCurrentSlide] = useState(0);
@@ -169,6 +170,9 @@ const Testimonials = () => {
             <div className="text-gray-400 text-sm">Clientes Retornam</div>
           </div>
         </div>
+      </div>
+      <div className="flex justify-center gap-6 text-center mt-12 animate-on-scroll">
+        <CtaButtonWhatsapp className='mt-12'/>
       </div>
     </section>
   );
