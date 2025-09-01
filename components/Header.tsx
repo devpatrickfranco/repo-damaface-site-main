@@ -3,6 +3,8 @@
 import { useState, useEffect } from "react"
 import Link from "next/link"
 import Image from "next/image"
+
+import logoDamaFace from '/public/LOGO-DAMAFACE-HORIZONTAL-BRANCO.png'
 import { Menu, X, Phone, Users } from "lucide-react"
 import { CtaButtonWhatsapp } from "./CtaButtonWhatsapp"
 
@@ -55,7 +57,7 @@ const Header = () => {
           {/* Logo */}
           <Link href="/" className="flex-shrink-0 z-10 mr-2" onClick={handleNavClick}>
             <Image
-              src="http://damaface.com.br/LOGO-DAMAFACE-HORIZONTAL-BRANCO.png"
+              src={logoDamaFace}
               alt="DamaFace"
               width={150}
               height={50}

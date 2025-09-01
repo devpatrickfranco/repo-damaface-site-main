@@ -3,7 +3,7 @@
 
   <!-- Página Principal -->
   <url>
-    <loc>https://www.seudominio.com.br/</loc>
+    <loc>https://www.damaface.com.br/</loc>
     <lastmod>2025-08-29</lastmod>
     <changefreq>weekly</changefreq>
     <priority>1.0</priority>
@@ -11,25 +11,25 @@
 
   <!-- Páginas de Categoria -->
   <url>
-    <loc>https://www.seudominio.com.br/blog</loc>
+    <loc>https://www.damaface.com.br/blog</loc>
     <lastmod>2025-08-29</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://www.seudominio.com.br/corporal</loc>
+    <loc>https://www.damaface.com.br/corporal</loc>
     <lastmod>2025-08-29</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://www.seudominio.com.br/facial</loc>
+    <loc>https://www.damaface.com.br/facial</loc>
     <lastmod>2025-08-29</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://www.seudominio.com.br/nao-invasivos</loc>
+    <loc>https://www.damaface.com.br/nao-invasivos</loc>
     <lastmod>2025-08-29</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
@@ -37,19 +37,19 @@
 
   <!-- Posts do Blog -->
   <url>
-    <loc>https://www.seudominio.com.br/blog/beneficios-botox-rugas-expressao</loc>
+    <loc>https://www.damaface.com.br/blog/beneficios-botox-rugas-expressao</loc>
     <lastmod>2025-08-29</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
   </url>
   <url>
-    <loc>https://www.seudominio.com.br/blog/harmonizacao-facial-guia-completo</loc>
+    <loc>https://www.damaface.com.br/blog/harmonizacao-facial-guia-completo</loc>
     <lastmod>2025-08-29</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
   </url>
   <url>
-    <loc>https://www.seudominio.com.br/blog/cuidados-pos-procedimento-dicas</loc>
+    <loc>https://www.damaface.com.br/blog/cuidados-pos-procedimento-dicas</loc>
     <lastmod>2025-08-29</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
@@ -57,127 +57,127 @@
 
   <!-- Páginas de Procedimentos -->
   <url>
-    <loc>https://www.seudominio.com.br/procedimentos/harmonizacao-facial</loc>
+    <loc>https://www.damaface.com.br/procedimentos/harmonizacao-facial</loc>
     <lastmod>2025-08-29</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://www.seudominio.com.br/procedimentos/toxina-botulinica</loc>
+    <loc>https://www.damaface.com.br/procedimentos/toxina-botulinica</loc>
     <lastmod>2025-08-29</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://www.seudominio.com.br/procedimentos/bioestimulador-de-colageno</loc>
+    <loc>https://www.damaface.com.br/procedimentos/bioestimulador-de-colageno</loc>
     <lastmod>2025-08-29</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://www.seudominio.com.br/procedimentos/preenchimento-facial</loc>
+    <loc>https://www.damaface.com.br/procedimentos/preenchimento-facial</loc>
     <lastmod>2025-08-29</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://www.seudominio.com.br/procedimentos/fios-de-sustentacao</loc>
+    <loc>https://www.damaface.com.br/procedimentos/fios-de-sustentacao</loc>
     <lastmod>2025-08-29</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://www.seudominio.com.br/procedimentos/lipo-de-papada</loc>
+    <loc>https://www.damaface.com.br/procedimentos/lipo-de-papada</loc>
     <lastmod>2025-08-29</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://www.seudominio.com.br/procedimentos/skinbooster</loc>
+    <loc>https://www.damaface.com.br/procedimentos/skinbooster</loc>
     <lastmod>2025-08-29</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://www.seudominio.com.br/procedimentos/peeling-quimico</loc>
+    <loc>https://www.damaface.com.br/procedimentos/peeling-quimico</loc>
     <lastmod>2025-08-29</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://www.seudominio.com.br/procedimentos/bioestimulador-corporal</loc>
+    <loc>https://www.damaface.com.br/procedimentos/bioestimulador-corporal</loc>
     <lastmod>2025-08-29</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://www.seudominio.com.br/procedimentos/peim</loc>
+    <loc>https://www.damaface.com.br/procedimentos/peim</loc>
     <lastmod>2025-08-29</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://www.seudominio.com.br/procedimentos/preenchimento-de-gluteo</loc>
+    <loc>https://www.damaface.com.br/procedimentos/preenchimento-de-gluteo</loc>
     <lastmod>2025-08-29</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://www.seudominio.com.br/procedimentos/enzimas-para-gordura-localizada</loc>
+    <loc>https://www.damaface.com.br/procedimentos/enzimas-para-gordura-localizada</loc>
     <lastmod>2025-08-29</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://www.seudominio.com.br/procedimentos/massagem-relaxante</loc>
+    <loc>https://www.damaface.com.br/procedimentos/massagem-relaxante</loc>
     <lastmod>2025-08-29</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://www.seudominio.com.br/procedimentos/massagem-modeladora</loc>
+    <loc>https://www.damaface.com.br/procedimentos/massagem-modeladora</loc>
     <lastmod>2025-08-29</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://www.seudominio.com.br/procedimentos/ultraformer</loc>
+    <loc>https://www.damaface.com.br/procedimentos/ultraformer</loc>
     <lastmod>2025-08-29</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://www.seudominio.com.br/procedimentos/lavieen</loc>
+    <loc>https://www.damaface.com.br/procedimentos/lavieen</loc>
     <lastmod>2025-08-29</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://www.seudominio.com.br/procedimentos/criolipolise</loc>
+    <loc>https://www.damaface.com.br/procedimentos/criolipolise</loc>
     <lastmod>2025-08-29</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://www.seudominio.com.br/procedimentos/laser-co2</loc>
+    <loc>https://www.damaface.com.br/procedimentos/laser-co2</loc>
     <lastmod>2025-08-29</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://www.seudominio.com.br/procedimentos/depilacao-a-laser</loc>
+    <loc>https://www.damaface.com.br/procedimentos/depilacao-a-laser</loc>
     <lastmod>2025-08-29</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://www.seudominio.com.br/procedimentos/limpeza-de-pele</loc>
+    <loc>https://www.damaface.com.br/procedimentos/limpeza-de-pele</loc>
     <lastmod>2025-08-29</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://www.seudominio.com.br/procedimentos/microagulhamento</loc>
+    <loc>https://www.damaface.com.br/procedimentos/microagulhamento</loc>
     <lastmod>2025-08-29</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
