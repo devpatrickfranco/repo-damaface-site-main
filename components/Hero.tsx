@@ -4,7 +4,7 @@ import { ArrowRight } from 'lucide-react';
 
 const Hero = () => {
   const handleWhatsAppClick = () => {
-    window.open('"https://typebot.damaface.com.br/agendar.', '_blank');
+    window.open('https://typebot.damaface.com.br/agendar.', '_blank');
   };
 
   return (
