@@ -2490,7 +2490,7 @@ export default function ProcedureClientPage({ params }: ProcedureClientPageProps
 
   const handleWhatsAppClick = () => {
     window.open(
-      `https://typebot.damaface.com.br/agendar Gostaria de agendar uma avaliação para ${procedure.title}.`,
+      `https://typebot.damaface.com.br/agendar`,
       "_blank",
     )
   }
