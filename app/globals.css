@@ -81,3 +81,29 @@
   opacity: 1;
   transform: translateY(0);
 }
+
+/* RichTextEditor */
+
+/* Estilização base para tabelas dentro do conteúdo 'prose' */
+.prose table {
+  @apply w-full my-4 border-collapse border border-gray-600;
+}
+
+/* Estilização para o cabeçalho da tabela */
+.prose th {
+  @apply border border-gray-600 bg-gray-800 p-3 text-left font-semibold text-white;
+}
+
+/* Estilização para as células da tabela */
+.prose td {
+  @apply border border-gray-600 p-3 align-top text-gray-300;
+}
+
+/* Linhas zebradas para melhor legibilidade */
+.prose tbody tr:nth-child(odd) {
+  @apply bg-gray-900/50;
+}
+
+.prose tbody tr:nth-child(even) {
+  @apply bg-gray-800/50;
+}

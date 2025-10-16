@@ -3,13 +3,11 @@
 import ProcedureClientPage from "./ProcedureClientPage"
 import { Metadata } from 'next'
 
-// Tipo correto para Next.js 15 - params é uma Promise
 type PageProps = {
   params: Promise<{ slug: string }>
   searchParams?: Promise<{ [key: string]: string | string[] | undefined }>
 }
 
-// Função para gerar os parâmetros estáticos (não precisa mudar)
 export function generateStaticParams() {
   return [
     // Facial
@@ -39,20 +37,15 @@ export function generateStaticParams() {
   ]
 }
 
-// Componente principal - agora assíncrono e com await nos params
 export default async function ProcedurePage({ params }: PageProps) {
-  // Await para desembrulhar a Promise dos params
   const resolvedParams = await params
   
-  // Passa os params resolvidos para o componente cliente
   return <ProcedureClientPage params={resolvedParams} />
 }
 
-// Opcional: Se você quiser adicionar metadata dinâmica
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { slug } = await params
   
-  // Mapeamento de slugs para títulos mais amigáveis
   const titleMap: { [key: string]: string } = {
     "harmonizacao-facial": "Harmonização Facial",
     "toxina-botulinica": "Toxina Botulínica (Botox)",
