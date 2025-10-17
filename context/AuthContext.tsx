@@ -10,16 +10,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
 
-  // Busca o CSRF no backend para garantir o cookie
-  const fetchCSRFToken = async () => {
-    try {
-      await apiBackend.get("/users/csrf/");
-    } catch (error) {
-      console.error("Erro ao obter CSRF token:", error);
-    }
-  };
-
-  // Verifica se o usuário está logado ao iniciar
+  // Verifica se o usuário está logado
   const checkUserLoggedIn = async () => {
     try {
       const response = await apiBackend.get<User>("/users/me/");
@@ -32,23 +23,31 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
+  // Ao iniciar o provider, busca o cookie CSRF e verifica login
   useEffect(() => {
-    checkUserLoggedIn();
+    apiBackend
+      .get("/users/csrf/") // Garante que o cookie CSRF seja criado
+      .then(() => checkUserLoggedIn())
+      .catch(console.error);
   }, []);
 
-  // Login, sempre busca o CSRF antes do POST
+  // Login
   const login = async (email: string, password: string) => {
-    await fetchCSRFToken();
-    await apiBackend.post("/users/login/", { email, password });
-    await checkUserLoggedIn();
+    try {
+      await apiBackend.post("/users/login/", { email, password }); // CSRF enviado automaticamente
+      await checkUserLoggedIn();
+    } catch (err: any) {
+      console.error("Erro no login:", err);
+      throw new Error(err.response?.data?.detail || "Erro ao logar");
+    }
   };
 
-  // Logout padrão
+  // Logout
   const logout = async () => {
     try {
       await apiBackend.post("/users/logout/");
-    } catch(error) {
-      console.error("Erro ao fazer logout:", error);
+    } catch (err) {
+      console.error("Erro ao fazer logout:", err);
     } finally {
       setUser(null);
     }
