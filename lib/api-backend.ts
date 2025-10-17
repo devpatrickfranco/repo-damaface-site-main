@@ -15,6 +15,21 @@ export const setCsrfToken = (token: string | null) => {
   _csrfToken = token;
 };
 
+// NOVA: Função para buscar CSRF quando necessário
+export const ensureCsrfToken = async () => {
+  if (_csrfToken) return; // Já tem token, não precisa buscar
+  
+  try {
+    const res = await apiBackend.get<{ csrfToken: string }>("/users/csrf/");
+    const token = res.data?.csrfToken;
+    if (token) {
+      setCsrfToken(token);
+    }
+  } catch (error) {
+    console.error("Erro ao buscar CSRF token:", error);
+  }
+};
+
 // Interceptor: injeta X-CSRFToken em mutáveis
 apiBackend.interceptors.request.use((config) => {
   const method = (config.method || "").toLowerCase();
