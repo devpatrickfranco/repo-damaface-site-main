@@ -5,7 +5,6 @@ import { useAuth } from '@/context/AuthContext';
 import { useRouter } from 'next/navigation';
 import { Eye, EyeOff } from 'lucide-react';
 import Image from 'next/image';
-import { apiBackend } from '@/lib/api-backend'; // ajuste o path conforme seu projeto
 
 export default function FranqueadoPage() {
   const { isAuthenticated, loading, login } = useAuth();
@@ -15,11 +14,6 @@ export default function FranqueadoPage() {
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [showPassword, setShowPassword] = useState(false);
-
-  // Buscar CSRF ao montar o componente
-  useEffect(() => {
-    apiBackend.get('/csrf/', { withCredentials: true }).catch(() => {});
-  }, []);
 
   useEffect(() => {
     if (!loading && isAuthenticated) {
@@ -43,10 +37,10 @@ export default function FranqueadoPage() {
     e.preventDefault();
     setError('');
     try {
-      await login(email, password);
+      await login(email, password); // O login já trata o CSRF!
       router.push('/franqueado/dashboard');
     } catch (err: any) {
-      setError(err.message);
+      setError(err.message || 'Erro ao logar');
     }
   };
 
