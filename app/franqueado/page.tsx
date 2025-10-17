@@ -3,47 +3,40 @@
 import { useState, useEffect, FormEvent } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import { useRouter } from 'next/navigation';
-import { Eye, EyeOff, Link } from 'lucide-react';
-
+import { Eye, EyeOff } from 'lucide-react';
 import Image from 'next/image';
+import { apiBackend } from '@/lib/api-backend'; // ajuste o path conforme seu projeto
 
 export default function FranqueadoPage() {
-    const { isAuthenticated, loading, login } = useAuth(); // Pegue o login aqui também
-    const router = useRouter();
+  const { isAuthenticated, loading, login } = useAuth();
+  const router = useRouter();
 
-    const [email, setEmail] = useState('');
-    const [password, setPassword] = useState('');
-    const [error, setError] = useState('');
-    const [showPassword, setShowPassword] = useState(false);
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [error, setError] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
 
-    // Efeito para redirecionar se já estiver logado
-    useEffect(() => {
-        if (!loading && isAuthenticated) {
-            router.push('/franqueado/dashboard');
-        }
-    }, [isAuthenticated, loading, router]);
+  // Buscar CSRF ao montar o componente
+  useEffect(() => {
+    apiBackend.get('/csrf/', { withCredentials: true }).catch(() => {});
+  }, []);
 
-    if (loading) {
-        return null; 
+  useEffect(() => {
+    if (!loading && isAuthenticated) {
+      router.push('/franqueado/dashboard');
     }
+  }, [isAuthenticated, loading, router]);
 
-    if (isAuthenticated) {
-        return null;
-    }
+  if (loading || isAuthenticated) {
+    return null;
+  }
 
-
-  // Função para determinar a saudação baseada no horário
   const getGreeting = () => {
     const now = new Date();
     const hour = now.getHours();
-
-    if (hour >= 0 && hour < 12) {
-      return 'Bom dia!';
-    } else if (hour >= 12 && hour < 19) {
-      return 'Boa tarde!';
-    } else {
-      return 'Boa noite!';
-    }
+    if (hour >= 0 && hour < 12) return 'Bom dia!';
+    else if (hour >= 12 && hour < 19) return 'Boa tarde!';
+    else return 'Boa noite!';
   };
 
   const handleSubmit = async (e: FormEvent) => {
