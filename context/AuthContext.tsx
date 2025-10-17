@@ -8,21 +8,28 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined)
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<User | null>(null)
-  const [loading, setLoading] = useState(true) // Começa como true para verificar o login
+  const [loading, setLoading] = useState(true)
+
+  // Função para obter o CSRF token do backend
+  const fetchCSRFToken = async () => {
+    try {
+      await apiBackend.get("/users/csrf/")
+      // Aguarda um pouco para garantir que o cookie foi definido
+      await new Promise(resolve => setTimeout(resolve, 100))
+    } catch (error) {
+      console.error("Erro ao obter CSRF token:", error)
+    }
+  }
 
   // Função para verificar se o usuário está logado ao carregar a aplicação
   const checkUserLoggedIn = async () => {
     try {
-      // Tenta buscar os dados do usuário
       const response = await apiBackend.get<User>("/users/me/")
       setUser(response.data)
     } catch (error) {
-      // Se der erro (token inválido ou ausente), apenas garantimos que o usuário é nulo.
-      // A página que consome o contexto decidirá se deve ou não redirecionar.
       setUser(null)
       console.error("Usuário não está logado:", error)
     } finally {
-      // Independentemente do resultado, o carregamento inicial termina aqui
       setLoading(false)
     }
   }
@@ -33,27 +40,36 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   }, [])
 
   const login = async (email: string, password: string) => {
-    await apiBackend.post("/users/login/", { email, password })
-    // Após o login bem-sucedido, busca os dados do usuário para atualizar o estado
-    await checkUserLoggedIn()
+    try {
+      // IMPORTANTE: Obtém o CSRF token antes de fazer login
+      await fetchCSRFToken()
+      
+      // Agora faz o login
+      await apiBackend.post("/users/login/", { email, password })
+      
+      // Após o login bem-sucedido, busca os dados do usuário
+      await checkUserLoggedIn()
+    } catch (error: any) {
+      console.error("Erro no login:", error)
+      throw error // Re-lança o erro para que a página possa tratá-lo
+    }
   }
 
   const logout = async () => {
     try {
-        await apiBackend.post("/users/logout/")
-    } catch(error) {
-        console.error("Erro ao fazer logout:", error);
+      await apiBackend.post("/users/logout/")
+    } catch (error) {
+      console.error("Erro ao fazer logout:", error)
     } finally {
-        // Apenas limpa o estado local. O redirecionamento fica a cargo da página.
-        setUser(null)
+      // Limpa o estado local independentemente do resultado
+      setUser(null)
     }
   }
 
-  // O valor do contexto agora é dinâmico e reflete o estado real
   const value: AuthContextType = {
     user,
-    isAuthenticated: !!user, // Converte o objeto user em `true`, e null em `false`
-    loading, // Passa o estado de loading real para os componentes
+    isAuthenticated: !!user,
+    loading,
     login,
     logout,
   }
@@ -69,4 +85,3 @@ export const useAuth = (): AuthContextType => {
   }
   return context
 }
-
