@@ -14,6 +14,7 @@ export default function FranqueadoPage() {
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [showPassword, setShowPassword] = useState(false);
+  const [isLoggingIn, setIsLoggingIn] = useState(false);
 
   useEffect(() => {
     if (!loading && isAuthenticated) {
@@ -36,11 +37,16 @@ export default function FranqueadoPage() {
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
     setError('');
+    setIsLoggingIn(true);
+
     try {
-      await login(email, password); // O login já trata o CSRF!
-      router.push('/franqueado/dashboard');
+      await login(email, password);
+      // O redirecionamento será feito pelo useEffect quando isAuthenticated mudar
     } catch (err: any) {
-      setError(err.message || 'Erro ao logar');
+      console.error("Erro ao fazer login:", err);
+      setError(err.message || 'Erro ao fazer login. Verifique suas credenciais.');
+    } finally {
+      setIsLoggingIn(false);
     }
   };
 
@@ -70,7 +76,8 @@ export default function FranqueadoPage() {
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="Digite seu email"
                 required
-                className="w-full px-4 py-3 rounded-lg bg-dark-solid border border-gray-700 focus:ring-2 focus:ring-brand-pink outline-none text-white"
+                disabled={isLoggingIn}
+                className="w-full px-4 py-3 rounded-lg bg-dark-solid border border-gray-700 focus:ring-2 focus:ring-brand-pink outline-none text-white disabled:opacity-50 disabled:cursor-not-allowed"
               />
             </div>
 
@@ -86,12 +93,14 @@ export default function FranqueadoPage() {
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="Digite sua senha"
                   required
-                  className="w-full px-4 py-3 pr-12 rounded-lg bg-dark-solid border border-gray-700 focus:ring-2 focus:ring-brand-pink outline-none text-white"
+                  disabled={isLoggingIn}
+                  className="w-full px-4 py-3 pr-12 rounded-lg bg-dark-solid border border-gray-700 focus:ring-2 focus:ring-brand-pink outline-none text-white disabled:opacity-50 disabled:cursor-not-allowed"
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-brand-pink"
+                  disabled={isLoggingIn}
+                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-brand-pink disabled:opacity-50"
                 >
                   {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
                 </button>
@@ -108,14 +117,18 @@ export default function FranqueadoPage() {
             {/* Login Button */}
             <button
               type="submit"
-              className="btn-primary w-full"
+              disabled={isLoggingIn}
+              className="btn-primary w-full disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              Entrar
+              {isLoggingIn ? 'Entrando...' : 'Entrar'}
             </button>
 
             {/* Forgot Password Link */}
             <div className="text-center mt-4">
-              <a href="/franqueado/reset_password" className="text-brand-pink hover:underline font-medium">
+              <a 
+                href="/franqueado/reset_password" 
+                className="text-brand-pink hover:underline font-medium"
+              >
                 Esqueci minha senha
               </a>
             </div>

@@ -1,9 +1,9 @@
 "use client";
 
 import { createContext, useContext, useEffect, useState, ReactNode } from "react";
-import { apiBackend, setCsrfToken } from "../lib/api-backend";
+import { setCsrfToken, get, post } from "../lib/api-backend";
 import type { Usuario } from "@/types/users";
-import type { AuthContextType } from '@/types/auth'
+import type { AuthContextType } from '@/types/auth';
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
@@ -14,18 +14,22 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   // Busca token e injeta no axios global
   const refreshCsrf = async () => {
-    const res = await apiBackend.get<{ csrfToken: string }>("/users/csrf/");
-    const token = (res as any).csrfToken ?? (res as any).data?.csrfToken ?? (res as any)?.csrfToken;
-    if (token) {
-      setCsrfToken(token);         // injeta no interceptor global
-      setCsrfTokenState(token);    // guarda localmente (debug/controle)
+    try {
+      const res = await get<{ csrfToken: string }>("/users/csrf/");
+      const token = res?.csrfToken;
+      if (token) {
+        setCsrfToken(token);         // injeta no interceptor global
+        setCsrfTokenState(token);    // guarda localmente (debug/controle)
+      }
+    } catch (error) {
+      console.error("Erro ao buscar CSRF token:", error);
     }
   };
 
   const refreshMe = async () => {
     try {
-      const me = await apiBackend.get<Usuario>("/users/me/");
-      setUser(me as any);
+      const userData = await get<Usuario>("/users/me/");
+      setUser(userData);
     } catch (e) {
       setUser(null);
     }
@@ -43,15 +47,25 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const login = async (email: string, password: string) => {
-    if (!csrfToken) await refreshCsrf();
-    await apiBackend.post("/users/login/", { email, password });
-    await refreshMe();
+    try {
+      if (!csrfToken) await refreshCsrf();
+      await post("/users/login/", { email, password });
+      await refreshMe();
+    } catch (error: any) {
+      console.error("Erro no login:", error);
+      throw new Error(error.response?.data?.message || "Erro ao fazer login");
+    }
   };
 
   const logout = async () => {
-    if (!csrfToken) await refreshCsrf();
-    await apiBackend.post("/users/logout/");
-    setUser(null);
+    try {
+      if (!csrfToken) await refreshCsrf();
+      await post("/users/logout/");
+      setUser(null);
+    } catch (error) {
+      console.error("Erro no logout:", error);
+      setUser(null); // Limpa o user mesmo com erro
+    }
   };
 
   const value: AuthContextType = {
