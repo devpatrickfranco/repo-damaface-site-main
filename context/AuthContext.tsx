@@ -1,73 +1,75 @@
 "use client";
 
-import { createContext, useState, useContext, useEffect, ReactNode } from "react";
-import { apiBackend } from "../lib/api-backend";
-import { User, AuthContextType } from "../types/auth";
+import { createContext, useContext, useEffect, useState, ReactNode } from "react";
+import { apiBackend, setCsrfToken } from "../lib/api-backend";
+import type { Usuario } from "@/types/users";
+import type { AuthContextType } from '@/types/auth'
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-export const AuthProvider = ({ children }: { children: ReactNode }) => {
-  const [user, setUser] = useState<User | null>(null);
+export function AuthProvider({ children }: { children: ReactNode }) {
+  const [user, setUser] = useState<Usuario | null>(null);
   const [loading, setLoading] = useState(true);
+  const [csrfToken, setCsrfTokenState] = useState<string | null>(null);
 
-  // Verifica se o usuário está logado
-  const checkUserLoggedIn = async () => {
-    try {
-      const response = await apiBackend.get<User>("/users/me/");
-      setUser(response.data);
-    } catch (error) {
-      setUser(null);
-      console.error("Usuário não está logado:", error);
-    } finally {
-      setLoading(false);
+  // Busca token e injeta no axios global
+  const refreshCsrf = async () => {
+    const res = await apiBackend.get<{ csrfToken: string }>("/users/csrf/");
+    const token = (res as any).csrfToken ?? (res as any).data?.csrfToken ?? (res as any)?.csrfToken;
+    if (token) {
+      setCsrfToken(token);         // injeta no interceptor global
+      setCsrfTokenState(token);    // guarda localmente (debug/controle)
     }
   };
 
-  // Ao iniciar o provider, busca o cookie CSRF e verifica login
+  const refreshMe = async () => {
+    try {
+      const me = await apiBackend.get<Usuario>("/users/me/");
+      setUser(me as any);
+    } catch (e) {
+      setUser(null);
+    }
+  };
+
   useEffect(() => {
-    apiBackend
-      .get("/users/csrf/") // Garante que o cookie CSRF seja criado
-      .then(() => checkUserLoggedIn())
-      .catch(console.error);
+    (async () => {
+      try {
+        await refreshCsrf();
+        await refreshMe();
+      } finally {
+        setLoading(false);
+      }
+    })();
   }, []);
 
-  // Login
   const login = async (email: string, password: string) => {
-    try {
-      await apiBackend.post("/users/login/", { email, password }); // CSRF enviado automaticamente
-      await checkUserLoggedIn();
-    } catch (err: any) {
-      console.error("Erro no login:", err);
-      throw new Error(err.response?.data?.detail || "Erro ao logar");
-    }
+    if (!csrfToken) await refreshCsrf();
+    await apiBackend.post("/users/login/", { email, password });
+    await refreshMe();
   };
 
-  // Logout
   const logout = async () => {
-    try {
-      await apiBackend.post("/users/logout/");
-    } catch (err) {
-      console.error("Erro ao fazer logout:", err);
-    } finally {
-      setUser(null);
-    }
+    if (!csrfToken) await refreshCsrf();
+    await apiBackend.post("/users/logout/");
+    setUser(null);
   };
 
   const value: AuthContextType = {
     user,
     isAuthenticated: !!user,
     loading,
+    csrfToken,
     login,
     logout,
+    refreshCsrf,
+    refreshMe,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
-};
+}
 
 export const useAuth = (): AuthContextType => {
-  const context = useContext(AuthContext);
-  if (!context) {
-    throw new Error("useAuth deve ser usado dentro de um AuthProvider");
-  }
-  return context;
+  const ctx = useContext(AuthContext);
+  if (!ctx) throw new Error("useAuth deve ser usado dentro de um AuthProvider");
+  return ctx;
 };
