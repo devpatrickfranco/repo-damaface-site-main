@@ -23,6 +23,7 @@ apiBackend.interceptors.request.use((config) => {
     const csrfToken = getCookie("csrftoken")
     if (csrfToken) {
       config.headers["X-CSRFToken"] = csrfToken
+      console.log("Adicionando X-CSRFToken:", csrfToken)
     }
   }
   return config
