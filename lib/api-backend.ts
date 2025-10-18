@@ -1,40 +1,29 @@
 // lib/api-backend.ts
-// ✅ API client centralizado, compatível com Next.js + Django + CSRF + Tipagem segura
-// Funciona como axios, mas usando fetch — e sem precisar chamar /csrf manualmente
 
 export const apiBackend = {
-  /**
-   * Método principal genérico — similar ao axios.request()
-   */
   async request<T = any>(path: string, options: RequestInit = {}): Promise<T> {
-    const BASE_URL =
-      process.env.NEXT_PUBLIC_API_BACKEND_URL
-      console.log("API BACKEND ATIVADO !!!")
-    // Lê o CSRF token (caso já tenha sido setado pelo login)
+    const BASE_URL = process.env.NEXT_PUBLIC_API_BACKEND_URL
+
     const csrftoken =
       typeof document !== "undefined"
         ? document.cookie.split('; ').find(row => row.startsWith('csrftoken='))?.split('=')[1]
         : null;
 
-      // 👇 ADICIONE ESSE LOG TEMPORÁRIO
     console.log('🔍 CSRF Debug:', {
-    cookies: document.cookie,
-    csrftoken: csrftoken,
-    willSendHeader: !!csrftoken
-  });
+      cookies: document.cookie,
+      csrftoken: csrftoken,
+      willSendHeader: !!csrftoken
+    });
 
-    // Faz a requisição
     const response = await fetch(`${BASE_URL}${path}`, {
-      credentials: "include", // Envia cookies (sessionid, csrftoken)
+      credentials: "include",
       headers: {
-        "Content-Type": "application/json",
         ...(csrftoken ? { "X-CSRFToken": csrftoken } : {}),
-        ...(options.headers || {}),
+        ...(options.headers || {}),  // 👈 Headers personalizados vêm DEPOIS
       },
       ...options,
     });
 
-    // Se der erro HTTP, lança exceção
     if (!response.ok) {
       const text = await response.text();
       throw new Error(
@@ -44,7 +33,6 @@ export const apiBackend = {
       );
     }
 
-    // Tenta parsear JSON — se não for JSON (ex: blob), retorna vazio
     try {
       return (await response.json()) as T;
     } catch {
@@ -52,43 +40,50 @@ export const apiBackend = {
     }
   },
 
-  /**
-   * Métodos utilitários de conveniência — mesmos nomes do axios
-   */
   get<T = any>(path: string): Promise<T> {
     return this.request<T>(path, { method: "GET" });
   },
 
   post<T = any>(path: string, body?: any): Promise<T> {
+    const headers: Record<string, string> = {};
+    
+    // Só adiciona Content-Type se não for FormData
+    if (!(body instanceof FormData)) {
+      headers["Content-Type"] = "application/json";
+    }
+
     return this.request<T>(path, {
       method: "POST",
       body: body instanceof FormData ? body : JSON.stringify(body || {}),
-      headers:
-        body instanceof FormData
-          ? {} // FormData já define seu Content-Type
-          : { "Content-Type": "application/json" },
+      headers,  // 👈 Agora não sobrescreve o X-CSRFToken
     });
   },
 
   put<T = any>(path: string, body?: any): Promise<T> {
+    const headers: Record<string, string> = {};
+    
+    if (!(body instanceof FormData)) {
+      headers["Content-Type"] = "application/json";
+    }
+
     return this.request<T>(path, {
       method: "PUT",
       body: body instanceof FormData ? body : JSON.stringify(body || {}),
-      headers:
-        body instanceof FormData
-          ? {}
-          : { "Content-Type": "application/json" },
+      headers,
     });
   },
 
   patch<T = any>(path: string, body?: any): Promise<T> {
+    const headers: Record<string, string> = {};
+    
+    if (!(body instanceof FormData)) {
+      headers["Content-Type"] = "application/json";
+    }
+
     return this.request<T>(path, {
       method: "PATCH",
       body: body instanceof FormData ? body : JSON.stringify(body || {}),
-      headers:
-        body instanceof FormData
-          ? {}
-          : { "Content-Type": "application/json" },
+      headers,
     });
   },
 
@@ -97,10 +92,6 @@ export const apiBackend = {
   },
 };
 
-/**
- * ✅ Método adicional para downloads binários (Blob)
- * Exemplo de uso: const pdfBlob = await getBlob('/academy/certificados/uuid/download/')
- */
 export async function getBlob(path: string): Promise<Blob> {
   const BASE_URL = process.env.NEXT_PUBLIC_API_BACKEND_URL
 
