@@ -181,9 +181,7 @@ export default function CriarComunicadoModal({
         : "/dashboard/comunicados/";
       const method = isEditMode ? 'put' : 'post';
 
-      await apiBackend[method](endpoint, submissionData, {
-        headers: { "Content-Type": "multipart/form-data" },
-      });
+      await apiBackend[method](endpoint, submissionData);
       
       onSuccess();
       onClose();

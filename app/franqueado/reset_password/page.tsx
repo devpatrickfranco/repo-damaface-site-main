@@ -2,7 +2,7 @@
 
 import { useState, FormEvent } from 'react';
 import { ArrowLeft, Mail, Shield, Lock, Eye, EyeOff, CheckCircle } from 'lucide-react';
-import { apiBackend, ensureCsrfToken } from '@/lib/api-backend';
+import { apiBackend } from '@/lib/api-backend';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
@@ -42,15 +42,14 @@ export default function ResetPasswordPage() {
     setLoading(true);
     
     try {
-      // Garante que o CSRF token existe antes de fazer a requisição
-      await ensureCsrfToken();
+
       
       const response = await apiBackend.post<{ success: boolean; message: string }>(
         '/users/password-reset/request/',
         { email }
       );
       
-      setSuccess(response.data?.message || 'Código enviado com sucesso!');
+      setSuccess(response?.message || 'Código enviado com sucesso!');
       
       // Aguarda 2 segundos para o usuário ver a mensagem de sucesso
       setTimeout(() => {
@@ -74,14 +73,13 @@ export default function ResetPasswordPage() {
     setLoading(true);
     
     try {
-      await ensureCsrfToken();
       
       const response = await apiBackend.post<{ success: boolean; message: string }>(
         '/users/password-reset/verify/',
         { email, code }
       );
       
-      setSuccess(response.data?.message || 'Código verificado!');
+      setSuccess(response?.message || 'Código verificado!');
       
       setTimeout(() => {
         setCurrentStep(3);
@@ -114,7 +112,6 @@ export default function ResetPasswordPage() {
     setLoading(true);
     
     try {
-      await ensureCsrfToken();
       
       const response = await apiBackend.post<{ success: boolean; message: string }>(
         '/users/password-reset/set-new/',
@@ -126,7 +123,7 @@ export default function ResetPasswordPage() {
         }
       );
       
-      setSuccess(response.data?.message || 'Senha redefinida com sucesso!');
+      setSuccess(response?.message || 'Senha redefinida com sucesso!');
       
       // Redireciona após 2 segundos
       setTimeout(() => {
@@ -150,7 +147,6 @@ export default function ResetPasswordPage() {
     setLoading(true);
     
     try {
-      await ensureCsrfToken();
       
       const response = await apiBackend.post<{ success: boolean; message: string }>(
         '/users/password-reset/request/',

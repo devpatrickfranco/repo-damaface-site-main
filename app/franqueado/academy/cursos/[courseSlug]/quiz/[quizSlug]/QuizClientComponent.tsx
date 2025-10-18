@@ -133,7 +133,7 @@ export default function QuizClientComponent({ params }: QuizClientComponentProps
       const response = await submitQuiz(String(quiz.id), respostasFormatadas);
       
       // A API deve retornar a nota calculada
-      const nota = Number(response.data.nota) || 0;
+      const nota = Number(response.nota) || 0;
       setPontuacao(nota);
       setQuizFinalizado(true);
     } catch (error) {

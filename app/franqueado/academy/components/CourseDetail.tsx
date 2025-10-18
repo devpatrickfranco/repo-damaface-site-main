@@ -81,13 +81,13 @@ const handleDownloadCertificado = async () => {
     const response = await gerarCertificado(curso.progresso.inscricao_id);
     
     // Extrai o ID do certificado da resposta
-    const certificadoUuid = response.data.certificado.codigo_validacao;
+    const certificadoUuid = response.certificado.codigo_validacao;
 
     // Faz o download do PDF
     const blobResponse = await downloadCertificado(certificadoUuid);
     
     // Cria um link temporário para download
-    const blob = new Blob([blobResponse.data], { type: 'application/pdf' });
+    const blob = new Blob([blobResponse], { type: 'application/pdf' });
     const url = window.URL.createObjectURL(blob);
     const link = document.createElement('a');
     link.href = url;

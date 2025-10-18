@@ -72,7 +72,7 @@ export default function CategoryManager() {
   const fetchCategorias = async () => {
     try {
       const response = await apiBackend.get<ApiCategoria[]>('/chamados/categorias/');
-      setCategorias(response.data);
+      setCategorias(response);
     } catch (err) {
       setError('Falha ao carregar as categorias.');
       console.error(err);
@@ -82,7 +82,7 @@ export default function CategoryManager() {
   const fetchUsuarios = async () => {
     try {
       const response = await apiBackend.get<ApiUsuario[]>('/users/usuarios/');
-      setUsuarios(response.data);
+      setUsuarios(response);
     } catch (err) {
       setError('Falha ao carregar os usuários.');
       console.error(err);

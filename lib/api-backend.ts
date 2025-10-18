@@ -1,105 +1,119 @@
 // lib/api-backend.ts
-// Cliente API universal para Django (com sessão + CSRF + upload de arquivos)
+// ✅ API client centralizado, compatível com Next.js + Django + CSRF + Tipagem segura
+// Funciona como axios, mas usando fetch — e sem precisar chamar /csrf manualmente
 
-const BASE_URL = process.env.NEXT_PUBLIC_API_URL || "https://api.seudominio.com";
+export const apiBackend = {
+  /**
+   * Método principal genérico — similar ao axios.request()
+   */
+  async request<T = any>(path: string, options: RequestInit = {}): Promise<T> {
+    const BASE_URL =
+      process.env.NEXT_PUBLIC_API_URL ||
+      "https://api-franqueadora-production.up.railway.app";
 
-// --- Função auxiliar para ler cookies (client-side) ---
-function getCookie(name: string): string | null {
-  if (typeof document === "undefined") return null;
-  const match = document.cookie.match(new RegExp(`(^| )${name}=([^;]+)`));
-  return match ? decodeURIComponent(match[2]) : null;
-}
+    // Lê o CSRF token (caso já tenha sido setado pelo login)
+    const csrftoken =
+      typeof document !== "undefined"
+        ? document.cookie.match(/csrftoken=([^;]+)/)?.[1]
+        : null;
 
-// --- Tipos auxiliares ---
-type HttpMethod = "get" | "post" | "put" | "patch" | "delete";
-
-interface ApiBackendMethods {
-  request<T>(
-    path: string,
-    options?: RequestInit
-  ): Promise<T>;
-  get<T>(path: string): Promise<T>;
-  post<T>(path: string, body?: any): Promise<T>;
-  put<T>(path: string, body?: any): Promise<T>;
-  patch<T>(path: string, body?: any): Promise<T>;
-  delete<T>(path: string): Promise<T>;
-  [key: string]: any; // permite apiBackend[method]
-}
-
-// --- Implementação principal ---
-export const apiBackend: ApiBackendMethods = {
-  async request<T>(
-    path: string,
-    options: RequestInit = {}
-  ): Promise<T> {
-    const url = `${BASE_URL}${path}`;
-    const csrftoken = getCookie("csrftoken");
-
-    const headers: Record<string, string> = {};
-
-    // se o body for JSON, definir Content-Type
-    if (!(options.body instanceof FormData)) {
-      headers["Content-Type"] = "application/json";
-    }
-
-    if (csrftoken) {
-      headers["X-CSRFToken"] = csrftoken;
-    }
-
-    const response = await fetch(url, {
-      ...options,
+    // Faz a requisição
+    const response = await fetch(`${BASE_URL}${path}`, {
+      credentials: "include", // Envia cookies (sessionid, csrftoken)
       headers: {
-        ...headers,
+        "Content-Type": "application/json",
+        ...(csrftoken ? { "X-CSRFToken": csrftoken } : {}),
         ...(options.headers || {}),
       },
-      credentials: "include", // envia cookies (sessão + CSRF)
+      ...options,
     });
 
-    // erro customizado
+    // Se der erro HTTP, lança exceção
     if (!response.ok) {
-      let message = response.statusText;
-      try {
-        const data = await response.json();
-        message = data.detail || data.message || JSON.stringify(data);
-      } catch (_) {}
-      const error: any = new Error(message);
-      error.status = response.status;
-      error.response = response;
-      throw error;
+      const text = await response.text();
+      throw new Error(
+        `Erro ${response.status}: ${
+          text || response.statusText || "Erro na requisição"
+        }`
+      );
     }
 
-    // tenta parsear JSON se existir corpo
-    const text = await response.text();
-    return text ? JSON.parse(text) : ({} as T);
+    // Tenta parsear JSON — se não for JSON (ex: blob), retorna vazio
+    try {
+      return (await response.json()) as T;
+    } catch {
+      return {} as T;
+    }
   },
 
-  // --- Métodos HTTP ---
-  get<T>(path: string) {
+  /**
+   * Métodos utilitários de conveniência — mesmos nomes do axios
+   */
+  get<T = any>(path: string): Promise<T> {
     return this.request<T>(path, { method: "GET" });
   },
 
-  post<T>(path: string, body?: any) {
+  post<T = any>(path: string, body?: any): Promise<T> {
     return this.request<T>(path, {
       method: "POST",
-      body: body instanceof FormData ? body : JSON.stringify(body),
+      body: body instanceof FormData ? body : JSON.stringify(body || {}),
+      headers:
+        body instanceof FormData
+          ? {} // FormData já define seu Content-Type
+          : { "Content-Type": "application/json" },
     });
   },
 
-  put<T>(path: string, body?: any) {
+  put<T = any>(path: string, body?: any): Promise<T> {
     return this.request<T>(path, {
       method: "PUT",
-      body: body instanceof FormData ? body : JSON.stringify(body),
+      body: body instanceof FormData ? body : JSON.stringify(body || {}),
+      headers:
+        body instanceof FormData
+          ? {}
+          : { "Content-Type": "application/json" },
     });
   },
 
-  patch<T>(path: string, body?: any) {
+  patch<T = any>(path: string, body?: any): Promise<T> {
     return this.request<T>(path, {
       method: "PATCH",
-      body: body instanceof FormData ? body : JSON.stringify(body),
+      body: body instanceof FormData ? body : JSON.stringify(body || {}),
+      headers:
+        body instanceof FormData
+          ? {}
+          : { "Content-Type": "application/json" },
     });
   },
 
-  delete<T>(path: string) {
+  delete<T = any>(path: string): Promise<T> {
     return this.request<T>(path, { method: "DELETE" });
   },
 };
+
+/**
+ * ✅ Método adicional para downloads binários (Blob)
+ * Exemplo de uso: const pdfBlob = await getBlob('/academy/certificados/uuid/download/')
+ */
+export async function getBlob(path: string): Promise<Blob> {
+  const BASE_URL = process.env.NEXT_PUBLIC_API_URL
+
+  const csrftoken =
+    typeof document !== "undefined"
+      ? document.cookie.match(/csrftoken=([^;]+)/)?.[1]
+      : null;
+
+  const response = await fetch(`${BASE_URL}${path}`, {
+    method: "GET",
+    credentials: "include",
+    headers: {
+      ...(csrftoken ? { "X-CSRFToken": csrftoken } : {}),
+    },
+  });
+
+  if (!response.ok) {
+    throw new Error(`Erro ${response.status} ao baixar arquivo`);
+  }
+
+  return await response.blob();
+}

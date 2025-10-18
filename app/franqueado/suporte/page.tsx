@@ -167,7 +167,7 @@ export default function SuportePage() {
       }
 
       const response = await apiBackend.get<ApiChamadoList[]>(`/chamados/chamados/?${params.toString()}`)
-      setChamados(response.data)
+      setChamados(response)
     } catch (err) {
       setError("Falha ao carregar os chamados.")
       console.error(err)
@@ -183,11 +183,11 @@ export default function SuportePage() {
   const handleOpenCreateView = async () => {
     try {
       const catResponse = await apiBackend.get<ApiCategoria[]>("/chamados/categorias/")
-      setCategorias(catResponse.data)
+      setCategorias(catResponse)
 
       if (user?.role === "ADMIN" || user?.role === "SUPERADMIN") {
         const franqResponse = await apiBackend.get<{ id: number; nome: string }[]>("/users/franquias/")
-        setFranquias(franqResponse.data)
+        setFranquias(franqResponse)
       }
       setActiveView("criar")
     } catch (err) {
@@ -200,7 +200,7 @@ export default function SuportePage() {
     try {
       setLoading(true)
       const response = await apiBackend.get<ApiChamadoDetail>(`/chamados/chamados/${chamadoId}/`)
-      setSelectedChamado(response.data)
+      setSelectedChamado(response)
       setActiveView("detalhes")
     } catch (err) {
       alert("Erro ao carregar detalhes do chamado.")
@@ -265,7 +265,7 @@ export default function SuportePage() {
     try {
       setLoading(true)
       const response = await apiBackend.post<ApiChamadoDetail>(`/chamados/chamados/${selectedChamado.id}/${action}/`)
-      setSelectedChamado(response.data)
+      setSelectedChamado(response)
     } catch (error: any) {
       alert(`Erro ao executar ação: ${error.response?.data?.error || "Tente novamente."}`)
     } finally {

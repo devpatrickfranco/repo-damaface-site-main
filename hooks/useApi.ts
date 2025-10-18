@@ -1,7 +1,14 @@
 // hooks/useApi.ts
 import { useState, useEffect } from 'react';
-import { apiBackend } from '@/lib/api-backend';
+import { apiBackend, getBlob } from '@/lib/api-backend';
 import { AxiosError } from 'axios';
+
+interface CertificadoResponse {
+  certificado: {
+    codigo_validacao: string;
+    [key: string]: any;
+  };
+}
 
 // Hook genérico para chamadas GET
 export function useApi<T>(url: string, dependencies: any[] = []) {
@@ -17,7 +24,7 @@ export function useApi<T>(url: string, dependencies: any[] = []) {
       const response = await apiBackend.get<T>(url);
       
       setState({
-        data: response.data,
+        data: response,
         loading: false,
         error: null,
       });
@@ -161,9 +168,7 @@ export async function deleteAvaliacao(id: number) {
 // ==================== MUTATIONS - MATERIAIS ====================
 
 export async function downloadMaterial(id: string) {
-  return apiBackend.get(`/academy/materiais/${id}/download/`, {
-    responseType: 'blob',
-  });
+  return getBlob(`/academy/materiais/${id}/download/`);
 }
 
 // ==================== MUTATIONS - CERTIFICADOS ====================
@@ -171,17 +176,15 @@ export async function downloadMaterial(id: string) {
 /**
  * Gera certificado para uma inscrição
  */
-export async function gerarCertificado(inscricaoId: number) {
-  return apiBackend.post(`/academy/inscricoes/${inscricaoId}/gerar-certificado/`);
+export async function gerarCertificado(inscricaoId: number): Promise<CertificadoResponse> {
+  return apiBackend.post<CertificadoResponse>(`/academy/inscricoes/${inscricaoId}/gerar-certificado/`);
 }
 
 /**
  * Download do PDF do certificado
  */
 export async function downloadCertificado(codigoValidacao: string) {
-  return apiBackend.get(`/academy/certificados/${codigoValidacao}/download/`, {
-    responseType: 'blob',
-  });
+  return getBlob(`/academy/certificados/${codigoValidacao}/download/`);
 }
 
 /**
