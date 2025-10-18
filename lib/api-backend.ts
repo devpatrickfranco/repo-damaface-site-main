@@ -13,7 +13,7 @@ export const apiBackend = {
     // Lê o CSRF token (caso já tenha sido setado pelo login)
     const csrftoken =
       typeof document !== "undefined"
-        ? document.cookie.match(/csrftoken=([^;]+)/)?.[1]
+        ? document.cookie.split('; ').find(row => row.startsWith('csrftoken='))?.split('=')[1]
         : null;
 
     // Faz a requisição
@@ -99,7 +99,7 @@ export async function getBlob(path: string): Promise<Blob> {
 
   const csrftoken =
     typeof document !== "undefined"
-      ? document.cookie.match(/csrftoken=([^;]+)/)?.[1]
+      ? document.cookie.split('; ').find(row => row.startsWith('csrftoken='))?.split('=')[1]
       : null;
 
   const response = await fetch(`${BASE_URL}${path}`, {
