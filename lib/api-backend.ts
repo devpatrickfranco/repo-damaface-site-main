@@ -8,8 +8,7 @@ export const apiBackend = {
    */
   async request<T = any>(path: string, options: RequestInit = {}): Promise<T> {
     const BASE_URL =
-      process.env.NEXT_PUBLIC_API_URL ||
-      "https://api-franqueadora-production.up.railway.app";
+      process.env.NEXT_PUBLIC_API_URL
 
     // Lê o CSRF token (caso já tenha sido setado pelo login)
     const csrftoken =
