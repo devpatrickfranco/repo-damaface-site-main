@@ -8,7 +8,7 @@ export const apiBackend = {
    */
   async request<T = any>(path: string, options: RequestInit = {}): Promise<T> {
     const BASE_URL =
-      process.env.NEXT_PUBLIC_API_URL
+      process.env.NEXT_PUBLIC_API_BACKEND_URL
 
     // Lê o CSRF token (caso já tenha sido setado pelo login)
     const csrftoken =
@@ -95,7 +95,7 @@ export const apiBackend = {
  * Exemplo de uso: const pdfBlob = await getBlob('/academy/certificados/uuid/download/')
  */
 export async function getBlob(path: string): Promise<Blob> {
-  const BASE_URL = process.env.NEXT_PUBLIC_API_URL
+  const BASE_URL = process.env.NEXT_PUBLIC_API_BACKEND_URL
 
   const csrftoken =
     typeof document !== "undefined"
