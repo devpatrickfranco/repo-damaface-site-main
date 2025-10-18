@@ -42,7 +42,7 @@ export const ensureCsrfToken = async () => {
   }
 };
 
-/**
+/** 
  * Interceptor: injeta X-CSRFToken do COOKIE em requisições mutáveis
  */
 apiBackend.interceptors.request.use((config) => {
@@ -50,6 +50,7 @@ apiBackend.interceptors.request.use((config) => {
   const isMutable = ["post", "put", "patch", "delete"].includes(method);
 
   if (isMutable) {
+    console.log("INTERCEPTADOR ATIVADO")
     const csrfToken = getCsrfTokenFromCookie(); // LÊ DO COOKIE SEMPRE
     if (csrfToken) {
       config.headers = config.headers || {};
@@ -68,6 +69,7 @@ export const get = async <T = any>(url: string, params?: object) => {
 
 export const post = async <T = any>(url: string, data?: object) => {
   const res = await apiBackend.post<T>(url, data);
+  console.log("POST ATIVADO")
   return res.data;
 };
 
