@@ -1,89 +1,105 @@
 // lib/api-backend.ts
-import axios from "axios";
+// Cliente API universal para Django (com sessão + CSRF + upload de arquivos)
 
-export const apiBackend = axios.create({
-  baseURL: process.env.NEXT_PUBLIC_API_BACKEND_URL,
-  withCredentials: true,
-  headers: { "Content-Type": "application/json" },
-});
+const BASE_URL = process.env.NEXT_PUBLIC_API_URL || "https://api.seudominio.com";
 
-/**
- * Extrai o CSRF token do cookie do navegador
- * Este é o token ATUAL que o Django setou
- */
-const getCsrfTokenFromCookie = (): string | null => {
-  if (typeof document === 'undefined') return null; // SSR check
-  
-  const name = 'csrftoken';
-  const value = `; ${document.cookie}`;
-  const parts = value.split(`; ${name}=`);
-  
-  if (parts.length === 2) {
-    return parts.pop()?.split(';').shift() || null;
-  }
-  
-  return null;
-};
+// --- Função auxiliar para ler cookies (client-side) ---
+function getCookie(name: string): string | null {
+  if (typeof document === "undefined") return null;
+  const match = document.cookie.match(new RegExp(`(^| )${name}=([^;]+)`));
+  return match ? decodeURIComponent(match[2]) : null;
+}
 
-/**
- * Garante que o cookie CSRF existe
- * Faz uma chamada GET /users/csrf/ para Django setar o cookie
- */
-export const ensureCsrfToken = async () => {
-  const existingToken = getCsrfTokenFromCookie();
-  if (existingToken) return; // Já tem cookie, não precisa buscar
-  
-  try {
-    // Apenas chama o endpoint para Django setar o cookie
-    await apiBackend.get("/users/csrf/");
-    // Não precisamos do body, o cookie já foi setado pelo Django
-  } catch (error) {
-    console.error("Erro ao buscar CSRF cookie:", error);
-  }
-};
+// --- Tipos auxiliares ---
+type HttpMethod = "get" | "post" | "put" | "patch" | "delete";
 
-/** 
- * Interceptor: injeta X-CSRFToken do COOKIE em requisições mutáveis
- */
-apiBackend.interceptors.request.use((config) => {
-  const method = (config.method || "").toLowerCase();
-  const isMutable = ["post", "put", "patch", "delete"].includes(method);
+interface ApiBackendMethods {
+  request<T>(
+    path: string,
+    options?: RequestInit
+  ): Promise<T>;
+  get<T>(path: string): Promise<T>;
+  post<T>(path: string, body?: any): Promise<T>;
+  put<T>(path: string, body?: any): Promise<T>;
+  patch<T>(path: string, body?: any): Promise<T>;
+  delete<T>(path: string): Promise<T>;
+  [key: string]: any; // permite apiBackend[method]
+}
 
-  if (isMutable) {
-    console.log("INTERCEPTADOR ATIVADO")
-    const csrfToken = getCsrfTokenFromCookie(); // LÊ DO COOKIE SEMPRE
-    if (csrfToken) {
-      config.headers = config.headers || {};
-      config.headers["X-CSRFToken"] = csrfToken;
+// --- Implementação principal ---
+export const apiBackend: ApiBackendMethods = {
+  async request<T>(
+    path: string,
+    options: RequestInit = {}
+  ): Promise<T> {
+    const url = `${BASE_URL}${path}`;
+    const csrftoken = getCookie("csrftoken");
+
+    const headers: Record<string, string> = {};
+
+    // se o body for JSON, definir Content-Type
+    if (!(options.body instanceof FormData)) {
+      headers["Content-Type"] = "application/json";
     }
-  }
 
-  return config;
-});
+    if (csrftoken) {
+      headers["X-CSRFToken"] = csrftoken;
+    }
 
-// Helpers - retornam apenas o .data da resposta
-export const get = async <T = any>(url: string, params?: object) => {
-  const res = await apiBackend.get<T>(url, { params });
-  return res.data;
-};
+    const response = await fetch(url, {
+      ...options,
+      headers: {
+        ...headers,
+        ...(options.headers || {}),
+      },
+      credentials: "include", // envia cookies (sessão + CSRF)
+    });
 
-export const post = async <T = any>(url: string, data?: object) => {
-  const res = await apiBackend.post<T>(url, data);
-  console.log("POST ATIVADO")
-  return res.data;
-};
+    // erro customizado
+    if (!response.ok) {
+      let message = response.statusText;
+      try {
+        const data = await response.json();
+        message = data.detail || data.message || JSON.stringify(data);
+      } catch (_) {}
+      const error: any = new Error(message);
+      error.status = response.status;
+      error.response = response;
+      throw error;
+    }
 
-export const put = async <T = any>(url: string, data?: object) => {
-  const res = await apiBackend.put<T>(url, data);
-  return res.data;
-};
+    // tenta parsear JSON se existir corpo
+    const text = await response.text();
+    return text ? JSON.parse(text) : ({} as T);
+  },
 
-export const patch = async <T = any>(url: string, data?: object) => {
-  const res = await apiBackend.patch<T>(url, data);
-  return res.data;
-};
+  // --- Métodos HTTP ---
+  get<T>(path: string) {
+    return this.request<T>(path, { method: "GET" });
+  },
 
-export const del = async <T = any>(url: string) => {
-  const res = await apiBackend.delete<T>(url);
-  return res.data;
+  post<T>(path: string, body?: any) {
+    return this.request<T>(path, {
+      method: "POST",
+      body: body instanceof FormData ? body : JSON.stringify(body),
+    });
+  },
+
+  put<T>(path: string, body?: any) {
+    return this.request<T>(path, {
+      method: "PUT",
+      body: body instanceof FormData ? body : JSON.stringify(body),
+    });
+  },
+
+  patch<T>(path: string, body?: any) {
+    return this.request<T>(path, {
+      method: "PATCH",
+      body: body instanceof FormData ? body : JSON.stringify(body),
+    });
+  },
+
+  delete<T>(path: string) {
+    return this.request<T>(path, { method: "DELETE" });
+  },
 };
