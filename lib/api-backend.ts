@@ -16,6 +16,13 @@ export const apiBackend = {
         ? document.cookie.split('; ').find(row => row.startsWith('csrftoken='))?.split('=')[1]
         : null;
 
+      // 👇 ADICIONE ESSE LOG TEMPORÁRIO
+    console.log('🔍 CSRF Debug:', {
+    cookies: document.cookie,
+    csrftoken: csrftoken,
+    willSendHeader: !!csrftoken
+  });
+
     // Faz a requisição
     const response = await fetch(`${BASE_URL}${path}`, {
       credentials: "include", // Envia cookies (sessionid, csrftoken)
