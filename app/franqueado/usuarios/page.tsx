@@ -239,7 +239,7 @@ export default function UsuariosPage() {
   }
 
   // Filtros aplicados nos dados
-  const filteredUsuarios = usuarios.filter((usuario) => {
+  const filteredUsuarios = usuarios?.filter((usuario) => {
     const matchesSearch =
       usuario.nome.toLowerCase().includes(searchTerm.toLowerCase()) ||
       usuario.email.toLowerCase().includes(searchTerm.toLowerCase())
@@ -250,11 +250,11 @@ export default function UsuariosPage() {
       (filterTipo === "franquia" && usuario.franquia)
 
     return matchesSearch && matchesRole && matchesTipo
-  })
+  }) || []
 
-  const filteredFranquias = franquias.filter(
+  const filteredFranquias = franquias?.filter(
     (franquia) => franquia.nome.toLowerCase().includes(searchTerm.toLowerCase()) || franquia.cnpj.includes(searchTerm),
-  )
+  ) || []
 
   if (loading || !isAuthenticated) {
     return <p className="text-white text-center p-8">Carregando...</p>
@@ -309,7 +309,7 @@ export default function UsuariosPage() {
                 >
                   <div className="flex items-center space-x-2">
                     <Users className="w-4 h-4" />
-                    <span>Usuários ({usuarios.length})</span>
+                    <span>Usuários ({usuarios?.length || 0})</span>
                   </div>
                 </button>
                 <button
@@ -322,7 +322,7 @@ export default function UsuariosPage() {
                 >
                   <div className="flex items-center space-x-2">
                     <Building className="w-4 h-4" />
-                    <span>Franquias ({franquias.length})</span>
+                    <span>Franquias ({franquias?.length || 0})</span>
                   </div>
                 </button>
               </nav>
