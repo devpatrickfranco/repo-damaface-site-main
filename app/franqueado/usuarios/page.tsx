@@ -433,15 +433,15 @@ export default function UsuariosPage() {
                           <span
                             className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
                               usuario.franquia
-                                ? "bg-orange-100 text-orange-800 border-orange-200"
-                                : "bg-purple-100 text-purple-800 border-purple-200"
+                                ? "bg-orange-100 text-orange-800 border border-orange-200"
+                                : "bg-purple-100 text-purple-800 border border-purple-200"
                             }`}
                           >
                             {usuario.franquia ? "Franquia" : "Franqueadora"}
                           </span>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-300">
-                          {usuario.franquia_nome || "-"}
+                          {usuario.franquia ? franquias.find(f => f.id === usuario.franquia)?.nome || `ID: ${usuario.franquia}` : "-"}
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                           <div className="flex items-center justify-end space-x-2">
@@ -508,7 +508,7 @@ export default function UsuariosPage() {
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-300">{franquia.cnpj}</td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-300">
-                          {usuarios.filter((u) => u.franquia === franquia.id).length} usuários
+                          {usuarios?.filter((u) => u.franquia === franquia.id).length || 0} usuários
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                           <div className="flex items-center justify-end space-x-2">
