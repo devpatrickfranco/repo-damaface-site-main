@@ -239,7 +239,7 @@ export default function UsuariosPage() {
   }
 
   // Filtros aplicados nos dados
-  const filteredUsuarios = usuarios?.filter((usuario) => {
+  const filteredUsuarios = (usuarios || []).filter((usuario) => {
     const matchesSearch =
       usuario.nome.toLowerCase().includes(searchTerm.toLowerCase()) ||
       usuario.email.toLowerCase().includes(searchTerm.toLowerCase())
@@ -250,11 +250,11 @@ export default function UsuariosPage() {
       (filterTipo === "franquia" && usuario.franquia)
 
     return matchesSearch && matchesRole && matchesTipo
-  }) || []
+  })
 
-  const filteredFranquias = franquias?.filter(
+  const filteredFranquias = (franquias || []).filter(
     (franquia) => franquia.nome.toLowerCase().includes(searchTerm.toLowerCase()) || franquia.cnpj.includes(searchTerm),
-  ) || []
+  )
 
   if (loading || !isAuthenticated) {
     return <p className="text-white text-center p-8">Carregando...</p>
@@ -441,7 +441,7 @@ export default function UsuariosPage() {
                           </span>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-300">
-                          {usuario.franquia ? franquias.find(f => f.id === usuario.franquia)?.nome || `ID: ${usuario.franquia}` : "-"}
+                          {usuario.franquia ? (franquias || []).find(f => f.id === usuario.franquia)?.nome || `ID: ${usuario.franquia}` : "-"}
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                           <div className="flex items-center justify-end space-x-2">
@@ -686,7 +686,7 @@ export default function UsuariosPage() {
                         className="w-full px-4 py-3 bg-gray-700/50 border border-gray-600 rounded-lg text-white focus:outline-none focus:border-pink-500 focus:ring-2 focus:ring-pink-500/20 transition-all"
                       >
                         <option value="">Nenhuma (Franqueadora)</option>
-                        {franquias.map((franquia) => (
+                        {franquias?.map((franquia) => (
                           <option key={franquia.id} value={franquia.id}>
                             {franquia.nome}
                           </option>
