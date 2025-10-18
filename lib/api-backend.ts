@@ -2,7 +2,7 @@
 import axios from "axios";
 
 export const apiBackend = axios.create({
-  baseURL: process.env.NEXT_PUBLIC_API_BACKEND_URL || "https://api-franqueadora-production.up.railway.app",
+  baseURL: process.env.NEXT_PUBLIC_API_BACKEND_URL,
   withCredentials: true,
   headers: { "Content-Type": "application/json" },
 });
