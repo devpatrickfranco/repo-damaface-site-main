@@ -1,7 +1,7 @@
 "use client";
 
 import { createContext, useContext, useEffect, useState, ReactNode } from "react";
-import { setCsrfToken, get, post } from "../lib/api-backend";
+import { ensureCsrfToken, get, post } from "../lib/api-backend";
 import type { Usuario } from "@/types/users";
 import type { AuthContextType } from '@/types/auth';
 
@@ -10,22 +10,8 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<Usuario | null>(null);
   const [loading, setLoading] = useState(true);
-  const [csrfToken, setCsrfTokenState] = useState<string | null>(null);
 
-  // Busca token e injeta no axios global
-  const refreshCsrf = async () => {
-    try {
-      const res = await get<{ csrfToken: string }>("/users/csrf/");
-      const token = res?.csrfToken;
-      if (token) {
-        setCsrfToken(token);         // injeta no interceptor global
-        setCsrfTokenState(token);    // guarda localmente (debug/controle)
-      }
-    } catch (error) {
-      console.error("Erro ao buscar CSRF token:", error);
-    }
-  };
-
+  // Busca os dados do usuário logado
   const refreshMe = async () => {
     try {
       const userData = await get<Usuario>("/users/me/");
@@ -35,11 +21,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   };
 
+  // Inicialização: garante CSRF cookie e busca usuário
   useEffect(() => {
     (async () => {
       try {
-        await refreshCsrf();
-        await refreshMe();
+        await ensureCsrfToken(); // Garante que o cookie CSRF existe
+        await refreshMe();       // Verifica se já está logado
       } finally {
         setLoading(false);
       }
@@ -48,18 +35,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const login = async (email: string, password: string) => {
     try {
-      if (!csrfToken) await refreshCsrf();
+      await ensureCsrfToken(); // Garante CSRF antes de logar
       await post("/users/login/", { email, password });
-      await refreshMe();
+      await refreshMe(); // Atualiza os dados do usuário após login
     } catch (error: any) {
       console.error("Erro no login:", error);
-      throw new Error(error.response?.data?.message || "Erro ao fazer login");
+      throw new Error(error.response?.data?.detail || "Erro ao fazer login");
     }
   };
 
   const logout = async () => {
     try {
-      if (!csrfToken) await refreshCsrf();
       await post("/users/logout/");
       setUser(null);
     } catch (error) {
@@ -72,10 +58,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     user,
     isAuthenticated: !!user,
     loading,
-    csrfToken,
     login,
     logout,
-    refreshCsrf,
     refreshMe,
   };
 

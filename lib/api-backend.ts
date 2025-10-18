@@ -7,37 +7,54 @@ export const apiBackend = axios.create({
   headers: { "Content-Type": "application/json" },
 });
 
-// Armazenamos o token em memória neste módulo
-let _csrfToken: string | null = null;
-
-// Setter para o Context atualizar quando buscar /users/csrf/
-export const setCsrfToken = (token: string | null) => {
-  _csrfToken = token;
+/**
+ * Extrai o CSRF token do cookie do navegador
+ * Este é o token ATUAL que o Django setou
+ */
+const getCsrfTokenFromCookie = (): string | null => {
+  if (typeof document === 'undefined') return null; // SSR check
+  
+  const name = 'csrftoken';
+  const value = `; ${document.cookie}`;
+  const parts = value.split(`; ${name}=`);
+  
+  if (parts.length === 2) {
+    return parts.pop()?.split(';').shift() || null;
+  }
+  
+  return null;
 };
 
-// NOVA: Função para buscar CSRF quando necessário
+/**
+ * Garante que o cookie CSRF existe
+ * Faz uma chamada GET /users/csrf/ para Django setar o cookie
+ */
 export const ensureCsrfToken = async () => {
-  if (_csrfToken) return; // Já tem token, não precisa buscar
+  const existingToken = getCsrfTokenFromCookie();
+  if (existingToken) return; // Já tem cookie, não precisa buscar
   
   try {
-    const res = await apiBackend.get<{ csrfToken: string }>("/users/csrf/");
-    const token = res.data?.csrfToken;
-    if (token) {
-      setCsrfToken(token);
-    }
+    // Apenas chama o endpoint para Django setar o cookie
+    await apiBackend.get("/users/csrf/");
+    // Não precisamos do body, o cookie já foi setado pelo Django
   } catch (error) {
-    console.error("Erro ao buscar CSRF token:", error);
+    console.error("Erro ao buscar CSRF cookie:", error);
   }
 };
 
-// Interceptor: injeta X-CSRFToken em mutáveis
+/**
+ * Interceptor: injeta X-CSRFToken do COOKIE em requisições mutáveis
+ */
 apiBackend.interceptors.request.use((config) => {
   const method = (config.method || "").toLowerCase();
   const isMutable = ["post", "put", "patch", "delete"].includes(method);
 
-  config.headers = config.headers || {};
-  if (isMutable && _csrfToken) {
-    (config.headers as any)["X-CSRFToken"] = _csrfToken;
+  if (isMutable) {
+    const csrfToken = getCsrfTokenFromCookie(); // LÊ DO COOKIE SEMPRE
+    if (csrfToken) {
+      config.headers = config.headers || {};
+      config.headers["X-CSRFToken"] = csrfToken;
+    }
   }
 
   return config;
