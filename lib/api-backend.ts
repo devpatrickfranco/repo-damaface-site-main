@@ -4,39 +4,30 @@ export const apiBackend = {
   async request<T = any>(path: string, options: RequestInit = {}): Promise<T> {
     const BASE_URL = process.env.NEXT_PUBLIC_API_BACKEND_URL
 
-    const csrftoken =
-      typeof document !== "undefined"
-        ? document.cookie.split('; ').find(row => row.startsWith('csrftoken='))?.split('=')[1]
-        : null;
+    const csrftoken = document.cookie
+      .split('; ')
+      .find(row => row.startsWith('csrftoken='))?.split('=')[1]
 
-    console.log('🔍 CSRF Debug:', {
-      cookies: document.cookie,
-      csrftoken: csrftoken,
-      willSendHeader: !!csrftoken
-    });
+    console.log('🔍 CSRFToken atual', csrftoken)
 
     const response = await fetch(`${BASE_URL}${path}`, {
       credentials: "include",
       headers: {
-        ...(csrftoken ? { "X-CSRFToken": csrftoken } : {}),
-        ...(options.headers || {}),  // 👈 Headers personalizados vêm DEPOIS
+        "X-CSRFToken": csrftoken || "",
+        ...(options.headers || {}),
       },
       ...options,
-    });
+    })
 
     if (!response.ok) {
-      const text = await response.text();
-      throw new Error(
-        `Erro ${response.status}: ${
-          text || response.statusText || "Erro na requisição"
-        }`
-      );
+      const text = await response.text()
+      throw new Error(`Erro ${response.status}: ${text}`)
     }
 
     try {
-      return (await response.json()) as T;
+      return await response.json() as T
     } catch {
-      return {} as T;
+      return {} as T
     }
   },
 
