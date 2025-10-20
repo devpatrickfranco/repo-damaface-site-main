@@ -1,33 +1,60 @@
 // lib/api-backend.ts
 
+// Função auxiliar para extrair o CSRF token dos cookies
+function getCsrfToken(): string | null {
+  if (typeof document === 'undefined') return null;
+  
+  const cookies = document.cookie.split('; ');
+  const csrfCookie = cookies.find(row => row.startsWith('csrftoken='));
+  
+  if (!csrfCookie) {
+    console.warn('⚠️ Cookie csrftoken não encontrado!');
+    console.log('📋 Cookies disponíveis:', document.cookie);
+    return null;
+  }
+  
+  const token = csrfCookie.split('=')[1];
+  console.log('✅ CSRF Token encontrado:', token);
+  return token;
+}
+
 export const apiBackend = {
   async request<T = any>(path: string, options: RequestInit = {}): Promise<T> {
-    const BASE_URL = process.env.NEXT_PUBLIC_API_BACKEND_URL
+    const BASE_URL = process.env.NEXT_PUBLIC_API_BACKEND_URL;
+    const csrftoken = getCsrfToken();
 
-    const csrftoken = document.cookie
-      .split('; ')
-      .find(row => row.startsWith('csrftoken='))?.split('=')[1]
+    // Monta os headers corretamente
+    const headers: Record<string, string> = {
+      ...(options.headers as Record<string, string> || {}),
+    };
 
-    console.log('🔍 CSRFToken atual', csrftoken)
+    // Só adiciona X-CSRFToken se o token existir
+    if (csrftoken) {
+      headers['X-CSRFToken'] = csrftoken;
+      console.log('🔐 Enviando X-CSRFToken:', csrftoken);
+    } else {
+      console.error('❌ CSRF Token não encontrado - requisição pode falhar!');
+    }
+
+    console.log('📤 Fazendo requisição para:', `${BASE_URL}${path}`);
+    console.log('📤 Headers:', headers);
 
     const response = await fetch(`${BASE_URL}${path}`, {
       credentials: "include",
-      headers: {
-        "X-CSRFToken": csrftoken || "",
-        ...(options.headers || {}),
-      },
       ...options,
-    })
+      headers,
+    });
 
     if (!response.ok) {
-      const text = await response.text()
-      throw new Error(`Erro ${response.status}: ${text}`)
+      const text = await response.text();
+      console.error(`❌ Erro ${response.status}:`, text);
+      throw new Error(`Erro ${response.status}: ${text}`);
     }
 
     try {
-      return await response.json() as T
+      return await response.json() as T;
     } catch {
-      return {} as T
+      return {} as T;
     }
   },
 
@@ -46,7 +73,7 @@ export const apiBackend = {
     return this.request<T>(path, {
       method: "POST",
       body: body instanceof FormData ? body : JSON.stringify(body || {}),
-      headers,  // 👈 Agora não sobrescreve o X-CSRFToken
+      headers,
     });
   },
 
@@ -84,19 +111,18 @@ export const apiBackend = {
 };
 
 export async function getBlob(path: string): Promise<Blob> {
-  const BASE_URL = process.env.NEXT_PUBLIC_API_BACKEND_URL
+  const BASE_URL = process.env.NEXT_PUBLIC_API_BACKEND_URL;
+  const csrftoken = getCsrfToken();
 
-  const csrftoken =
-    typeof document !== "undefined"
-      ? document.cookie.split('; ').find(row => row.startsWith('csrftoken='))?.split('=')[1]
-      : null;
+  const headers: Record<string, string> = {};
+  if (csrftoken) {
+    headers['X-CSRFToken'] = csrftoken;
+  }
 
   const response = await fetch(`${BASE_URL}${path}`, {
     method: "GET",
     credentials: "include",
-    headers: {
-      ...(csrftoken ? { "X-CSRFToken": csrftoken } : {}),
-    },
+    headers,
   });
 
   if (!response.ok) {
