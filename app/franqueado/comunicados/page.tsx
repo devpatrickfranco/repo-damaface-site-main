@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback } from "react"
 import { useAuth } from "@/context/AuthContext"
 import { apiBackend } from "@/lib/api-backend"
-import { useRouter } from "next/navigation"
+import { useRouter } from 'next/navigation'
 
 import Sidebar from "../components/Sidebar"
 import HeaderDashboard from "../components/HeaderFranqueado"
@@ -16,14 +16,40 @@ export default function ComunicadosPage() {
   const [comunicados, setComunicados] = useState([])
   const [pageLoading, setPageLoading] = useState(true)
 
+  // <CHANGE> Corrigida a função de busca com logs detalhados e múltiplas formas de acessar os dados
   const fetchComunicados = useCallback(async () => {
     if (isAuthenticated) {
       try {
         setPageLoading(true)
+        console.log("[v0] Buscando comunicados...")
+        
         const response = await apiBackend.get("/dashboard/comunicados/")
-        setComunicados(response.data)
+        
+        console.log("[v0] Resposta completa:", response)
+        console.log("[v0] Tipo da resposta:", typeof response)
+        console.log("[v0] É array?", Array.isArray(response))
+        
+        // Tenta acessar os dados de múltiplas formas
+        let comunicadosData = []
+        if (Array.isArray(response)) {
+          // A resposta é diretamente um array
+          comunicadosData = response
+          console.log("[v0] Dados são array direto")
+        } else if (response?.data && Array.isArray(response.data)) {
+          // A resposta tem propriedade data (formato axios)
+          comunicadosData = response.data
+          console.log("[v0] Dados estão em response.data")
+        } else if (response?.data?.data && Array.isArray(response.data.data)) {
+          // A resposta tem data aninhado
+          comunicadosData = response.data.data
+          console.log("[v0] Dados estão em response.data.data")
+        }
+        
+        console.log("[v0] Comunicados processados:", comunicadosData)
+        setComunicados(comunicadosData)
       } catch (error) {
-        console.error("Falha ao buscar comunicados", error)
+        console.error("[v0] Falha ao buscar comunicados:", error)
+        setComunicados([])
       } finally {
         setPageLoading(false)
       }

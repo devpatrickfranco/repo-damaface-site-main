@@ -22,17 +22,21 @@ export default function ComunicadoDetailModal({
 
   useEffect(() => {
     if (comunicado) {
+      console.log("[v0] Comunicado no modal:", comunicado)
       setIsRead(comunicado.lido_pelo_usuario_atual || false)
     }
   }, [comunicado])
 
+  // <CHANGE> Corrigida a função de marcar como lido com melhor tratamento de resposta
   const handleMarcarComoLido = async () => {
     if (!comunicado || isRead) return
 
     setIsMarkingAsRead(true)
+    console.log("[v0] Marcando comunicado como lido:", comunicado.id)
 
     try {
-      await apiBackend.post(`/dashboard/comunicados/${comunicado.id}/mark-as-read/`)
+      const response = await apiBackend.post(`/dashboard/comunicados/${comunicado.id}/mark-as-read/`)
+      console.log("[v0] Resposta ao marcar como lido:", response)
       
       setIsRead(true)
       alert('Comunicado marcado como lido!')
@@ -41,7 +45,7 @@ export default function ComunicadoDetailModal({
         onMarcarComoLido(Number(comunicado.id))
       }
     } catch (error) {
-      console.error('Erro ao marcar como lido:', error)
+      console.error('[v0] Erro ao marcar como lido:', error)
       alert('Erro ao marcar comunicado como lido. Tente novamente.')
     } finally {
       setIsMarkingAsRead(false)
