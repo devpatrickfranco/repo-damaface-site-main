@@ -3,7 +3,7 @@
 import type React from "react"
 
 import { useAuth } from "@/context/AuthContext"
-import { useRouter } from "next/navigation"
+import { useRouter } from 'next/navigation'
 import { useEffect, useState, useCallback } from "react"
 import { apiBackend } from "@/lib/api-backend"
 import type { Usuario, Franquia } from "@/types/users"
@@ -12,23 +12,7 @@ import Sidebar from "../components/Sidebar"
 import HeaderFranqueado from "../components/HeaderFranqueado"
 import Avatar from "../components/Avatar"
 
-import {
-  Plus,
-  Search,
-  Edit,
-  Trash2,
-  Eye,
-  EyeOff,
-  Building,
-  User,
-  Crown,
-  Shield,
-  UserCheck,
-  Users,
-  X,
-  Save,
-  AlertCircle,
-} from "lucide-react"
+import { Plus, Search, Edit, Trash2, Eye, EyeOff, Building, User, Crown, Shield, UserCheck, Users, X, Save, AlertCircle } from 'lucide-react'
 
 export default function UsuariosPage() {
   const { isAuthenticated, user, loading } = useAuth()
@@ -47,6 +31,7 @@ export default function UsuariosPage() {
   const [usuarios, setUsuarios] = useState<Usuario[]>([])
   const [franquias, setFranquias] = useState<Franquia[]>([])
   const [pageLoading, setPageLoading] = useState(true)
+  const [dataError, setDataError] = useState<string | null>(null)
 
   // Estados dos filtros
   const [searchTerm, setSearchTerm] = useState("")
@@ -70,21 +55,48 @@ export default function UsuariosPage() {
     cnpj: "",
   })
 
-  // Função para buscar dados da API
+  // <CHANGE> Melhorada a função de busca de dados com melhor tratamento de erros
   const fetchData = useCallback(async () => {
+    console.log("[v0] Iniciando busca de dados...")
+    setPageLoading(true)
+    setDataError(null)
+    
     try {
-      const [usuariosRes, franquiasRes] = await Promise.all([
+      const [usuariosRes, franquiasRes] = await Promise.allSettled([
         apiBackend.get("/users/usuarios/"),
         apiBackend.get("/users/franquias/"),
       ])
 
-      setUsuarios(usuariosRes.data)
-      setFranquias(franquiasRes.data)
+      // Processa usuários
+      if (usuariosRes.status === "fulfilled") {
+        console.log("[v0] Usuários recebidos:", usuariosRes.value.data)
+        setUsuarios(Array.isArray(usuariosRes.value.data) ? usuariosRes.value.data : [])
+      } else {
+        console.error("[v0] Erro ao buscar usuários:", usuariosRes.reason)
+        setUsuarios([])
+      }
+
+      // Processa franquias
+      if (franquiasRes.status === "fulfilled") {
+        console.log("[v0] Franquias recebidas:", franquiasRes.value.data)
+        setFranquias(Array.isArray(franquiasRes.value.data) ? franquiasRes.value.data : [])
+      } else {
+        console.error("[v0] Erro ao buscar franquias:", franquiasRes.reason)
+        setFranquias([])
+      }
+
+      // Se ambas falharam, mostra erro
+      if (usuariosRes.status === "rejected" && franquiasRes.status === "rejected") {
+        setDataError("Falha ao carregar dados do servidor. Verifique sua conexão.")
+      }
     } catch (err) {
-      console.error("Erro ao buscar dados:", err)
-      setError("Falha ao carregar dados do servidor.")
+      console.error("[v0] Erro geral ao buscar dados:", err)
+      setDataError("Erro inesperado ao carregar dados.")
+      setUsuarios([])
+      setFranquias([])
     } finally {
       setPageLoading(false)
+      console.log("[v0] Busca de dados finalizada")
     }
   }, [])
 
@@ -95,12 +107,15 @@ export default function UsuariosPage() {
     }
   }, [isAuthenticated, loading, router])
 
-  // Efeito para buscar os dados iniciais
+  // <CHANGE> Melhorado o efeito para buscar dados iniciais
   useEffect(() => {
-    if (isAuthenticated) {
+    if (isAuthenticated && !loading) {
+      console.log("[v0] Usuário autenticado, buscando dados...")
       fetchData()
     }
-  }, [isAuthenticated, fetchData])
+  }, [isAuthenticated, loading, fetchData])
+
+  // ... existing code ...
 
   // Funções de controle do Modal
   const openModal = (type: "usuario" | "franquia", item?: Usuario | Franquia) => {
@@ -238,8 +253,8 @@ export default function UsuariosPage() {
     }
   }
 
-  // Filtros aplicados nos dados
-  const filteredUsuarios = (usuarios || []).filter((usuario) => {
+  // <CHANGE> Melhorados os filtros para garantir que sempre trabalhem com arrays válidos
+  const filteredUsuarios = usuarios.filter((usuario) => {
     const matchesSearch =
       usuario.nome.toLowerCase().includes(searchTerm.toLowerCase()) ||
       usuario.email.toLowerCase().includes(searchTerm.toLowerCase())
@@ -252,12 +267,24 @@ export default function UsuariosPage() {
     return matchesSearch && matchesRole && matchesTipo
   })
 
-  const filteredFranquias = (franquias || []).filter(
+  const filteredFranquias = franquias.filter(
     (franquia) => franquia.nome.toLowerCase().includes(searchTerm.toLowerCase()) || franquia.cnpj.includes(searchTerm),
   )
 
-  if (loading || !isAuthenticated) {
-    return <p className="text-white text-center p-8">Carregando...</p>
+  // <CHANGE> Melhorado o fallback de loading para aguardar autenticação
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gray-900 flex items-center justify-center">
+        <div className="text-white text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-pink-500 mx-auto mb-4"></div>
+          <p>Verificando autenticação...</p>
+        </div>
+      </div>
+    )
+  }
+
+  if (!isAuthenticated) {
+    return null
   }
 
   if (pageLoading) {
@@ -284,6 +311,23 @@ export default function UsuariosPage() {
             <p className="text-gray-400">Controle completo de usuários e unidades franqueadas</p>
           </div>
 
+          {/* <CHANGE> Adicionado display de erro de carregamento de dados */}
+          {dataError && (
+            <div className="mb-6 bg-red-900/20 border border-red-500 rounded-lg p-4 flex items-center space-x-2">
+              <AlertCircle className="w-5 h-5 text-red-400" />
+              <span className="text-red-400">{dataError}</span>
+              <button 
+                onClick={() => {
+                  setDataError(null)
+                  fetchData()
+                }} 
+                className="ml-auto text-red-400 hover:text-red-300 underline"
+              >
+                Tentar novamente
+              </button>
+            </div>
+          )}
+
           {/* Error Display */}
           {error && (
             <div className="mb-6 bg-red-900/20 border border-red-500 rounded-lg p-4 flex items-center space-x-2">
@@ -309,7 +353,7 @@ export default function UsuariosPage() {
                 >
                   <div className="flex items-center space-x-2">
                     <Users className="w-4 h-4" />
-                    <span>Usuários ({usuarios?.length || 0})</span>
+                    <span>Usuários ({usuarios.length})</span>
                   </div>
                 </button>
                 <button
@@ -322,7 +366,7 @@ export default function UsuariosPage() {
                 >
                   <div className="flex items-center space-x-2">
                     <Building className="w-4 h-4" />
-                    <span>Franquias ({franquias?.length || 0})</span>
+                    <span>Franquias ({franquias.length})</span>
                   </div>
                 </button>
               </nav>
@@ -441,7 +485,7 @@ export default function UsuariosPage() {
                           </span>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-300">
-                          {usuario.franquia ? (franquias || []).find(f => f.id === usuario.franquia)?.nome || `ID: ${usuario.franquia}` : "-"}
+                          {usuario.franquia ? franquias.find(f => f.id === usuario.franquia)?.nome || `ID: ${usuario.franquia}` : "-"}
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                           <div className="flex items-center justify-end space-x-2">
@@ -464,7 +508,7 @@ export default function UsuariosPage() {
                     {filteredUsuarios.length === 0 && (
                       <tr>
                         <td colSpan={5} className="px-6 py-8 text-center text-gray-400">
-                          Nenhum usuário encontrado
+                          {usuarios.length === 0 ? "Nenhum usuário cadastrado" : "Nenhum usuário encontrado com os filtros aplicados"}
                         </td>
                       </tr>
                     )}
@@ -508,7 +552,7 @@ export default function UsuariosPage() {
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-300">{franquia.cnpj}</td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-300">
-                          {usuarios?.filter((u) => u.franquia === franquia.id).length || 0} usuários
+                          {usuarios.filter((u) => u.franquia === franquia.id).length} usuários
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                           <div className="flex items-center justify-end space-x-2">
@@ -531,7 +575,7 @@ export default function UsuariosPage() {
                     {filteredFranquias.length === 0 && (
                       <tr>
                         <td colSpan={4} className="px-6 py-8 text-center text-gray-400">
-                          Nenhuma franquia encontrada
+                          {franquias.length === 0 ? "Nenhuma franquia cadastrada" : "Nenhuma franquia encontrada com os filtros aplicados"}
                         </td>
                       </tr>
                     )}
@@ -686,7 +730,7 @@ export default function UsuariosPage() {
                         className="w-full px-4 py-3 bg-gray-700/50 border border-gray-600 rounded-lg text-white focus:outline-none focus:border-pink-500 focus:ring-2 focus:ring-pink-500/20 transition-all"
                       >
                         <option value="">Nenhuma (Franqueadora)</option>
-                        {franquias?.map((franquia) => (
+                        {franquias.map((franquia) => (
                           <option key={franquia.id} value={franquia.id}>
                             {franquia.nome}
                           </option>
