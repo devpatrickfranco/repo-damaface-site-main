@@ -14,7 +14,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   // 🔹 Verifica se já há sessão ativa
   useEffect(() => {
     (async () => {
-      try {
+      try { 
         await refreshMe();
       } catch {
         setUser(null);
@@ -27,8 +27,11 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   // 🔹 Login (sem CSRF)
   const login = async (email: string, password: string) => {
     try {
+      
       await apiBackend.post("/users/login/", { email, password });
+      await new Promise((r) => setTimeout(r, 200));
       await refreshMe();
+      
     } catch (err: any) {
       console.error("Erro no login:", err);
       throw new Error(err.message || "Erro ao realizar login.");
