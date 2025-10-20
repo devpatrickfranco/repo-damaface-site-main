@@ -55,7 +55,7 @@ export default function UsuariosPage() {
     cnpj: "",
   })
 
-  // <CHANGE> Melhorada a função de busca de dados com melhor tratamento de erros
+  // <CHANGE> Corrigida a função de busca de dados com logs detalhados e múltiplas formas de acessar os dados
   const fetchData = useCallback(async () => {
     console.log("[v0] Iniciando busca de dados...")
     setPageLoading(true)
@@ -69,8 +69,28 @@ export default function UsuariosPage() {
 
       // Processa usuários
       if (usuariosRes.status === "fulfilled") {
-        console.log("[v0] Usuários recebidos:", usuariosRes.value.data)
-        setUsuarios(Array.isArray(usuariosRes.value.data) ? usuariosRes.value.data : [])
+        console.log("[v0] Resposta completa de usuários:", usuariosRes.value)
+        console.log("[v0] Tipo da resposta:", typeof usuariosRes.value)
+        console.log("[v0] É array?", Array.isArray(usuariosRes.value))
+        
+        // Tenta acessar os dados de múltiplas formas
+        let usuariosData = []
+        if (Array.isArray(usuariosRes.value)) {
+          // A resposta é diretamente um array
+          usuariosData = usuariosRes.value
+          console.log("[v0] Dados são array direto")
+        } else if (usuariosRes.value?.data && Array.isArray(usuariosRes.value.data)) {
+          // A resposta tem propriedade data (formato axios)
+          usuariosData = usuariosRes.value.data
+          console.log("[v0] Dados estão em response.data")
+        } else if (usuariosRes.value?.data?.data && Array.isArray(usuariosRes.value.data.data)) {
+          // A resposta tem data aninhado
+          usuariosData = usuariosRes.value.data.data
+          console.log("[v0] Dados estão em response.data.data")
+        }
+        
+        console.log("[v0] Usuários processados:", usuariosData)
+        setUsuarios(usuariosData)
       } else {
         console.error("[v0] Erro ao buscar usuários:", usuariosRes.reason)
         setUsuarios([])
@@ -78,8 +98,28 @@ export default function UsuariosPage() {
 
       // Processa franquias
       if (franquiasRes.status === "fulfilled") {
-        console.log("[v0] Franquias recebidas:", franquiasRes.value.data)
-        setFranquias(Array.isArray(franquiasRes.value.data) ? franquiasRes.value.data : [])
+        console.log("[v0] Resposta completa de franquias:", franquiasRes.value)
+        console.log("[v0] Tipo da resposta:", typeof franquiasRes.value)
+        console.log("[v0] É array?", Array.isArray(franquiasRes.value))
+        
+        // Tenta acessar os dados de múltiplas formas
+        let franquiasData = []
+        if (Array.isArray(franquiasRes.value)) {
+          // A resposta é diretamente um array
+          franquiasData = franquiasRes.value
+          console.log("[v0] Dados são array direto")
+        } else if (franquiasRes.value?.data && Array.isArray(franquiasRes.value.data)) {
+          // A resposta tem propriedade data (formato axios)
+          franquiasData = franquiasRes.value.data
+          console.log("[v0] Dados estão em response.data")
+        } else if (franquiasRes.value?.data?.data && Array.isArray(franquiasRes.value.data.data)) {
+          // A resposta tem data aninhado
+          franquiasData = franquiasRes.value.data.data
+          console.log("[v0] Dados estão em response.data.data")
+        }
+        
+        console.log("[v0] Franquias processadas:", franquiasData)
+        setFranquias(franquiasData)
       } else {
         console.error("[v0] Erro ao buscar franquias:", franquiasRes.reason)
         setFranquias([])
@@ -107,15 +147,13 @@ export default function UsuariosPage() {
     }
   }, [isAuthenticated, loading, router])
 
-  // <CHANGE> Melhorado o efeito para buscar dados iniciais
+  // Efeito para buscar dados iniciais
   useEffect(() => {
     if (isAuthenticated && !loading) {
       console.log("[v0] Usuário autenticado, buscando dados...")
       fetchData()
     }
   }, [isAuthenticated, loading, fetchData])
-
-  // ... existing code ...
 
   // Funções de controle do Modal
   const openModal = (type: "usuario" | "franquia", item?: Usuario | Franquia) => {
@@ -253,7 +291,7 @@ export default function UsuariosPage() {
     }
   }
 
-  // <CHANGE> Melhorados os filtros para garantir que sempre trabalhem com arrays válidos
+  // Filtros
   const filteredUsuarios = usuarios.filter((usuario) => {
     const matchesSearch =
       usuario.nome.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -271,7 +309,7 @@ export default function UsuariosPage() {
     (franquia) => franquia.nome.toLowerCase().includes(searchTerm.toLowerCase()) || franquia.cnpj.includes(searchTerm),
   )
 
-  // <CHANGE> Melhorado o fallback de loading para aguardar autenticação
+  // Loading states
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-900 flex items-center justify-center">
@@ -311,7 +349,7 @@ export default function UsuariosPage() {
             <p className="text-gray-400">Controle completo de usuários e unidades franqueadas</p>
           </div>
 
-          {/* <CHANGE> Adicionado display de erro de carregamento de dados */}
+          {/* Error Display */}
           {dataError && (
             <div className="mb-6 bg-red-900/20 border border-red-500 rounded-lg p-4 flex items-center space-x-2">
               <AlertCircle className="w-5 h-5 text-red-400" />
@@ -328,7 +366,6 @@ export default function UsuariosPage() {
             </div>
           )}
 
-          {/* Error Display */}
           {error && (
             <div className="mb-6 bg-red-900/20 border border-red-500 rounded-lg p-4 flex items-center space-x-2">
               <AlertCircle className="w-5 h-5 text-red-400" />
