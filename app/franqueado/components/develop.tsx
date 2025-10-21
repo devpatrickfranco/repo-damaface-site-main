@@ -80,7 +80,7 @@ const Develop = () => {
 
             {/* CTA Button */}
             <div className="mt-12 animate-on-scroll">
-              <Link href="/" className="btn-primary">
+              <Link href="/franqueado/dashboard" className="btn-primary">
                 Voltar ao Início
               </Link>
             </div>
