@@ -32,7 +32,7 @@ const HeaderDashboard = () => {
       <div className="flex items-center justify-between h-full px-4 relative">
 
         {/* Logo canto superior esquerdo */}
-        <div className="absolute top-0 left-0 h-16 flex items-center pl-4">
+        <div className="absolute top-0 left-0 h-16 hidden md:flex items-center pl-4">
           <div className="flex items-center">
             <Image 
               src={Logo} 
