@@ -117,10 +117,10 @@ const HeaderDashboard = () => {
                   <p className="font-semibold text-white">{user?.nome}</p>
                   <p className="text-xs text-gray-400">{user?.email}</p>
                 </div>    
-                <button className="w-full px-4 py-2 text-left hover:bg-gray-700 flex items-center space-x-2">
+                <a href='/franqueado/settings' className="w-full px-4 py-2 text-left hover:bg-gray-700 flex items-center space-x-2">
                   <Settings className="w-4 h-4 text-gray-400" />
                   <span className="text-sm text-gray-300">Configurações</span>
-                </button>
+                </a>
                 <button className="w-full px-4 py-2 text-left hover:bg-gray-700 flex items-center space-x-2">
                   <HelpCircle className="w-4 h-4 text-gray-400" />
                   <span className="text-sm text-gray-300">Ajuda</span>
