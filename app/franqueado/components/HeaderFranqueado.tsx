@@ -2,12 +2,14 @@
 
 import { useState } from 'react';
 import { useAuth } from '@/context/AuthContext';
+import Image from 'next/image'
+import Logo from '@/public/LOGO-DAMAFACE-HORIZONTAL-BRANCO.png'
+
 import { 
   Bell, 
   User, 
   ChevronDown, 
   Menu,
-  Heart,
   LogOut,
   Settings,
   HelpCircle
@@ -40,10 +42,7 @@ const HeaderDashboard = () => {
         
                     {/* Logo */}
                     <div className="flex items-center space-x-2">
-                      <div className="w-8 h-8 bg-gradient-to-r from-pink-500 to-pink-600 rounded-full flex items-center justify-center">
-                        <Heart className="w-4 h-4 text-white" />
-                      </div>
-                      <span className="text-xl font-bold text-white hidden sm:block">DamaFace</span>
+                      <Image src={Logo} alt='Logo DamaFace Horizontal'/>
                     </div>
                   </div>
         
