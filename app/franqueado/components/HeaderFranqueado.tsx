@@ -31,31 +31,39 @@ const HeaderDashboard = () => {
     <header className="fixed top-0 left-0 right-0 bg-gray-800 border-b border-gray-700 z-40 h-16">
       <div className="flex items-center justify-between h-full px-4 relative">
 
-        {/* Logo canto superior esquerdo */}
+        {/* Logo desktop canto esquerdo */}
         <div className="absolute top-0 left-0 h-16 hidden md:flex items-center pl-4">
-          <div className="flex items-center">
-            <Image 
-              src={Logo} 
-              alt="Logo DamaFace Horizontal" 
-              className="w-auto h-8 sm:h-10 object-contain"
-              priority
-            />
-          </div>
+          <Image 
+            src={Logo} 
+            alt="Logo DamaFace Horizontal" 
+            className="w-auto h-8 sm:h-10 object-contain"
+            priority
+          />
         </div>
 
-        {/* Left Side (menu mobile etc) */}
-        <div className="flex items-center space-x-4 ml-32">
-          {/* Mobile Menu Button */}
+        {/* Seção esquerda */}
+        <div className="flex items-center space-x-4">
+          {/* Botão menu mobile */}
           <button
             onClick={() => setSidebarOpen(!sidebarOpen)}
-            className="lg:hidden p-2 rounded-lg hover:bg-gray-700"
+            className="md:hidden p-2 rounded-lg hover:bg-gray-700"
           >
             <Menu className="w-5 h-5 text-gray-300" />
           </button>
         </div>
 
-        {/* Right Side */}
-        <div className="flex items-center space-x-4">
+        {/* Logo centralizada no mobile */}
+        <div className="absolute left-1/2 transform -translate-x-1/2 flex md:hidden items-center">
+          <Image 
+            src={Logo} 
+            alt="Logo DamaFace" 
+            className="w-auto h-8 object-contain"
+            priority
+          />
+        </div>
+
+        {/* Lado direito */}
+        <div className="flex items-center space-x-4 ml-auto">
           
           {/* Notifications */}
           <div className="relative">
