@@ -15,3 +15,7 @@ export interface Usuario {
   franquia_nome?: string | null;
   aluno_id?: number;
 }
+
+export interface Profile extends Usuario {
+  bio: string | null;
+}
