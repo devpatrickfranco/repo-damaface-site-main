@@ -292,7 +292,7 @@ export default function SettingsPage() {
                   htmlFor="franquia"
                   className="block text-sm font-medium text-gray-300"
                 >
-                  Franquia
+                  Unidade
                 </label>
                 <input
                   id="franquia"
