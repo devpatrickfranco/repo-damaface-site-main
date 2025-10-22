@@ -1,183 +1,294 @@
-'use client'
+'use client';
 
-import { useState } from 'react'
-import { useAuth } from '@/context/AuthContext'
-import Image from 'next/image'
-import Logo from '@/public/LOGO-DAMAFACE-HORIZONTAL-BRANCO.png'
-
+import { useState, useRef, useEffect } from 'react';
 import {
-  Bell,
-  User,
-  ChevronDown,
-  Menu,
-  LogOut,
-  Settings,
-  HelpCircle,
-} from 'lucide-react'
+  Send,
+  Sparkles,
+  MessageCircle,
+  FileText,
+  Users,
+  GraduationCap,
+  ArrowLeft,
+} from 'lucide-react';
+import Sidebar from '../components/Sidebar';
+import HeaderFranqueado from '../components/HeaderFranqueado';
 
-const HeaderDashboard = () => {
-  const [sidebarOpen, setSidebarOpen] = useState(false)
-  const [profileDropdownOpen, setProfileDropdownOpen] = useState(false)
-  const [notificationsOpen, setNotificationsOpen] = useState(false)
-  const { user, logout } = useAuth()
-
-  const notifications = [
-    { id: 1, title: 'Nova atualização disponível', time: '2h', unread: true },
-    { id: 2, title: 'Relatório mensal pronto', time: '4h', unread: true },
-    {
-      id: 3,
-      title: 'Reunião agendada para amanhã',
-      time: '1d',
-      unread: false,
-    },
-  ]
-
-  const imageUrl =
-    user && user.imgProfile
-      ? `${process.env.NEXT_PUBLIC_API_BACKEND_URL}${user.imgProfile}`
-      : null
-
-  return (
-    <header className="fixed top-0 left-0 right-0 bg-gray-800 border-b border-gray-700 z-40 h-16">
-      <div className="flex items-center justify-between h-full px-4 relative">
-        {/* Logo desktop canto esquerdo */}
-        <div className="absolute top-0 left-0 h-16 hidden md:flex items-center pl-4">
-          <Image
-            src={Logo}
-            alt="Logo DamaFace Horizontal"
-            className="w-auto h-8 sm:h-10 object-contain"
-            priority
-          />
-        </div>
-
-        {/* Seção esquerda */}
-        <div className="flex items-center space-x-4">
-          {/* Botão menu mobile */}
-          <button
-            onClick={() => setSidebarOpen(!sidebarOpen)}
-            className="md:hidden p-2 rounded-lg hover:bg-gray-700"
-          >
-            <Menu className="w-5 h-5 text-gray-300" />
-          </button>
-        </div>
-
-        {/* Logo centralizada no mobile */}
-        <div className="absolute left-1/2 transform -translate-x-1/2 flex md:hidden items-center">
-          <Image
-            src={Logo}
-            alt="Logo DamaFace"
-            className="w-auto h-8 object-contain"
-            priority
-          />
-        </div>
-
-        {/* Lado direito */}
-        <div className="flex items-center space-x-4 ml-auto">
-          {/* Notifications */}
-          <div className="relative">
-            <button
-              onClick={() => setNotificationsOpen(!notificationsOpen)}
-              className="relative p-2 rounded-lg hover:bg-gray-700"
-            >
-              <Bell className="w-5 h-5 text-gray-300" />
-              <span className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 text-white text-xs rounded-full flex items-center justify-center">
-                {notifications.filter((n) => n.unread).length}
-              </span>
-            </button>
-
-            {/* Notifications Dropdown */}
-            {notificationsOpen && (
-              <div className="absolute right-0 top-12 w-80 bg-gray-800 rounded-lg shadow-lg border border-gray-700 py-2 z-50 animate-fade-in">
-                <div className="px-4 py-2 border-b border-gray-700">
-                  <h3 className="font-semibold text-white">Notificações</h3>
-                </div>
-                {notifications.map((notification) => (
-                  <div
-                    key={notification.id}
-                    className="px-4 py-3 hover:bg-gray-700 cursor-pointer"
-                  >
-                    <div className="flex items-start space-x-3">
-                      <div
-                        className={`w-2 h-2 rounded-full mt-2 ${
-                          notification.unread ? 'bg-blue-500' : 'bg-gray-300'
-                        }`}
-                      />
-                      <div className="flex-1">
-                        <p className="text-sm font-medium text-white">
-                          {notification.title}
-                        </p>
-                        <p className="text-xs text-gray-400">
-                          {notification.time}
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-
-          {/* Profile Dropdown */}
-          <div className="relative">
-            <button
-              onClick={() => setProfileDropdownOpen(!profileDropdownOpen)}
-              className="flex items-center space-x-2 p-2 rounded-lg hover:bg-gray-700"
-            >
-              {/* --- Bloco de Imagem/Ícone Atualizado (CORRIGIDO) --- */}
-              <div className="size-8 rounded-full flex items-center justify-center overflow-hidden bg-gray-700">
-                {imageUrl ? (
-                  <Image
-                    src={imageUrl}
-                    alt="Foto de Perfil"
-                    width={32}
-                    height={32}
-                    className="object-cover w-full h-full"
-                    priority // Imagens de cabeçalho são prioridade
-                  />
-                ) : (
-                  <div className="w-full h-full bg-pink-500 flex items-center justify-center">
-                    <User className="w-4 h-4 text-white" />
-                  </div>
-                )}
-              </div>
-              {/* --- Fim do Bloco Atualizado --- */}
-
-              <ChevronDown className="w-4 h-4 text-gray-300 hidden sm:block" />
-            </button>
-
-            {/* Profile Dropdown Menu */}
-            {profileDropdownOpen && (
-              <div className="absolute right-0 top-12 w-48 bg-gray-800 rounded-lg shadow-lg border border-gray-700 py-2 z-50 animate-fade-in">
-                <div className="px-4 py-2 border-b border-gray-700">
-                  <p className="font-semibold text-white">{user?.nome}</p>
-                  <p className="text-xs text-gray-400">{user?.email}</p>
-                </div>
-                <a
-                  href="/franqueado/settings"
-                  className="w-full px-4 py-2 text-left hover:bg-gray-700 flex items-center space-x-2"
-                >
-                  <Settings className="w-4 h-4 text-gray-400" />
-                  <span className="text-sm text-gray-300">Configurações</span>
-                </a>
-                <button className="w-full px-4 py-2 text-left hover:bg-gray-700 flex items-center space-x-2">
-                  <HelpCircle className="w-4 h-4 text-gray-400" />
-                  <span className="text-sm text-gray-300">Ajuda</span>
-                </button>
-                <hr className="my-2 border-gray-700" />
-                <button
-                  onClick={logout}
-                  className="w-full px-4 py-2 text-left hover:bg-gray-700 flex items-center space-x-2 text-red-400"
-                >
-                  <LogOut className="w-4 h-4" />
-                  <span className="text-sm">Sair</span>
-                </button>
-              </div>
-            )}
-          </div>
-        </div>
-      </div>
-    </header>
-  )
+interface Message {
+  id: string;
+  content: string;
+  role: 'user' | 'assistant';
+  timestamp: Date;
 }
 
-export default HeaderDashboard
+const AIHelpPage = () => {
+  const [messages, setMessages] = useState<Message[]>([]);
+  const [inputValue, setInputValue] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  const suggestedQuestions = [
+    {
+      icon: GraduationCap,
+      text: 'Como encontrar o curso de POPs?',
+      category: 'Academy',
+    },
+    {
+      icon: Users,
+      text: 'Quem é responsável por chamados de Marketing?',
+      category: 'Suporte',
+    },
+    {
+      icon: FileText,
+      text: 'Como solicitar compras de produtos?',
+      category: 'Compras',
+    },
+    {
+      icon: MessageCircle,
+      text: 'Onde encontro os comunicados recentes?',
+      category: 'Comunicados',
+    },
+  ];
+
+  const scrollToBottom = () => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  };
+
+  useEffect(() => {
+    scrollToBottom();
+  }, [messages]);
+
+  const handleSendMessage = async (messageText?: string) => {
+    const textToSend = messageText || inputValue.trim();
+
+    if (!textToSend) return;
+
+    const userMessage: Message = {
+      id: Date.now().toString(),
+      content: textToSend,
+      role: 'user',
+      timestamp: new Date(),
+    };
+
+    setMessages((prev) => [...prev, userMessage]);
+    setInputValue('');
+    setIsLoading(true);
+
+    setTimeout(() => {
+      const assistantMessage: Message = {
+        id: (Date.now() + 1).toString(),
+        content:
+          'Esta é uma resposta de exemplo. Em produção, aqui será integrada a IA treinada com os dados do sistema DamaFace.',
+        role: 'assistant',
+        timestamp: new Date(),
+      };
+      setMessages((prev) => [...prev, assistantMessage]);
+      setIsLoading(false);
+    }, 1500);
+  };
+
+  const handleKeyPress = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      handleSendMessage();
+    }
+  };
+
+  return (
+    // 1. O contêiner raiz não precisa mais ser 'flex flex-col'.
+    <div className="min-h-screen bg-gray-900">
+      <Sidebar />
+      <HeaderFranqueado />
+
+      {/* 2. Criamos um <main> que envolve seu conteúdo e aplica os offsets */}
+      {/* pt-16 (h-16 do Header) e lg:pl-64 (w-64 da Sidebar) */}
+      <main className="pt-16 lg:pl-64">
+        
+        {/* 3. Este é o seu contêiner de conteúdo original.
+            - Removemos 'flex-1' pois o pai não é mais flex.
+            - Adicionamos 'min-h-[calc(100vh-4rem)]' para garantir que ele 
+              ocupe pelo menos a altura da tela (menos o header).
+            - Mantivemos 'flex flex-col' para o layout interno do chat funcionar.
+        */}
+        <div className="flex flex-col max-w-5xl mx-auto w-full px-4 py-8 min-h-[calc(100vh-4rem)]">
+          
+          {/* ... O resto do seu código de página permanece idêntico ... */}
+
+          <div className="mb-8">
+            <div className="flex items-center space-x-3 mb-2">
+              <button
+                onClick={() => window.history.back()}
+                className="p-2 hover:bg-gray-800 rounded-lg transition-colors"
+              >
+                <ArrowLeft className="w-6 h-6 text-gray-400 hover:text-white" />
+              </button>
+              <div className="p-2 bg-brand-pink/20 rounded-lg">
+                <Sparkles className="w-6 h-6 text-brand-pink" />
+              </div>
+              <h1 className="text-3xl font-bold text-white">Central de Ajuda</h1>
+            </div>
+            <p className="text-gray-400 text-sm ml-14">
+              Assistente inteligente para ajudar você a navegar pelo sistema DamaFace
+            </p>
+          </div>
+
+          {messages.length === 0 ? (
+            // O 'flex-1' aqui agora funciona corretamente
+            <div className="flex-1 flex flex-col items-center justify-center space-y-8 animate-fade-in">
+              <div className="text-center space-y-3 mb-8">
+                <div className="w-20 h-20 bg-brand-pink/20 rounded-full flex items-center justify-center mx-auto">
+                  <Sparkles className="w-10 h-10 text-brand-pink" />
+                </div>
+                <h2 className="text-2xl font-semibold text-white">
+                  Como posso ajudar você hoje?
+                </h2>
+                <p className="text-gray-400 max-w-md">
+                  Faça perguntas sobre cursos, procedimentos, responsáveis ou
+                  qualquer dúvida sobre o sistema
+                </p>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 w-full max-w-3xl">
+                {suggestedQuestions.map((question, index) => (
+                  <button
+                    key={index}
+                    onClick={() => handleSendMessage(question.text)}
+                    className="group p-4 bg-gray-800 hover:bg-gray-750 border border-gray-700 hover:border-brand-pink/50 rounded-lg transition-all duration-200 text-left"
+                  >
+                    <div className="flex items-start space-x-3">
+                      <div className="p-2 bg-gray-700 group-hover:bg-brand-pink/20 rounded-lg transition-colors">
+                        <question.icon className="w-5 h-5 text-gray-400 group-hover:text-brand-pink transition-colors" />
+                      </div>
+                      <div className="flex-1">
+                        <div className="text-xs text-brand-pink font-medium mb-1">
+                          {question.category}
+                        </div>
+                        <div className="text-sm text-gray-300 group-hover:text-white transition-colors">
+                          {question.text}
+                        </div>
+                      </div>
+                    </div>
+                  </button>
+                ))}
+              </div>
+            </div>
+          ) : (
+            // O 'flex-1' aqui também funciona
+            <div className="flex-1 overflow-y-auto space-y-6 mb-6 pr-2">
+              {messages.map((message) => (
+                <div
+                  key={message.id}
+                  className={`flex ${
+                    message.role === 'user' ? 'justify-end' : 'justify-start'
+                  } animate-fade-up`}
+                >
+                  <div
+                    className={`max-w-[80%] ${
+                      message.role === 'user'
+                        ? 'bg-brand-pink text-white'
+                        : 'bg-gray-800 text-gray-100 border border-gray-700'
+                    } rounded-2xl px-5 py-3 shadow-lg`}
+                  >
+                    {message.role === 'assistant' && (
+                      <div className="flex items-center space-x-2 mb-2">
+                        <Sparkles className="w-4 h-4 text-brand-pink" />
+                        <span className="text-xs font-medium text-brand-pink">
+                          Help
+                        </span>
+                      </div>
+                    )}
+                    <p className="text-sm leading-relaxed whitespace-pre-wrap">
+                      {message.content}
+                    </p>
+                    <div
+                      className={`text-xs mt-2 ${
+                        message.role === 'user'
+                          ? 'text-pink-200'
+                          : 'text-gray-500'
+                      }`}
+                    >
+                      {message.timestamp.toLocaleTimeString('pt-BR', {
+                        hour: '2-digit',
+                        minute: '2-digit',
+                      })}
+                    </div>
+                  </div>
+                </div>
+              ))}
+              {isLoading && (
+                <div className="flex justify-start animate-fade-up">
+                  <div className="max-w-[80%] bg-gray-800 border border-gray-700 rounded-2xl px-5 py-3 shadow-lg">
+                    <div className="flex items-center space-x-2 mb-2">
+                      <Sparkles className="w-4 h-4 text-brand-pink" />
+                      <span className="text-xs font-medium text-brand-pink">
+                        Help
+                      </span>
+                    </div>
+                    <div className="flex space-x-2">
+                      <div
+                        className="w-2 h-2 bg-gray-600 rounded-full animate-bounce"
+                        style={{ animationDelay: '0ms' }}
+                      />
+                      <div
+                        className="w-2 h-2 bg-gray-600 rounded-full animate-bounce"
+                        style={{ animationDelay: '150ms' }}
+                      />
+                      <div
+                        className="w-2 h-2 bg-gray-600 rounded-full animate-bounce"
+                        style={{ animationDelay: '300ms' }}
+                      />
+                    </div>
+                  </div>
+                </div>
+              )}
+              <div ref={messagesEndRef} />
+            </div>
+          )}
+
+          {/* O input bar gruda no final do contêiner flex-col */}
+          <div className="sticky bottom-0 bg-gray-900 pt-4">
+            <div className="relative">
+              <input
+                type="text"
+                value={inputValue}
+                onChange={(e) => setInputValue(e.target.value)}
+                onKeyPress={handleKeyPress}
+                placeholder="Digite sua pergunta..."
+                className="w-full bg-gray-800 border border-gray-700 rounded-2xl pl-6 pr-14 py-4 text-white placeholder-gray-500 focus:outline-none focus:border-brand-pink focus:ring-2 focus:ring-brand-pink/20 transition-all"
+                disabled={isLoading}
+              />
+              <button
+                onClick={() => handleSendMessage()}
+                disabled={!inputValue.trim() || isLoading}
+                className="absolute right-2 top-1/2 -translate-y-1/2 p-3 bg-brand-pink hover:bg-pink-600 disabled:bg-gray-700 disabled:cursor-not-allowed rounded-xl transition-all duration-200 group"
+              >
+                <Send className="w-5 h-5 text-white group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" />
+              </button>
+            </div>
+            <p className="text-xs text-gray-500 text-center mt-3">
+              O Help pode cometer erros. Considere verificar informações
+              importantes.
+            </p>
+          </div>
+        </div>
+      </main>
+
+      <style>{`
+        .overflow-y-auto::-webkit-scrollbar {
+          width: 6px;
+        }
+        .overflow-y-auto::-webkit-scrollbar-track {
+          background: transparent;
+        }
+        .overflow-y-auto::-webkit-scrollbar-thumb {
+          background-color: #475569;
+          border-radius: 9999px;
+        }
+        .overflow-y-auto::-webkit-scrollbar-thumb:hover {
+          background-color: #64748b;
+        }
+      `}</style>
+    </div>
+  );
+};
+
+export default AIHelpPage;
