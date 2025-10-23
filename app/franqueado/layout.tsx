@@ -2,6 +2,8 @@
 
 import { AuthProvider } from '@/context/AuthContext'
 
+export const dynamic = 'force-dynamic'
+
 export default function FranqueadoLayout({
   children,
 }: {
