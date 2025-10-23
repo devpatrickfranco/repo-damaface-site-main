@@ -107,3 +107,31 @@
 .prose tbody tr:nth-child(even) {
   @apply bg-gray-800/50;
 }
+
+
+/*
+ - SIDEBAR FRANQUEADO
+ - Scrollbar da Sidebar
+
+ */
+.sidebar-scrollbar::-webkit-scrollbar {
+  width: 6px;
+}
+
+.sidebar-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.sidebar-scrollbar::-webkit-scrollbar-thumb {
+  background-color: #475569;
+  border-radius: 9999px;
+}
+
+.sidebar-scrollbar::-webkit-scrollbar-thumb:hover {
+  background-color: #64748b;
+}
+
+.sidebar-scrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: #475569 transparent;
+}

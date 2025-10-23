@@ -84,28 +84,6 @@ const Sidebar = ({ active }: SidebarProps) => {
             ))}
           </div>
         </nav>
-
-        {/* Scrollbar custom */}
-        <style jsx>{`
-          aside::-webkit-scrollbar {
-            width: 6px;
-          }
-          aside::-webkit-scrollbar-track {
-            background: transparent;
-          }
-          aside::-webkit-scrollbar-thumb {
-            background-color: #475569; /* slate-600 */
-            border-radius: 9999px;
-          }
-          aside::-webkit-scrollbar-thumb:hover {
-            background-color: #64748b; /* slate-500 */
-          }
-
-          aside {
-            scrollbar-width: thin;
-            scrollbar-color: #475569 transparent;
-          }
-        `}</style>
       </aside>
 
       {sidebarOpen && (
