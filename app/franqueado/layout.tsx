@@ -1,3 +1,5 @@
+'use client'
+
 import { AuthProvider } from '@/context/AuthContext'
 
 export const dynamic = 'force-dynamic'
