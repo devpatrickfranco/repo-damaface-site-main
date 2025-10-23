@@ -19,6 +19,9 @@ yarn-error.log*
 # env files
 .env*
 
+# webp files
+/public/**/*.webp
+
 # vercel
 .vercel
 
