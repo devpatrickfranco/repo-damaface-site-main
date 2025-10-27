@@ -84,7 +84,7 @@ const AIHelpPage = () => {
       
       const assistantMessage: Message = {
         id: (Date.now() + 1).toString(),
-        content: data.response || data.message || 'Desculpe, não consegui processar sua pergunta.',
+        content: data.output || 'Desculpe, não consegui processar sua pergunta.',
         role: 'assistant',
         timestamp: new Date()
       };
