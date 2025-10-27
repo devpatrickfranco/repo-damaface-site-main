@@ -2,6 +2,7 @@
 
 import { useState, useRef, useEffect } from 'react';
 import { Send, Sparkles, MessageCircle, FileText, Users, GraduationCap, ArrowLeft } from 'lucide-react';
+import ReactMarkdown from 'react-markdown';
 import Sidebar from '../components/Sidebar';
 import HeaderFranqueado from '../components/HeaderFranqueado';
 
@@ -196,9 +197,15 @@ const AIHelpPage = () => {
                         <span className="text-xs font-medium text-brand-pink">Help</span>
                       </div>
                     )}
-                    <p className="text-sm leading-relaxed whitespace-pre-wrap">
-                      {message.content}
-                    </p>
+                    {message.role === 'assistant' ? (
+                      <div className="text-sm leading-relaxed prose prose-invert prose-sm max-w-none prose-p:my-2 prose-headings:mt-4 prose-headings:mb-2 prose-ul:my-2 prose-ol:my-2 prose-li:my-1 prose-strong:text-white prose-strong:font-semibold">
+                        <ReactMarkdown>{message.content}</ReactMarkdown>
+                      </div>
+                    ) : (
+                      <p className="text-sm leading-relaxed whitespace-pre-wrap">
+                        {message.content}
+                      </p>
+                    )}
                     <div className={`text-xs mt-2 ${message.role === 'user' ? 'text-pink-200' : 'text-gray-500'}`}>
                       {message.timestamp.toLocaleTimeString('pt-BR', {
                         hour: '2-digit',
