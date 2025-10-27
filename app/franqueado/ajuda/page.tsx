@@ -101,7 +101,7 @@ const AIHelpPage = () => {
           <div className="mb-8">
             <div className="flex items-center space-x-3 mb-2">
               <button
-                onClick={() => window.history.back()}
+                onClick={() => window.location.href = '/franqueado/dashboard'}
                 className="p-2 hover:bg-gray-800 rounded-lg transition-colors"
               >
                 <ArrowLeft className="w-6 h-6 text-gray-400 hover:text-white" />

@@ -156,7 +156,8 @@ const HeaderDashboard = () => {
                 </a>
                 <a  
                   href='/franqueado/ajuda'
-                  className="w-full px-4 py-2 text-left hover:bg-gray-700 flex items-center space-x-2">
+                  className="w-full px-4 py-2 text-left hover:bg-gray-700 flex items-center space-x-2"
+                >
                   <HelpCircle className="w-4 h-4 text-gray-400" />
                   <span className="text-sm text-gray-300">Ajuda</span>
                 </a>
