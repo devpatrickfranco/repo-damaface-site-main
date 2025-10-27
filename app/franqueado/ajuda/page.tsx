@@ -2,8 +2,8 @@
 
 import { useState, useRef, useEffect } from 'react';
 import { Send, Sparkles, MessageCircle, FileText, Users, GraduationCap, ArrowLeft } from 'lucide-react';
-import Sidebar from '../components/Sidebar'; //
-import HeaderFranqueado from '../components/HeaderFranqueado'; //
+import Sidebar from '../components/Sidebar';
+import HeaderFranqueado from '../components/HeaderFranqueado';
 
 interface Message {
   id: string;
@@ -65,16 +65,45 @@ const AIHelpPage = () => {
     setInputValue('');
     setIsLoading(true);
 
-    setTimeout(() => {
+    try {
+      const response = await fetch('https://n8n-n8n.i4khe5.easypanel.host/webhook/ajuda', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          message: textToSend
+        })
+      });
+
+      if (!response.ok) {
+        throw new Error('Erro ao buscar resposta');
+      }
+
+      const data = await response.json();
+      
       const assistantMessage: Message = {
         id: (Date.now() + 1).toString(),
-        content: 'Esta é uma resposta de exemplo. Em produção, aqui será integrada a IA treinada com os dados do sistema DamaFace.',
+        content: data.response || data.message || 'Desculpe, não consegui processar sua pergunta.',
         role: 'assistant',
         timestamp: new Date()
       };
+      
       setMessages(prev => [...prev, assistantMessage]);
+    } catch (error) {
+      console.error('Erro ao enviar mensagem:', error);
+      
+      const errorMessage: Message = {
+        id: (Date.now() + 1).toString(),
+        content: 'Desculpe, ocorreu um erro ao processar sua pergunta. Por favor, tente novamente.',
+        role: 'assistant',
+        timestamp: new Date()
+      };
+      
+      setMessages(prev => [...prev, errorMessage]);
+    } finally {
       setIsLoading(false);
-    }, 1500);
+    }
   };
 
   const handleKeyPress = (e: React.KeyboardEvent<HTMLInputElement>) => {
@@ -85,18 +114,11 @@ const AIHelpPage = () => {
   };
 
   return (
-    // 1. O div raiz agora é apenas o container de background
     <div className="min-h-screen bg-gray-900">
       <Sidebar />
       <HeaderFranqueado />
 
-      {/* 2. Este <main> aplica o padding para o header (pt-16) e sidebar (lg:pl-64) */}
       <main className="pt-16 lg:pl-64">
-        
-        {/* 3. Este div agora tem a altura correta (100vh - header)
-             e contém o layout flex-col da sua página.
-             Removi o 'flex-1' daqui e adicionei 'h-[calc(100vh-4rem)]'.
-        */}
         <div className="flex flex-col h-[calc(100vh-4rem)] max-w-5xl mx-auto w-full px-4 py-8">
           <div className="mb-8">
             <div className="flex items-center space-x-3 mb-2">
@@ -116,7 +138,6 @@ const AIHelpPage = () => {
             </p>
           </div>
 
-          {/* O restante do seu código permanece igual, pois a lógica interna de flex-1 está correta */}
           {messages.length === 0 ? (
             <div className="flex-1 flex flex-col items-center justify-center space-y-8 animate-fade-in">
               <div className="text-center space-y-3 mb-8">
