@@ -47,7 +47,7 @@ const HeaderDashboard = () => {
   const { data: notifications, mutate: mutateNotifications } = useSWR<
     Notification[]
   >(
-    '/api/notificacoes/', // O path base é '/api' conforme definimos no urls.py
+    '/notificacoes/', // O path base é '/api' conforme definimos no urls.py
     fetcher,
     {
       refreshInterval: 60000, // Atualiza a cada 60 segundos
@@ -56,7 +56,7 @@ const HeaderDashboard = () => {
   )
 
   const { data: unreadData, mutate: mutateCount } = useSWR<UnreadCount>(
-    '/api/notificacoes/unread-count/',
+    '/notificacoes/unread-count/',
     fetcher,
     {
       refreshInterval: 60000,
