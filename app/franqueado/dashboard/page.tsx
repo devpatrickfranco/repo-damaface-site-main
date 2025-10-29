@@ -72,12 +72,12 @@ export default function Dashboard() {
               <h2 className="text-xl font-bold text-white mb-4 flex items-center gap-2">📊 Visão Rápida</h2>
               <CardDashboard />
             </div>
-
+            {/* 
             <div className="bg-card border border-destructive/30 rounded-lg p-6">
               <h2 className="text-xl font-bold text-white mb-4 flex items-center gap-2">⚠️ Precisa de Atenção</h2>
               <AlertsDashboard />
             </div>
-
+            */}
             <CommuniqueDashboard />
 
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
