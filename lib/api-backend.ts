@@ -8,13 +8,10 @@ function getCsrfToken(): string | null {
   const csrfCookie = cookies.find(row => row.startsWith('csrftoken='));
   
   if (!csrfCookie) {
-    console.warn('⚠️ Cookie csrftoken não encontrado!');
-    console.log('📋 Cookies disponíveis:', document.cookie);
     return null;
   }
   
   const token = csrfCookie.split('=')[1];
-  console.log('✅ CSRF Token encontrado:', token);
   return token;
 }
 
@@ -31,13 +28,9 @@ export const apiBackend = {
     // Só adiciona X-CSRFToken se o token existir
     if (csrftoken) {
       headers['X-CSRFToken'] = csrftoken;
-      console.log('🔐 Enviando X-CSRFToken:', csrftoken);
     } else {
       console.error('❌ CSRF Token não encontrado - requisição pode falhar!');
     }
-
-    console.log('📤 Fazendo requisição para:', `${BASE_URL}${path}`);
-    console.log('📤 Headers:', headers);
 
     const response = await fetch(`${BASE_URL}${path}`, {
       credentials: "include",
@@ -47,7 +40,6 @@ export const apiBackend = {
 
     if (!response.ok) {
       const text = await response.text();
-      console.error(`❌ Erro ${response.status}:`, text);
       throw new Error(`Erro ${response.status}: ${text}`);
     }
 

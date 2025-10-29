@@ -3,28 +3,38 @@
 import { Card, CardContent } from "@/components/ui/card"
 import { Ticket, GraduationCap, Bell } from "lucide-react"
 
-export default function CardDashboard() {
+interface CardDashboardProps {
+  chamadosAbertos: number
+  cursosAndamento: number
+  comunicadosNaoLidos: number
+}
+
+export default function CardDashboard({ 
+  chamadosAbertos, 
+  cursosAndamento, 
+  comunicadosNaoLidos 
+}: CardDashboardProps) {
   const cards = [
     {
       title: "Tickets",
-      value: "2",
-      description: "Tickets abertos",
+      value: chamadosAbertos.toString(),
+      description: chamadosAbertos === 1 ? "Ticket aberto" : "Tickets abertos",
       icon: Ticket,
       color: "text-blue-500",
       bgColor: "bg-blue-500/10",
     },
     {
       title: "Cursos",
-      value: "1",
-      description: "Curso em andamento",
+      value: cursosAndamento.toString(),
+      description: cursosAndamento === 1 ? "Curso em andamento" : "Cursos em andamento",
       icon: GraduationCap,
       color: "text-green-500",
       bgColor: "bg-green-500/10",
     },
     {
       title: "Avisos",
-      value: "3",
-      description: "Avisos não lidos",
+      value: comunicadosNaoLidos.toString(),
+      description: comunicadosNaoLidos === 1 ? "Aviso não lido" : "Avisos não lidos",
       icon: Bell,
       color: "text-brand-pink",
       bgColor: "bg-brand-pink/10",
