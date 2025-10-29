@@ -1,46 +1,56 @@
-const CommuniqueDashboard = () => {
-      const comunicados = [
-        {
-        id: 1,
-        title: 'Novos produtos disponíveis para 2025',
-        preview: 'Confira os lançamentos da linha premium...',
-        urgent: true
-        },
-        {
-        id: 2,
-        title: 'Treinamento obrigatório - Março',
-        preview: 'Inscrições abertas até 15/03...',
-        urgent: false
-        }
-    ];
-    
-    return (
-        <div className="mb-8">
-            <h2 className="text-lg font-semibold text-white mb-4">Comunicados Importantes</h2>
-            <div className="grid gap-4 md:grid-cols-2">
-              {comunicados.map((comunicado) => (
-                <div key={comunicado.id} className="bg-gray-800 rounded-lg border border-gray-700 p-4">
-                  <div className="flex items-start justify-between">
-                    <div className="flex-1">
-                      <div className="flex items-center space-x-2 mb-2">
-                        <h3 className="font-medium text-white">{comunicado.title}</h3>
-                        {comunicado.urgent && (
-                          <span className="bg-red-100 text-red-600 text-xs px-2 py-1 rounded-full">
-                            Urgente
-                          </span>
-                        )}
-                      </div>
-                      <p className="text-sm text-gray-400 mb-3">{comunicado.preview}</p>
-                      <button className="text-pink-600 hover:text-pink-700 text-sm font-medium">
-                        Ver mais →
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-        </div>       
-    )   
-}
+"use client"
 
-export default CommuniqueDashboard
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Badge } from "@/components/ui/badge"
+import { Megaphone } from "lucide-react"
+
+export default function CommuniqueDashboard() {
+  const communiques = [
+    {
+      id: 1,
+      title: "Nova promoção de produtos",
+      description: "Confira os novos produtos com desconto especial para franqueados",
+      date: "Hoje",
+      type: "Promoção",
+    },
+    {
+      id: 2,
+      title: "Atualização do sistema",
+      description: "Sistema será atualizado no próximo domingo das 2h às 6h",
+      date: "Ontem",
+      type: "Sistema",
+    },
+  ]
+
+  return (
+    <Card className="bg-card border-border">
+      <CardHeader>
+        <CardTitle className="flex items-center gap-2 text-white">
+          <Megaphone className="w-5 h-5 text-brand-pink" />
+          Comunicados
+        </CardTitle>
+      </CardHeader>
+      <CardContent className="space-y-4">
+        {communiques.map((item) => (
+          <div
+            key={item.id}
+            className="p-4 rounded-lg bg-dark-base border border-border hover:border-brand-pink/50 transition-colors"
+          >
+            <div className="flex items-start justify-between gap-4">
+              <div className="flex-1 space-y-2">
+                <div className="flex items-center gap-2">
+                  <h3 className="font-semibold text-white">{item.title}</h3>
+                  <Badge variant="outline" className="text-xs">
+                    {item.type}
+                  </Badge>
+                </div>
+                <p className="text-sm text-gray-400">{item.description}</p>
+              </div>
+              <span className="text-xs text-gray-500 whitespace-nowrap">{item.date}</span>
+            </div>
+          </div>
+        ))}
+      </CardContent>
+    </Card>
+  )
+}

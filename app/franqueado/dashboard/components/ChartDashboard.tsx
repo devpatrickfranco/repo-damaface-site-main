@@ -1,26 +1,37 @@
-import { TrendingUp, BarChart3 } from 'lucide-react'
+"use client"
 
-const ChartDashboard = () => {
-    return(
-        <>
-        <div className="gap-6">    
-            {/* Gráfico de Performance */}
-            <div className="bg-gray-800 rounded-lg border border-gray-700 p-6">
-              <div className="flex items-center justify-between mb-6">
-                <h3 className="text-lg font-semibold text-white">Performance Mensal</h3>
-                <TrendingUp className="w-5 h-5 text-green-500" />
-              </div>
-              <div className="h-64 bg-gray-900/50 rounded-lg flex items-center justify-center">
-                <div className="text-center">
-                  <BarChart3 className="w-12 h-12 text-gray-400 mx-auto mb-3" />
-                  <p className="text-gray-400 text-sm">Gráfico será implementado</p>
-                  <p className="text-gray-400 text-xs">Dados de performance em tempo real</p>
-                </div>
-              </div>
-            </div>
-        </div>
-        </>
-    )
+import { Bar, BarChart, ResponsiveContainer, XAxis, YAxis, Tooltip, CartesianGrid } from "recharts"
+
+export default function ChartDashboard() {
+  const data = [
+    { day: "Seg", atividades: 12 },
+    { day: "Ter", atividades: 19 },
+    { day: "Qua", atividades: 8 },
+    { day: "Qui", atividades: 15 },
+    { day: "Sex", atividades: 22 },
+    { day: "Sáb", atividades: 7 },
+    { day: "Dom", atividades: 5 },
+  ]
+
+  return (
+    <div className="h-[300px] w-full">
+      <ResponsiveContainer width="100%" height="100%">
+        <BarChart data={data}>
+          <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
+          <XAxis dataKey="day" stroke="#9CA3AF" fontSize={12} tickLine={false} axisLine={false} />
+          <YAxis stroke="#9CA3AF" fontSize={12} tickLine={false} axisLine={false} />
+          <Tooltip
+            contentStyle={{
+              backgroundColor: "#1F2937",
+              border: "1px solid #374151",
+              borderRadius: "8px",
+              color: "#fff",
+            }}
+            cursor={{ fill: "rgba(236, 72, 153, 0.1)" }}
+          />
+          <Bar dataKey="atividades" fill="#EC4899" radius={[8, 8, 0, 0]} />
+        </BarChart>
+      </ResponsiveContainer>
+    </div>
+  )
 }
-
-export default ChartDashboard

@@ -1,62 +1,57 @@
-import { MessageSquare, Target, Megaphone, Clock} from 'lucide-react'
+"use client"
 
-const CardDashboard = () => {
-   const dashboardCards = [
-    {
-      title: 'Tickets Abertos',
-      value: '12',
-      change: '+3',
-      changeType: 'increase',
-      icon: MessageSquare,
-      color: 'bg-blue-500'
-    },
-    {
-      title: 'Leads Ativos',
-      value: '48',
-      change: '+12%',
-      changeType: 'increase',
-      icon: Target,
-      color: 'bg-green-500'
-    },
-    {
-      title: 'Comunicados',
-      value: '5',
-      change: '2 novos',
-      changeType: 'neutral',
-      icon: Megaphone,
-      color: 'bg-orange-500'
-    },
-    {
-      title: 'Tarefas Pendentes',
-      value: '8',
-      change: '-2',
-      changeType: 'decrease',
-      icon: Clock,
-      color: 'bg-purple-500'
-    }
-  ]; 
+import { Card, CardContent } from "@/components/ui/card"
+import { Ticket, GraduationCap, Bell } from "lucide-react"
 
-  return(
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-            {dashboardCards.map((card, index) => (
-              <div key={index} className="bg-gray-800 rounded-lg border border-gray-700 p-6">
-                <div className="flex items-center justify-between mb-4">
-                  <div className={`w-12 h-12 ${card.color} rounded-lg flex items-center justify-center`}>
-                    <card.icon className="w-6 h-6 text-white" />
-                  </div>
-                  <div className={`text-sm font-medium ${
-                    card.changeType === 'increase' ? 'text-green-600' : 
-                    card.changeType === 'decrease' ? 'text-red-600' : 'text-gray-600'
-                  }`}>
-                    {card.change}
-                  </div>
+export default function CardDashboard() {
+  const cards = [
+    {
+      title: "Tickets",
+      value: "2",
+      description: "Tickets abertos",
+      icon: Ticket,
+      color: "text-blue-500",
+      bgColor: "bg-blue-500/10",
+    },
+    {
+      title: "Cursos",
+      value: "1",
+      description: "Curso em andamento",
+      icon: GraduationCap,
+      color: "text-green-500",
+      bgColor: "bg-green-500/10",
+    },
+    {
+      title: "Avisos",
+      value: "3",
+      description: "Avisos não lidos",
+      icon: Bell,
+      color: "text-brand-pink",
+      bgColor: "bg-brand-pink/10",
+    },
+  ]
+
+  return (
+    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      {cards.map((card) => {
+        const Icon = card.icon
+        return (
+          <Card key={card.title} className="bg-dark-base border-border hover:border-brand-pink/50 transition-colors">
+            <CardContent className="p-6">
+              <div className="flex items-start justify-between">
+                <div className="space-y-2">
+                  <p className="text-sm text-gray-400">{card.title}</p>
+                  <p className="text-3xl font-bold text-white">{card.value}</p>
+                  <p className="text-xs text-gray-500">{card.description}</p>
                 </div>
-                <h3 className="text-2xl font-bold text-white mb-1">{card.value}</h3>
-                <p className="text-sm text-gray-400">{card.title}</p>
+                <div className={`p-3 rounded-lg ${card.bgColor}`}>
+                  <Icon className={`w-6 h-6 ${card.color}`} />
+                </div>
               </div>
-            ))}
+            </CardContent>
+          </Card>
+        )
+      })}
     </div>
   )
 }
-
-export default CardDashboard
