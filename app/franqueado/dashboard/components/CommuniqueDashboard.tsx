@@ -20,6 +20,14 @@ interface CommuniqueDashboardProps {
 }
 
 export default function CommuniqueDashboard({ comunicados }: CommuniqueDashboardProps) {
+  // Garante que comunicados seja sempre um array
+  const comunicadosList = comunicados ?? []
+  
+  // Remove tags HTML do conteúdo
+  const stripHtml = (html: string) => {
+    return html.replace(/<[^>]*>/g, '').trim()
+  }
+  
   // Formata a data para exibição
   const formatarData = (dataISO: string) => {
     const data = new Date(dataISO)
@@ -56,12 +64,12 @@ export default function CommuniqueDashboard({ comunicados }: CommuniqueDashboard
         </Link>
       </CardHeader>
       <CardContent className="space-y-4">
-        {comunicados.length === 0 ? (
+        {comunicadosList.length === 0 ? (
           <div className="text-center py-8 text-gray-400">
             <p>Nenhum comunicado recente</p>
           </div>
         ) : (
-          comunicados.map((item) => (
+          comunicadosList.map((item) => (
             <div
               key={item.id}
               className="p-4 rounded-lg bg-dark-base border border-border hover:border-brand-pink/50 transition-colors cursor-pointer"
@@ -79,7 +87,9 @@ export default function CommuniqueDashboard({ comunicados }: CommuniqueDashboard
                       </Badge>
                     )}
                   </div>
-                  <p className="text-sm text-gray-400 line-clamp-2">{item.conteudo}</p>
+                  <p className="text-sm text-gray-400 line-clamp-2">
+                    {stripHtml(item.conteudo)}
+                  </p>
                 </div>
                 <span className="text-xs text-gray-500 whitespace-nowrap">
                   {formatarData(item.data_publicacao)}
