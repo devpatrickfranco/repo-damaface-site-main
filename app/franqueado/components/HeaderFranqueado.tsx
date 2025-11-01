@@ -4,8 +4,9 @@ import { useState } from 'react'
 import { useAuth } from '@/context/AuthContext'
 import Image from 'next/image'
 import Logo from '@/public/LOGO-DAMAFACE-HORIZONTAL-BRANCO.png'
+import { useRouter } from 'next/navigation' // [MODIFICADO] Importa o useRouter
 
-// [ADICIONADO] Imports para SWR e sua API
+// [MODIFICADO] Imports para SWR e sua API
 import useSWR from 'swr'
 import { apiBackend } from '@/lib/api-backend' // Verifique se este é o path correto
 
@@ -19,7 +20,7 @@ import {
   HelpCircle,
 } from 'lucide-react'
 
-// [ADICIONADO] Tipos de dados que esperamos da nossa API
+// --- [MODIFICADO] Tipos de dados ---
 interface Notification {
   id: number
   title: string
@@ -27,88 +28,112 @@ interface Notification {
   unread: boolean
   link: string | null
 }
-interface UnreadCount {
-  count: number
+// Novo tipo para a resposta combinada da API
+interface NotificationResponse {
+  results: Notification[]
+  unread_count: number
+  // (inclui campos de paginação como 'count', 'next', 'previous')
 }
 
-// [ADICIONADO] O fetcher que usa o seu apiBackend
-const fetcher = (url: string) => apiBackend.get(url)
+// --- Fetcher (Mantido) ---
+// O fetcher agora espera receber a resposta combinada
+const fetcher = (url: string) =>
+  apiBackend.get<NotificationResponse>(url)
 
 const HeaderDashboard = () => {
-  // --- Estados Originais (Mantidos) ---
+  // --- Estados (Mantido) ---
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [profileDropdownOpen, setProfileDropdownOpen] = useState(false)
   const [notificationsOpen, setNotificationsOpen] = useState(false)
   const { user, logout } = useAuth()
+  const router = useRouter() // [ADICIONADO] Hook do Next.js para navegação
 
-  // [REMOVIDO] O array de 'notifications' mocadas foi removido
+  // --- [MODIFICADO] Lógica de busca de dados com SWR ---
+  // Agora temos UM SÓ HOOK para buscar TUDO de notificações
+  const { data: notificationData, mutate: mutateNotifications } =
+    useSWR<NotificationResponse>(
+      '/notificacoes/', // Endpoint único
+      fetcher,
+      {
+        refreshInterval: 60000, // Atualiza a cada 60 segundos
+        revalidateOnFocus: true, // Revalida quando o usuário volta para a aba
+      },
+    )
 
-  // --- [ADICIONADO] Lógica de busca de dados com SWR ---
-  const { data: notifications, mutate: mutateNotifications } = useSWR<
-    Notification[]
-  >(
-    '/notificacoes/', // O path base é '/api' conforme definimos no urls.py
-    fetcher,
-    {
-      refreshInterval: 60000, // Atualiza a cada 60 segundos
-      revalidateOnFocus: true, // Revalida quando o usuário volta para a aba
-    },
-  )
-
-  const { data: unreadData, mutate: mutateCount } = useSWR<UnreadCount>(
-    '/notificacoes/unread-count/',
-    fetcher,
-    {
-      refreshInterval: 60000,
-      revalidateOnFocus: true,
-    },
-  )
-
-  const unreadCount = unreadData?.count || 0
+  // Extrai os dados do hook único
+  const notifications = notificationData?.results
+  const unreadCount = notificationData?.unread_count || 0
   // --- Fim da Lógica SWR ---
 
-  // --- [ADICIONADO] Funções para interagir com a API ---
+  // --- [MODIFICADO] Funções de Interação (Mutações Otimistas) ---
+
   const handleMarkAsRead = async (id: number) => {
+    // 1. Atualiza a UI local instantaneamente (Optimistic UI)
+    mutateNotifications(
+      (currentData) => {
+        if (!currentData) return undefined // Segurança
+        
+        // Retorna a nova estrutura de dados completa
+        return {
+          ...currentData,
+          unread_count: Math.max(0, currentData.unread_count - 1),
+          results: currentData.results.map((n) =>
+            n.id === id ? { ...n, unread: false } : n,
+          ),
+        }
+      },
+      false, // 'false' = não revalidar ainda
+    )
+
+    // 2. Tenta a chamada de API em segundo plano
     try {
-      // Usa seu helper para fazer o POST
       await apiBackend.post(`/notificacoes/${id}/marcar-como-lida/`)
-      
-      // Diz ao SWR para buscar os dados novamente
+      // Opcional: Revalida para garantir sincronia (bom, mas não obrigatório)
       mutateNotifications()
-      mutateCount()
     } catch (error) {
       console.error('Erro ao marcar como lida:', error)
+      // Se falhar, o SWR reverte os dados na próxima revalidação
     }
   }
 
   const handleMarkAllAsRead = async () => {
+    // 1. Atualiza a UI local instantaneamente (Optimistic UI)
+    mutateNotifications(
+      (currentData) => {
+        if (!currentData) return undefined
+        return {
+          ...currentData,
+          unread_count: 0,
+          results: currentData.results.map((n) => ({ ...n, unread: false })),
+        }
+      },
+      false,
+    )
+    setNotificationsOpen(false) // Fecha o dropdown
+
+    // 2. Tenta a chamada de API em segundo plano
     try {
       await apiBackend.post('/notificacoes/marcar-todas-como-lidas/')
+      // Revalida para garantir
       mutateNotifications()
-      mutateCount()
-      setNotificationsOpen(false) // Fecha o dropdown
     } catch (error) {
       console.error('Erro ao marcar todas como lidas:', error)
     }
   }
 
   const handleNotificationClick = (notification: Notification) => {
-    // 1. Marca como lida se estiver não lida
     if (notification.unread) {
       handleMarkAsRead(notification.id)
     }
     
-    // 2. Redireciona se tiver um link
     if (notification.link) {
-      // Idealmente, use o useRouter do Next.js para rotas internas
-      window.location.href = notification.link
+      router.push(notification.link) // Usa o router
     }
     
     setNotificationsOpen(false)
   }
   // --- Fim das Funções de Interação ---
 
-  // --- Lógica Original da Imagem (Mantida) ---
   const imageUrl =
     user && user.imgProfile
       ? `${process.env.NEXT_PUBLIC_API_BACKEND_URL}${user.imgProfile}`
@@ -133,6 +158,7 @@ const HeaderDashboard = () => {
           <button
             onClick={() => setSidebarOpen(!sidebarOpen)}
             className="md:hidden p-2 rounded-lg hover:bg-gray-700"
+            aria-label="Alternar menu lateral" // [ADICIONADO] Acessibilidade
           >
             <Menu className="w-5 h-5 text-gray-300" />
           </button>
@@ -150,14 +176,15 @@ const HeaderDashboard = () => {
 
         {/* Lado direito */}
         <div className="flex items-center space-x-4 ml-auto">
-          {/* Notifications [BLOCO MODIFICADO] */}
+          {/* Notifications Dropdown */}
           <div className="relative">
             <button
               onClick={() => setNotificationsOpen(!notificationsOpen)}
               className="relative p-2 rounded-lg hover:bg-gray-700"
+              aria-label={`Abrir notificações (${unreadCount} não lidas)`} // [ADICIONADO] Acessibilidade
             >
               <Bell className="w-5 h-5 text-gray-300" />
-              {/* [MODIFICADO] Mostra o badge apenas se for > 0 */}
+              {/* [MODIFICADO] Lê do 'unreadCount' que vem do hook único */}
               {unreadCount > 0 && (
                 <span className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 text-white text-xs rounded-full flex items-center justify-center">
                   {unreadCount}
@@ -165,10 +192,9 @@ const HeaderDashboard = () => {
               )}
             </button>
 
-            {/* Notifications Dropdown [BLOCO MODIFICADO] */}
+            {/* Notifications Dropdown */}
             {notificationsOpen && (
               <div className="absolute right-0 top-12 w-80 bg-gray-800 rounded-lg shadow-lg border border-gray-700 py-2 z-50 animate-fade-in">
-                {/* [MODIFICADO] Cabeçalho com "Marcar todas como lidas" */}
                 <div className="px-4 py-2 border-b border-gray-700 flex justify-between items-center">
                   <h3 className="font-semibold text-white">Notificações</h3>
                   {unreadCount > 0 && (
@@ -181,25 +207,23 @@ const HeaderDashboard = () => {
                   )}
                 </div>
                 
-                {/* [MODIFICADO] Lógica de renderização (Carregando, Vazio, Lista) */}
-                {!notifications ? (
-                  // Estado de Carregamento
+                {/* [MODIFICADO] Lógica de renderização agora checa 'notifications' (que está dentro de 'notificationData') */}
+                {!notificationData ? ( // Checa 'notificationData' (a resposta inteira)
                   <div className="px-4 py-3 text-center text-sm text-gray-400">
                     Carregando...
                   </div>
-                ) : notifications.length === 0 ? (
-                  // Estado Vazio (Fallback)
+                ) : notifications && notifications.length === 0 ? ( // Checa 'notifications' (a lista interna)
                   <div className="px-4 py-3 text-center text-sm text-gray-400">
                     Nenhuma notificação nova.
                   </div>
                 ) : (
-                  // Lista de Notificações
-                  notifications.map((notification) => (
+                  notifications && notifications.map((notification) => ( // Checa 'notifications'
                     <div
                       key={notification.id}
                       className="px-4 py-3 hover:bg-gray-700 cursor-pointer"
                       onClick={() => handleNotificationClick(notification)}
                     >
+                      {/* ... (Renderização da notificação - Sem mudanças) ... */}
                       <div className="flex items-start space-x-3">
                         <div
                           className={`w-2 h-2 rounded-full mt-2 ${
@@ -229,6 +253,7 @@ const HeaderDashboard = () => {
             <button
               onClick={() => setProfileDropdownOpen(!profileDropdownOpen)}
               className="flex items-center space-x-2 p-2 rounded-lg hover:bg-gray-700"
+              aria-label="Abrir menu do perfil" // [ADICIONADO] Acessibilidade
             >
               {/* --- Bloco de Imagem/Ícone (Original - Mantido) --- */}
               <div className="size-8 rounded-full flex items-center justify-center overflow-hidden bg-gray-700">
@@ -264,8 +289,8 @@ const HeaderDashboard = () => {
                   <Settings className="w-4 h-4 text-gray-400" />
                   <span className="text-sm text-gray-300">Configurações</span>
                 </a>
-                <a  
-                  href='/franqueado/ajuda'
+                <a
+                  href="/franqueado/ajuda"
                   className="w-full px-4 py-2 text-left hover:bg-gray-700 flex items-center space-x-2"
                 >
                   <HelpCircle className="w-4 h-4 text-gray-400" />
