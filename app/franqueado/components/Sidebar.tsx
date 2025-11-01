@@ -13,20 +13,18 @@ import {
   GraduationCap,
   Rocket,
   BrainCircuit
-} from 'lucide-react';
+} from 'lucide-react'
 import { useRouter, usePathname } from 'next/navigation'
 import { useState } from 'react'
 import { useAuth } from '@/context/AuthContext'
 
-interface SidebarProps { 
-  active?: string;
-}
+// ✅ REMOVIDO: interface SidebarProps (não precisa mais de props!)
 
-const Sidebar = ({ active }: SidebarProps) => {
-  const { user } = useAuth();
-  const [sidebarOpen, setSidebarOpen] = useState(false);
-  const router = useRouter();
-  const pathname = usePathname();
+const Sidebar = () => {
+  const { user } = useAuth()
+  const [sidebarOpen, setSidebarOpen] = useState(false)
+  const router = useRouter()
+  const pathname = usePathname() // ✅ Detecta automaticamente a rota
 
   const allNavLinks = [
     { id: 'dashboard', name: 'Dashboard', icon: Home, route: '/franqueado/dashboard', roles: ['SUPERADMIN', 'ADMIN', 'FRANQUEADO', 'FUNCIONARIO'] },
@@ -34,19 +32,24 @@ const Sidebar = ({ active }: SidebarProps) => {
     { id: 'academy', name: 'Academy', icon: GraduationCap, route: '/franqueado/academy', roles: ['SUPERADMIN', 'ADMIN', 'FRANQUEADO', 'FUNCIONARIO'] },
     { id: 'comunicados', name: 'Comunicados', icon: Newspaper, route: '/franqueado/comunicados', roles: ['SUPERADMIN', 'ADMIN', 'FRANQUEADO', 'FUNCIONARIO'] },
     { id: 'damaai', name: 'Dama.ai', icon: BrainCircuit, route: '/franqueado/damaai', roles: ['SUPERADMIN', 'ADMIN', 'FRANQUEADO', 'FUNCIONARIO'] },
-
     { id: 'compras', name: 'Compras', icon: ShoppingCart, route: '/franqueado/compras', roles: ['SUPERADMIN', 'ADMIN', 'FRANQUEADO', 'FUNCIONARIO'] },
     { id: 'qualidade', name: 'Qualidade', icon: Award, route: '/franqueado/qualidade', roles: ['SUPERADMIN', 'ADMIN', 'FRANQUEADO', 'FUNCIONARIO'] },
     { id: 'marketing', name: 'Marketing', icon: Megaphone, route: '/franqueado/marketing', roles: ['SUPERADMIN', 'ADMIN', 'FRANQUEADO', 'FUNCIONARIO'] },
-
     { id: 'bi', name: 'BI', icon: BarChart3, route: '/franqueado/bi', roles: ['SUPERADMIN', 'ADMIN'] },
     { id: 'implantacao', name: 'Implantação', icon: Rocket, route: '/franqueado/implantacao', roles: ['SUPERADMIN', 'ADMIN'] },
     { id: 'usuarios', name: 'Usuarios', icon: Users2, route: '/franqueado/usuarios', roles: ['SUPERADMIN'] }
-  ];
+  ]
 
   const allowedLinks = user
     ? allNavLinks.filter(link => link.roles.includes(user.role))
-    : [];
+    : []
+
+  // ✅ Função para verificar se o link está ativo
+  const isActive = (route: string) => {
+    // Verifica se a rota atual começa com a rota do link
+    // Exemplo: /franqueado/dashboard/stats -> ativa o link /franqueado/dashboard
+    return pathname.startsWith(route)
+  }
 
   return (
     <>
@@ -57,6 +60,7 @@ const Sidebar = ({ active }: SidebarProps) => {
           <button
             onClick={() => setSidebarOpen(false)}
             className="p-2 rounded-lg hover:bg-gray-700"
+            aria-label="Fechar menu"
           >
             <X className="w-5 h-5 text-gray-300" />
           </button>
@@ -69,11 +73,11 @@ const Sidebar = ({ active }: SidebarProps) => {
               <button
                 key={item.id}
                 onClick={() => {
-                  router.push(item.route);
-                  setSidebarOpen(false);
+                  router.push(item.route)
+                  setSidebarOpen(false)
                 }}
-                className={`w-full flex items-center space-x-3 px-4 py-3 rounded-lg text-left ${
-                  (active ? active === item.id : pathname.startsWith(item.route))
+                className={`w-full flex items-center space-x-3 px-4 py-3 rounded-lg text-left transition-colors ${
+                  isActive(item.route) // ✅ Usa a função isActive
                     ? 'bg-pink-900/30 text-pink-400 border border-pink-800'
                     : 'text-gray-300 hover:bg-gray-700'
                 }`}
@@ -86,6 +90,7 @@ const Sidebar = ({ active }: SidebarProps) => {
         </nav>
       </aside>
 
+      {/* Overlay mobile */}
       {sidebarOpen && (
         <div
           className="fixed inset-0 bg-black/50 z-20 lg:hidden"
@@ -96,4 +101,4 @@ const Sidebar = ({ active }: SidebarProps) => {
   )
 }
 
-export default Sidebar;
+export default Sidebar

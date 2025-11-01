@@ -1,7 +1,5 @@
 "use client";
 
-import HeaderFranqueado from "@/app/franqueado/components/HeaderFranqueado";
-import Sidebar from "@/app/franqueado/components/Sidebar";
 import Link from "next/link";
 import { useState, useEffect } from "react";
 import { useAuth } from "@/context/AuthContext";
@@ -102,10 +100,7 @@ const handleMarkComplete = async () => {
 
   return (
     <div className="lg:ml-64 pt-16 min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900">
-      <HeaderFranqueado />
       <div className="flex">
-        <Sidebar active="academy" />
-
         <main className="flex-1 flex">
           {/* Conteúdo Principal */}
           <div

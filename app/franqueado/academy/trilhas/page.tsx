@@ -1,7 +1,6 @@
 'use client';
 
-import HeaderFranqueado from '../../components/HeaderFranqueado';
-import Sidebar from '../../components/Sidebar';
+
 import Link from 'next/link';
 
 import { useAuth } from '@/context/AuthContext'
@@ -156,8 +155,6 @@ export default function TrilhasPage() {
 
   return (
     <div className="min-h-screen bg-gray-900">
-      <HeaderFranqueado />
-      <Sidebar active="academy" />
       
       <main className="lg:ml-64 pt-16 min-h-screen">
         <div className="p-2">

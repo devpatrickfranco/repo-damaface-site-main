@@ -4,11 +4,6 @@ import { useState, useEffect } from 'react';
 import { useAuth } from "@/context/AuthContext"
 import { useRouter } from "next/navigation"
 
-
-
-import Sidebar from '../components/Sidebar';
-import HeaderFranqueado from '../components/HeaderFranqueado';
-
 import RenderManageCourses from '@/app/franqueado/academy/components/RenderManageCourses'
 import RenderManageStudents from '@/app/franqueado/academy/components/RenderManageStudents'
 import RenderHome from '@/app/franqueado/academy/components/RenderHome'
@@ -30,8 +25,7 @@ export default function AcademyPage() {
 
   return (
     <div className="min-h-screen bg-background">
-      <HeaderFranqueado  />
-      <Sidebar active='academy' />
+
       
       {/* Mobile Overlay */}
       {sidebarOpen && (

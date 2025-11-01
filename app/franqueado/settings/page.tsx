@@ -169,8 +169,6 @@ export default function SettingsPage() {
   if (fetching) {
     return (
       <div className="min-h-screen bg-background">
-        <HeaderFranqueado />
-        <Sidebar active="/settings" />
         <main className="pt-16 lg:ml-64">
           <div className="flex items-center justify-center h-screen">
             <Loader2 className="w-8 h-8 animate-spin text-brand-pink" />
@@ -182,8 +180,6 @@ export default function SettingsPage() {
 
   return (
     <div className="min-h-screen bg-background">
-      <HeaderFranqueado />
-      <Sidebar active="/settings" />
 
       <main className="pt-16 lg:ml-64">
         <div className="p-6">

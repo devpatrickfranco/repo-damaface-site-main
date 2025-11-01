@@ -114,12 +114,7 @@ export default function Dashboard() {
   return (
     <>
       <div className="min-h-screen bg-background">
-        {/* Header */}
-        <HeaderDashboard />
-
-        {/* Sidebar */}
-        <Sidebar active="dashboard" />
-
+        
         {/* Main Content */}
         <main className="lg:ml-64 pt-16 min-h-screen">
           <div className="p-6 space-y-6">

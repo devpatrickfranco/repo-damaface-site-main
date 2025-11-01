@@ -7,8 +7,6 @@ import type { Curso, Modulo, Aula, materiais, AvaliacaoAluno } from "@/types/aca
 
 import { format } from 'date-fns'
 
-import HeaderFranqueado from "@/app/franqueado/components/HeaderFranqueado";
-import Sidebar from "@/app/franqueado/components/Sidebar";
 import Link from "next/link";
 import Image from "next/image";
 import Avatar from '@/app/franqueado/components/Avatar';
@@ -117,9 +115,7 @@ const handleDownloadCertificado = async () => {
   if (cursoLoading) {
     return (
       <div className="lg:ml-64 pt-16 min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900">
-        <HeaderFranqueado />
         <div className="flex">
-          <Sidebar active="academy" />
           <main className="flex-1 p-6">
             <div className="text-center py-20">
               <p className="text-gray-400 text-lg">Carregando curso...</p>
@@ -134,9 +130,7 @@ const handleDownloadCertificado = async () => {
   if (cursoError || !curso) {
     return (
       <div className="lg:ml-64 pt-16 min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900">
-        <HeaderFranqueado />
         <div className="flex">
-          <Sidebar active="academy" />
           <main className="flex-1 p-6">
             <div className="text-center py-20">
               <div className="bg-red-500/10 border border-red-500/20 rounded-2xl p-8 max-w-md mx-auto">
@@ -359,9 +353,7 @@ const handleDownloadCertificado = async () => {
 
   return (
     <div className="lg:ml-64 pt-16 min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900">
-      <HeaderFranqueado />
       <div className="flex">
-        <Sidebar active="academy" />
         <main className="flex-1 p-6">
           {/* Hero Section */}
           <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-brand-pink/20 via-purple-500/20 to-blue-500/20 backdrop-blur-sm border border-white/10 mb-8">

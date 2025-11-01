@@ -6,8 +6,7 @@ import { useRouter } from "next/navigation"
 import { cursos, categorias } from "@/data/academy/data-cursos"
 
 import Link from "next/link"
-import  Sidebar  from "@/app/franqueado/components/Sidebar"
-import  HeaderFranqueado  from "@/app/franqueado/components/HeaderFranqueado"
+
 import DynamicIcon from '@/app/franqueado/academy/components/DynamicIcon'
 import {
   Search,
@@ -242,8 +241,6 @@ export default function CursosPage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-900 to-gray-800">
-      <HeaderFranqueado />
-      <Sidebar active="academy" />
 
       {/* Main Content */}
       <main className="lg:ml-64 pt-16 min-h-screen">

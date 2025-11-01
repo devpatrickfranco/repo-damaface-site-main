@@ -6,8 +6,7 @@ import { useRouter } from "next/navigation"
 import { useCategoria, useCursos } from "@/hooks/useApi"
 
 import Link from "next/link"
-import Sidebar from "@/app/franqueado/components/Sidebar"
-import HeaderFranqueado from "@/app/franqueado/components/HeaderFranqueado"
+
 import { 
   Clock, 
   Users, 
@@ -47,9 +46,7 @@ export default function CategoriaClientComponent({ params }: CategoriaClientComp
   if (authLoading || categoriaLoading || cursosLoading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-dark-base via-dark-base/95 to-dark-base/90">
-        <HeaderFranqueado />
         <div className="flex pt-16 h-[calc(100vh-4rem)]">
-          <Sidebar active="academy"/>
           <main className="flex-1 p-8 ml-64">
             <div className="max-w-4xl mx-auto text-center">
               <div className="bg-gray-900/50 border border-gray-800/50 rounded-2xl p-8">
@@ -66,9 +63,7 @@ export default function CategoriaClientComponent({ params }: CategoriaClientComp
   if (categoriaError || !categoria) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-dark-base via-dark-base/95 to-dark-base/90">
-        <HeaderFranqueado />
         <div className="flex pt-16 h-[calc(100vh-4rem)]">
-          <Sidebar active="academy"/>
           <main className="flex-1 p-8 ml-64">
             <div className="max-w-4xl mx-auto text-center">
               <div className="bg-red-500/10 border border-red-500/20 rounded-2xl p-8">
@@ -86,9 +81,7 @@ export default function CategoriaClientComponent({ params }: CategoriaClientComp
  
   return (
     <div className="min-h-screen bg-gradient-to-br from-dark-base via-dark-base/95 to-dark-base/90">
-      <HeaderFranqueado />
       <div className="flex pt-16 h-[calc(100vh-4rem)]">
-        <Sidebar active="academy"/>
         <main className="flex-1 p-8 ml-64 transition-all duration-300 overflow-y-auto">
           <div className="mt-[calc(-16px)] mb-4">
             <Link href="/franqueado/academy/categorias">

@@ -3,8 +3,6 @@
 import { useState, useRef, useEffect } from 'react';
 import { Send, Sparkles, MessageCircle, FileText, Users, GraduationCap, ArrowLeft } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
-import Sidebar from '../components/Sidebar';
-import HeaderFranqueado from '../components/HeaderFranqueado';
 
 interface Message {
   id: string;
@@ -116,8 +114,6 @@ const AIHelpPage = () => {
 
   return (
     <div className="min-h-screen bg-gray-900">
-      <Sidebar />
-      <HeaderFranqueado />
 
       <main className="pt-16 lg:pl-64">
         <div className="flex flex-col h-[calc(100vh-4rem)] max-w-5xl mx-auto w-full px-4 py-8">

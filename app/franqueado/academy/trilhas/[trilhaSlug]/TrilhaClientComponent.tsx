@@ -8,9 +8,7 @@ import { useAuth } from '@/context/AuthContext'
 import { useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 
-// Componentes do Layout
-import HeaderFranqueado from "@/app/franqueado/components/HeaderFranqueado";
-import Sidebar from "@/app/franqueado/components/Sidebar";
+
 import DynamicIcon from '@/app/franqueado/academy/components/DynamicIcon'
 
 interface TrilhaPageProps {
@@ -41,9 +39,7 @@ export default function TrilhaPage({ params }: TrilhaPageProps) {
   return (
     // ✅ ESTRUTURA PRINCIPAL DO LAYOUT
     <div className="lg:ml-64 pt-16 min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 text-white">
-      <HeaderFranqueado />
       <div className="flex">
-        <Sidebar active="academy" />
 
         <main className="flex-1 p-6 md:p-8">
           {/* ✅ NAVEGAÇÃO PARA VOLTAR */}

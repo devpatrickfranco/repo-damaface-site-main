@@ -5,8 +5,6 @@ import { useAuth } from "@/context/AuthContext"
 import { apiBackend } from "@/lib/api-backend"
 import { useRouter } from 'next/navigation'
 
-import Sidebar from "../components/Sidebar"
-import HeaderDashboard from "../components/HeaderFranqueado"
 import ComunicadoActions from "./components/ComunicadoActions"
 import ComunicadoList from "./components/ComunicadoList"
 
@@ -77,8 +75,6 @@ export default function ComunicadosPage() {
 
   return (
     <div className="min-h-screen bg-background">
-      <HeaderDashboard />
-      <Sidebar active="comunicados" />
       <main className="lg:ml-64 pt-16 min-h-screen">
         <div className="p-6 max-w-6xl mx-auto">
           {/* Header Section */}

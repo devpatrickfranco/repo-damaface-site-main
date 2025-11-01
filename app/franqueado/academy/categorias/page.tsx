@@ -4,8 +4,7 @@ import { useAuth } from '@/context/AuthContext'
 import { useRouter } from 'next/navigation'
 import { useCategorias, useCursos } from '@/hooks/useApi'
 import Link from 'next/link'
-import Sidebar from '../../components/Sidebar'
-import HeaderFranqueado from '../../components/HeaderFranqueado'
+
 import DynamicIcon from '@/app/franqueado/academy/components/DynamicIcon'
 import type { Categoria, Curso } from '@/types/academy'
 import { 
@@ -249,9 +248,6 @@ export default function CategoriasPage() {
 
   return (
     <div className="min-h-screen bg-gray-900">
-      <HeaderFranqueado />
-      <Sidebar active="academy" />
-
       {/* Main Content */}
       <main className="lg:ml-64 pt-16 min-h-screen">
         <div className="p-2">

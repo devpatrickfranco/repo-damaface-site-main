@@ -8,8 +8,6 @@ import { useEffect, useState, useCallback } from "react"
 import { apiBackend } from "@/lib/api-backend"
 import type { Usuario, Franquia } from "@/types/users"
 
-import Sidebar from "../components/Sidebar"
-import HeaderFranqueado from "../components/HeaderFranqueado"
 import Avatar from "../components/Avatar"
 
 import { Plus, Search, Edit, Trash2, Eye, EyeOff, Building, User, Crown, Shield, UserCheck, Users, X, Save, AlertCircle } from 'lucide-react'
@@ -338,9 +336,6 @@ export default function UsuariosPage() {
 
   return (
     <div className="min-h-screen bg-background">
-      <HeaderFranqueado />
-      <Sidebar active="usuarios" />
-
       <main className="lg:ml-64 pt-16 min-h-screen">
         <div className="p-6">
           {/* Header */}

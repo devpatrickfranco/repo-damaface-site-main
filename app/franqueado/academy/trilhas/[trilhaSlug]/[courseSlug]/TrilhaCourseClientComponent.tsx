@@ -20,9 +20,6 @@ import {
   Clock 
 } from 'lucide-react';
 
-// Componentes do Layout
-import HeaderFranqueado from "@/app/franqueado/components/HeaderFranqueado";
-import Sidebar from "@/app/franqueado/components/Sidebar";
 
 interface CourseInTrailPageComponentProps {
   params: { trilhaSlug: string; courseSlug: string }
@@ -52,14 +49,11 @@ export default function CourseInTrailPage({ params }: CourseInTrailPageComponent
   const progressoCurso = totalAulas > 0 ? (aulasConcluidas / totalAulas) * 100 : 0;
 
   return (
-    // ✅ ESTRUTURA PRINCIPAL DO LAYOUT
     <div className="lg:ml-64 pt-16 min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 text-white">
-      <HeaderFranqueado />
       <div className="flex">
-        <Sidebar active="academy" />
+
 
         <main className="flex-1 p-6 md:p-8">
-          {/* ✅ NAVEGAÇÃO E CABEÇALHO */}
           <div className="mb-8">
             <Link
               href={`/franqueado/academy/trilhas/${trilhaSlug}`}

@@ -2,13 +2,10 @@
 
 import { Home, Search, ArrowLeft, AlertTriangle } from 'lucide-react';
 import Link from 'next/link';
-import Sidebar from '../components/Sidebar';
-import HeaderFranqueado from '../components/HeaderFranqueado';
  
 const Develop = () => {
   return (
     <>
-      <HeaderFranqueado />
 
       <div className="mt-16 min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-black flex items-center justify-center relative overflow-hidden ml-64">
         {/* Background Effects */}

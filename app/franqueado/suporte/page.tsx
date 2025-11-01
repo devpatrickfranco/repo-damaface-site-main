@@ -7,8 +7,6 @@ import { useAuth } from "@/context/AuthContext"
 import { useRouter } from "next/navigation"
 import { apiBackend } from "@/lib/api-backend"
 
-import Sidebar from "../components/Sidebar"
-import HeaderFranqueado from "../components/HeaderFranqueado"
 import CategoryManager from "./components/CategoryManager"
 
 import {
@@ -1288,9 +1286,6 @@ export default function SuportePage() {
 
   return (
     <div className="min-h-screen bg-background text-foreground">
-      <HeaderFranqueado />
-      <Sidebar active="suporte" />
-
       <main className="lg:ml-64 pt-16 min-h-screen">
         <div className="p-6">
           {activeView === "lista" && renderListaTickets()}
