@@ -5,8 +5,6 @@ import { useRouter } from "next/navigation"
 import { useEffect, useState } from "react"
 import { apiBackend } from "@/lib/api-backend"
 
-import Sidebar from "../components/Sidebar"
-import HeaderDashboard from "../components/HeaderFranqueado"
 import CardDashboard from "./components/CardDashboard"
 import CommuniqueDashboard from "./components/CommuniqueDashboard"
 import ChartDashboard from "./components/ChartDashboard"
@@ -113,10 +111,6 @@ export default function Dashboard() {
 
   return (
     <>
-      <div className="min-h-screen bg-background">
-        
-        {/* Main Content */}
-        <main className="lg:ml-64 pt-16 min-h-screen">
           <div className="p-6 space-y-6">
             {/* Banner de Boas-vindas */}
             <div className="bg-gradient-to-br from-brand-pink/10 to-brand-pink/5 border border-brand-pink/20 rounded-lg p-6">
@@ -206,8 +200,6 @@ export default function Dashboard() {
               </div>
             </div>
           </div>
-        </main>
-      </div>
     </>
   )
 }
