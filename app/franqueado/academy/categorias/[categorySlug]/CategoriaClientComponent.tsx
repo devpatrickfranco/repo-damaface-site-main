@@ -45,7 +45,7 @@ export default function CategoriaClientComponent({ params }: CategoriaClientComp
   // Loading state
   if (authLoading || categoriaLoading || cursosLoading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-dark-base via-dark-base/95 to-dark-base/90">
+      <div className="bg-gradient-to-br from-dark-base via-dark-base/95 to-dark-base/90">
         <div className="flex pt-16 h-[calc(100vh-4rem)]">
           <main className="flex-1 p-8 ml-64">
             <div className="max-w-4xl mx-auto text-center">
@@ -62,7 +62,7 @@ export default function CategoriaClientComponent({ params }: CategoriaClientComp
   // Error state
   if (categoriaError || !categoria) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-dark-base via-dark-base/95 to-dark-base/90">
+      <div className="bg-gradient-to-br from-dark-base via-dark-base/95 to-dark-base/90">
         <div className="flex pt-16 h-[calc(100vh-4rem)]">
           <main className="flex-1 p-8 ml-64">
             <div className="max-w-4xl mx-auto text-center">
@@ -80,7 +80,7 @@ export default function CategoriaClientComponent({ params }: CategoriaClientComp
   const cursosCategoria = cursosData || []
  
   return (
-    <div className="min-h-screen bg-gradient-to-br from-dark-base via-dark-base/95 to-dark-base/90">
+    <div className="bg-gradient-to-br from-dark-base via-dark-base/95 to-dark-base/90">
       <div className="flex pt-16 h-[calc(100vh-4rem)]">
         <main className="flex-1 p-8 ml-64 transition-all duration-300 overflow-y-auto">
           <div className="mt-[calc(-16px)] mb-4">

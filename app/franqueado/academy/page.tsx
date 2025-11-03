@@ -8,8 +8,6 @@ import RenderManageCourses from '@/app/franqueado/academy/components/RenderManag
 import RenderManageStudents from '@/app/franqueado/academy/components/RenderManageStudents'
 import RenderHome from '@/app/franqueado/academy/components/RenderHome'
 
-
-
 export default function AcademyPage() {
   const { user, loading: authLoading, isAuthenticated } = useAuth()
   const router = useRouter()
@@ -24,9 +22,8 @@ export default function AcademyPage() {
   const [activeView, setActiveView] = useState<'home' | 'gerenciar-cursos' | 'gerenciar-alunos'>('home');  
 
   return (
-    <div className="min-h-screen bg-background">
 
-      
+      <div>
       {/* Mobile Overlay */}
       {sidebarOpen && (
         <div
@@ -36,7 +33,6 @@ export default function AcademyPage() {
       )}
 
       {/* Main Content */}
-      <main className="lg:ml-64 pt-16 min-h-screen">
         <div className="p-6">
           {/* Navigation */}
           <div className="mb-8">
@@ -83,7 +79,6 @@ export default function AcademyPage() {
           {activeView === 'gerenciar-cursos' && <RenderManageCourses />}
           {activeView === 'gerenciar-alunos' && <RenderManageStudents />}
         </div>
-      </main>
-    </div>
+      </div>
   );
 }

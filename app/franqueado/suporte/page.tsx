@@ -1285,14 +1285,10 @@ export default function SuportePage() {
   }
 
   return (
-    <div className="min-h-screen bg-background text-foreground">
-      <main className="lg:ml-64 pt-16 min-h-screen">
         <div className="p-6">
           {activeView === "lista" && renderListaTickets()}
           {activeView === "criar" && renderCriarTicket()}
           {activeView === "detalhes" && renderDetalhesTicket()}
         </div>
-      </main>
-    </div>
   )
 }

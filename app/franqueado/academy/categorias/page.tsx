@@ -247,9 +247,7 @@ export default function CategoriasPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-900">
-      {/* Main Content */}
-      <main className="lg:ml-64 pt-16 min-h-screen">
+      <>
         <div className="p-2">
           <Link href="/franqueado/academy">
             <ArrowLeft className="text-white hover:text-pink-500 cursor-pointer" />
@@ -478,7 +476,6 @@ export default function CategoriasPage() {
             )}
           </div>
         </div>
-      </main>
-    </div>
+    </>
   )
 }
