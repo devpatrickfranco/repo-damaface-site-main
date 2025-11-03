@@ -11,9 +11,9 @@ export default function FranqueadoLayout({
   children: React.ReactNode
 }) {
   const pathname = usePathname()
-  
+
   // Páginas que NÃO devem mostrar Header/Sidebar
-  const publicPages = ['/franqueado/login', '/franqueado/register', '/franqueado/forgot-password']
+  const publicPages = ['/franqueado', '/franqueado/reset_password']
   const isPublicPage = publicPages.includes(pathname)
   
   return (
