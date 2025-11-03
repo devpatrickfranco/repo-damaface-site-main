@@ -229,8 +229,8 @@ if (!selectedCourse?.slug && modalMode !== 'create') {
     alert("Curso salvo com sucesso!");
   } catch (err: any) {
     console.error("Erro ao salvar curso:", err);
-    console.error("Detalhes do erro:", err.response?.data);
-    alert(err.response?.data?.message || "Erro ao salvar curso. Veja o console para mais detalhes.");
+    console.error("Detalhes do erro:", err.response);
+    alert(err.response?.data || "Erro ao salvar curso. Veja o console para mais detalhes.");
   } finally {
     setIsSubmitting(false);
   }
