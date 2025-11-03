@@ -114,7 +114,7 @@ const handleDownloadCertificado = async () => {
   // Loading state
   if (cursoLoading) {
     return (
-      <div className="lg:ml-64 pt-16 min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900">
+      <div className="bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900">
         <div className="flex">
           <main className="flex-1 p-6">
             <div className="text-center py-20">
@@ -129,7 +129,7 @@ const handleDownloadCertificado = async () => {
   // Error state
   if (cursoError || !curso) {
     return (
-      <div className="lg:ml-64 pt-16 min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900">
+      <div className="bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900">
         <div className="flex">
           <main className="flex-1 p-6">
             <div className="text-center py-20">
@@ -352,7 +352,7 @@ const handleDownloadCertificado = async () => {
   };
 
   return (
-    <div className="lg:ml-64 pt-16 min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900">
+    <div className="bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900">
       <div className="flex">
         <main className="flex-1 p-6">
           {/* Hero Section */}

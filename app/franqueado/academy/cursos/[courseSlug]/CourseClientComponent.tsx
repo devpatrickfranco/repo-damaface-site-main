@@ -26,7 +26,7 @@ export default function CursoPage({ params }: PageProps) {
   // Loading state enquanto busca o curso
   if (cursoLoading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 flex items-center justify-center">
+      <div className="bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 flex items-center justify-center">
         <div className="text-white text-lg">Carregando curso...</div>
       </div>
     );
@@ -35,7 +35,7 @@ export default function CursoPage({ params }: PageProps) {
   // Error state
   if (error) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 flex items-center justify-center">
+      <div className="bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 flex items-center justify-center">
         <div className="text-center">
           <h2 className="text-2xl font-bold text-red-500 mb-2">Erro ao carregar curso</h2>
           <p className="text-gray-400">{error}</p>
@@ -47,7 +47,7 @@ export default function CursoPage({ params }: PageProps) {
   // Curso não encontrado
   if (!curso) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 flex items-center justify-center">
+      <div className="bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 flex items-center justify-center">
         <div className="text-center">
           <h2 className="text-2xl font-bold text-white mb-2">Curso não encontrado</h2>
           <p className="text-gray-400">O curso solicitado não está disponível.</p>
