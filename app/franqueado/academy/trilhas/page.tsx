@@ -154,9 +154,7 @@ export default function TrilhasPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-900">
-      
-      <main className="lg:ml-64 pt-16 min-h-screen">
+      <>
         <div className="p-2">
           <Link href="/franqueado/academy">
             <ArrowLeft className="text-white hover:text-pink-500 cursor-pointer" />
@@ -328,7 +326,6 @@ export default function TrilhasPage() {
              </div>
            </div>
         </div>
-      </main>
-    </div>
+    </>
   );
 }
