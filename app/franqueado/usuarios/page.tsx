@@ -55,7 +55,6 @@ export default function UsuariosPage() {
 
   // <CHANGE> Corrigida a função de busca de dados com logs detalhados e múltiplas formas de acessar os dados
   const fetchData = useCallback(async () => {
-    console.log("[v0] Iniciando busca de dados...")
     setPageLoading(true)
     setDataError(null)
     
@@ -67,38 +66,29 @@ export default function UsuariosPage() {
 
       // Processa usuários
       if (usuariosRes.status === "fulfilled") {
-        console.log("[v0] Resposta completa de usuários:", usuariosRes.value)
-        console.log("[v0] Tipo da resposta:", typeof usuariosRes.value)
-        console.log("[v0] É array?", Array.isArray(usuariosRes.value))
+
         
         // Tenta acessar os dados de múltiplas formas
         let usuariosData = []
         if (Array.isArray(usuariosRes.value)) {
           // A resposta é diretamente um array
           usuariosData = usuariosRes.value
-          console.log("[v0] Dados são array direto")
         } else if (usuariosRes.value?.data && Array.isArray(usuariosRes.value.data)) {
           // A resposta tem propriedade data (formato axios)
           usuariosData = usuariosRes.value.data
-          console.log("[v0] Dados estão em response.data")
         } else if (usuariosRes.value?.data?.data && Array.isArray(usuariosRes.value.data.data)) {
           // A resposta tem data aninhado
           usuariosData = usuariosRes.value.data.data
-          console.log("[v0] Dados estão em response.data.data")
         }
         
-        console.log("[v0] Usuários processados:", usuariosData)
         setUsuarios(usuariosData)
       } else {
-        console.error("[v0] Erro ao buscar usuários:", usuariosRes.reason)
         setUsuarios([])
       }
 
       // Processa franquias
       if (franquiasRes.status === "fulfilled") {
-        console.log("[v0] Resposta completa de franquias:", franquiasRes.value)
-        console.log("[v0] Tipo da resposta:", typeof franquiasRes.value)
-        console.log("[v0] É array?", Array.isArray(franquiasRes.value))
+
         
         // Tenta acessar os dados de múltiplas formas
         let franquiasData = []
@@ -128,7 +118,6 @@ export default function UsuariosPage() {
         setDataError("Falha ao carregar dados do servidor. Verifique sua conexão.")
       }
     } catch (err) {
-      console.error("[v0] Erro geral ao buscar dados:", err)
       setDataError("Erro inesperado ao carregar dados.")
       setUsuarios([])
       setFranquias([])
@@ -148,7 +137,6 @@ export default function UsuariosPage() {
   // Efeito para buscar dados iniciais
   useEffect(() => {
     if (isAuthenticated && !loading) {
-      console.log("[v0] Usuário autenticado, buscando dados...")
       fetchData()
     }
   }, [isAuthenticated, loading, fetchData])
@@ -310,7 +298,7 @@ export default function UsuariosPage() {
   // Loading states
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-900 flex items-center justify-center">
+      <div className="bg-gray-900 flex items-center justify-center">
         <div className="text-white text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-pink-500 mx-auto mb-4"></div>
           <p>Verificando autenticação...</p>
@@ -325,7 +313,7 @@ export default function UsuariosPage() {
 
   if (pageLoading) {
     return (
-      <div className="min-h-screen bg-gray-900 flex items-center justify-center">
+      <div className="bg-gray-900 flex items-center justify-center">
         <div className="text-white text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-pink-500 mx-auto mb-4"></div>
           <p>Carregando dados...</p>
@@ -335,8 +323,7 @@ export default function UsuariosPage() {
   }
 
   return (
-    <div className="min-h-screen bg-background">
-      <main className="lg:ml-64 pt-16 min-h-screen">
+    <div className="bg-background">
         <div className="p-6">
           {/* Header */}
           <div className="mb-8">
@@ -617,7 +604,6 @@ export default function UsuariosPage() {
             </div>
           )}
         </div>
-      </main>
 
       {/* Modal */}
       {showModal && (

@@ -62,8 +62,7 @@ export default function ComunicadosPage() {
   }
 
   return (
-    <div className="min-h-screen bg-background">
-      <main className="lg:ml-64 pt-16 min-h-screen">
+    <div className="bg-background">
         <div className="p-6 max-w-6xl mx-auto">
           {/* Header Section */}
           <div className="mb-8">
@@ -100,7 +99,6 @@ export default function ComunicadosPage() {
             <ComunicadoList comunicados={comunicados} onUpdate={fetchComunicados} />
           )}
         </div>
-      </main>
     </div>
   )
 }

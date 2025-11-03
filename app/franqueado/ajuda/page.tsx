@@ -113,9 +113,7 @@ const AIHelpPage = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-900">
-
-      <main className="pt-16 lg:pl-64">
+    <div className=" bg-gray-900">
         <div className="flex flex-col h-[calc(100vh-4rem)] max-w-5xl mx-auto w-full px-4 py-8">
           <div className="mb-8">
             <div className="flex items-center space-x-3 mb-2">
@@ -254,7 +252,6 @@ const AIHelpPage = () => {
             </p>
           </div>
         </div>
-      </main>
 
       <style>{`
         .overflow-y-auto::-webkit-scrollbar {
