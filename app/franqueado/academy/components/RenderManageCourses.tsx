@@ -171,8 +171,8 @@ if (!selectedCourse?.slug && modalMode !== 'create') {
   return;
   }
   const url = modalMode === 'create'
-    ? 'academy/cursos/'
-    : `academy/cursos/${selectedCourse?.slug}/`;
+    ? '/academy/cursos/'
+    : `/academy/cursos/${selectedCourse?.slug}/`;
 
     const method = modalMode === "create" ? "post" : "patch";
 
