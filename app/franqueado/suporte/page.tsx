@@ -129,8 +129,10 @@ export default function SuportePage() {
   const [sortField, setSortField] = useState("criado_em")
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc")
   const [newMessage, setNewMessage] = useState("")
+  
   const [novoTicketLoading, setNovoTicketLoading] = useState(false)
   const [novoChamadoLoading, setNovoChamadoLoading] = useState(false)
+  const [attachedFiles, setAttachedFiles] = useState<File[]>([])
 
   const [novoChamado, setNovoChamado] = useState({
     titulo: "",
@@ -289,23 +291,50 @@ export default function SuportePage() {
     }
   }
 
+
   const handleSendMessage = async (e: React.FormEvent) => {
-    setNewMessage("")
     e.preventDefault()
     if (!newMessage.trim() || !selectedChamado) return
-
+    
+    setLoading(true)
+    
     try {
-      await apiBackend.post(`/chamados/chamados/${selectedChamado.id}/adicionar-comentario/`, {
-        conteudo: newMessage,
+      const formData = new FormData()
+      formData.append('conteudo', newMessage)
+      
+      attachedFiles.forEach((file) => {
+        formData.append('anexos', file)
       })
+      
+      const response = await apiBackend.post(
+        `/chamados/chamados/${selectedChamado.id}/adicionar-comentario/`,
+        formData
+      ) 
+      
+      // Limpar tudo
       setNewMessage("")
+      setAttachedFiles([])
+      
+      // Recarregar detalhes
       await handleViewDetails(selectedChamado.id)
+      
     } catch (err) {
+      console.error('Erro ao enviar:', err)
       alert("Erro ao enviar mensagem.")
-    }
-    finally{
+    } finally {
       setLoading(false)
     }
+  }
+  
+  // Handler do input de arquivos
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files ? Array.from(e.target.files) : []
+    setAttachedFiles(prev => [...prev, ...files])
+  }
+  
+  // Remover arquivo da lista
+  const handleRemoveFile = (index: number) => {
+    setAttachedFiles(prev => prev.filter((_, i) => i !== index))
   }
 
   if (authLoading || !isAuthenticated) {
@@ -378,7 +407,7 @@ export default function SuportePage() {
     })
 
     // Ctrl + Enter
-    const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
       // Verifica se Ctrl + Enter foram pressionados
       if (e.ctrlKey && e.key === 'Enter') {
         e.preventDefault(); // Impede a quebra de linha no textarea
@@ -399,6 +428,7 @@ export default function SuportePage() {
         }
       }
     };
+
   const renderListaTickets = () => (
     <div className="space-y-8 animate-fade-in">
       <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-6">
@@ -1251,68 +1281,95 @@ export default function SuportePage() {
             </div>
 
             {/* <CHANGE> Formulário de nova mensagem e upload de anexos separados */}
-            {selectedChamado.status === "EM_ANDAMENTO" ? (
-              <div className="border-t border-border pt-6 space-y-4">
-                {/* Input de anexos separado */}
-                <div>
-                  <label className="block text-sm font-medium text-foreground mb-2 flex items-center gap-2">
-                    <Paperclip className="w-4 h-4" />
-                    Anexar arquivos (opcional)
-                  </label>
-                  <div className="relative w-full px-4 py-3 bg-input border-2 border-border rounded-xl hover:border-brand-pink/50 transition-all flex items-center gap-3">
-                    <input
-                      type="file"
-                      multiple
-                      onChange={(e) => {
-                        // Aqui você vai implementar o upload usando a rota específica
-                        const files = e.target.files ? Array.from(e.target.files) : []
-                        // TODO: Implementar upload via rota específica
-                      }}
-                      className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
-                      id="conversation-file-upload"
-                    />
-                    <button
-                      type="button"
-                      className="relative z-0 px-4 py-2 bg-white text-gray-800 rounded-lg font-medium text-sm hover:bg-gray-100 transition-colors border border-gray-300 whitespace-nowrap pointer-events-none"
-                    >
-                      Escolher arquivos
-                    </button>
-                    <span className="text-sm text-muted-foreground flex-1 truncate">
-                      Nenhum arquivo escolhido
-                    </span>
-                  </div>
-                  <p className="text-xs text-muted-foreground mt-2">
-                    Os arquivos serão enviados separadamente da mensagem
-                  </p>
+            {selectedChamado.status === "EM_ANDAMENTO" && (
+            <div className="border-t border-border pt-6 space-y-4">
+              
+              {/* Input de anexos */}
+              <div>
+                <label className="block text-sm font-medium text-foreground mb-2 flex items-center gap-2">
+                  <Paperclip className="w-4 h-4" />
+                  Anexar arquivos (opcional)
+                </label>
+                
+                <div className="relative w-full px-4 py-3 bg-input border-2 border-border rounded-xl hover:border-brand-pink/50 transition-all flex items-center gap-3">
+                  <input
+                    type="file"
+                    multiple
+                    onChange={handleFileChange}
+                    className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
+                    id="conversation-file-upload"
+                  />
+                  <button
+                    type="button"
+                    className="relative z-0 px-4 py-2 bg-white text-gray-800 rounded-lg font-medium text-sm hover:bg-gray-100 transition-colors border border-gray-300 whitespace-nowrap pointer-events-none"
+                  >
+                    Escolher arquivos
+                  </button>
+                  <span className="text-sm text-muted-foreground flex-1 truncate">
+                    {attachedFiles.length === 0 
+                      ? "Nenhum arquivo escolhido"
+                      : `${attachedFiles.length} arquivo(s) selecionado(s)`
+                    }
+                  </span>
                 </div>
-
-                {/* Formulário de mensagem */}
-                <form onSubmit={handleSendMessage} ref={formRef}> 
-                  <div className="relative">
-                    <textarea
-                      value={newMessage}
-                      onChange={(e) => setNewMessage(e.target.value)}
-                      onKeyDown={handleKeyDown}
-                      placeholder="Digite sua mensagem..."
-                      rows={3}
-                      className="w-full px-4 py-3 bg-input border border-border rounded-xl text-foreground placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-brand-pink/50 focus:border-brand-pink transition-all resize-none pr-16"
-                      disabled={loading}
-                    />
-                    <button
-                      type="submit"
-                      disabled={!newMessage.trim() || loading}
-                      className="absolute right-3 top-3 p-2.5 bg-brand-pink text-white rounded-lg hover:bg-brand-pink/90 disabled:opacity-50 disabled:cursor-not-allowed transition-all hover:scale-105 shadow-lg hover:shadow-brand-pink/25"
-                    >
-                      {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
-                    </button>
+                
+                {/* 🔥 MOSTRAR ARQUIVOS SELECIONADOS */}
+                {attachedFiles.length > 0 && (
+                  <div className="flex flex-wrap gap-2 mt-3">
+                    {attachedFiles.map((file, idx) => (
+                      <div 
+                        key={idx} 
+                        className="flex items-center gap-2 bg-gray-100 px-3 py-1.5 rounded-lg border border-gray-200"
+                      >
+                        <Paperclip className="w-3 h-3 text-gray-500" />
+                        <span className="text-sm text-gray-700 max-w-[200px] truncate">
+                          {file.name}
+                        </span>
+                        <button
+                          onClick={() => handleRemoveFile(idx)}
+                          className="text-gray-500 hover:text-red-500 transition-colors"
+                          type="button"
+                        >
+                          <X className="w-4 h-4" />
+                        </button>
+                      </div>
+                    ))}
                   </div>
-                  <p className="text-xs text-muted-foreground mt-3 flex items-center gap-2">
-                    <TrendingUp className="w-3 h-3" />
-                    Pressione Ctrl+Enter para enviar rapidamente
-                  </p>
-                </form>
+                )}
               </div>
-            ) : (
+
+              {/* Formulário de mensagem */}
+              <form onSubmit={handleSendMessage} ref={formRef}> 
+                <div className="relative">
+                  <textarea
+                    value={newMessage}
+                    onChange={(e) => setNewMessage(e.target.value)}
+                    onKeyDown={handleKeyDown}
+                    placeholder="Digite sua mensagem..."
+                    rows={3}
+                    className="w-full px-4 py-3 bg-input border border-border rounded-xl text-foreground placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-brand-pink/50 focus:border-brand-pink transition-all resize-none pr-16"
+                    disabled={loading}
+                  />
+                  <button
+                    type="submit"
+                    disabled={!newMessage.trim() || loading}
+                    className="absolute right-3 top-3 p-2.5 bg-brand-pink text-white rounded-lg hover:bg-brand-pink/90 disabled:opacity-50 disabled:cursor-not-allowed transition-all hover:scale-105 shadow-lg hover:shadow-brand-pink/25"
+                  >
+                    {loading ? (
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                    ) : (
+                      <Send className="w-4 h-4" />
+                    )}
+                  </button>
+                </div>
+                <p className="text-xs text-muted-foreground mt-3 flex items-center gap-2">
+                  <TrendingUp className="w-3 h-3" />
+                  Pressione Ctrl+Enter para enviar rapidamente
+                </p>
+              </form>
+            </div>
+    
+            )} : (
               <div className="text-center border-t border-border pt-6">
                 <div className="bg-muted/30 rounded-xl p-6 border border-border">
                   <p className="text-sm text-muted-foreground flex items-center justify-center gap-2">
@@ -1325,7 +1382,7 @@ export default function SuportePage() {
                   </p>
                 </div>
               </div>
-            )}
+            )
           </div>
         </div>
       </div>
