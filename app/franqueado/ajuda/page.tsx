@@ -106,7 +106,7 @@ const AIHelpPage = () => {
   };
 
   return (
-    <div className="lg:ml-64 pt-16 bg-gray-900 min-h-[calc(100vh-4rem)] flex flex-col">
+    <div className=" bg-gray-900 min-h-[calc(100vh-4rem)] flex flex-col">
       <div className="flex flex-col flex-1 max-w-5xl mx-auto w-full px-4 py-8">
         
         {/* Header */}
