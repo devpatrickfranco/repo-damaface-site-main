@@ -290,6 +290,7 @@ export default function SuportePage() {
   }
 
   const handleSendMessage = async (e: React.FormEvent) => {
+    setLoading(true)
     e.preventDefault()
     if (!newMessage.trim() || !selectedChamado) return
 
@@ -301,6 +302,9 @@ export default function SuportePage() {
       await handleViewDetails(selectedChamado.id)
     } catch (err) {
       alert("Erro ao enviar mensagem.")
+    }
+    finally{
+      setLoading(false)
     }
   }
 
