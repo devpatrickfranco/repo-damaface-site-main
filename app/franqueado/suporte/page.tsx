@@ -61,13 +61,6 @@ interface ApiUsuarioSimple {
   email: string
 }
 
-interface ApiComentario {
-  id: number
-  autor: ApiUsuarioSimple
-  conteudo: string
-  data_envio: string
-}
-
 interface ApiAnexo {
   id: number
   nome: string
@@ -75,6 +68,15 @@ interface ApiAnexo {
   enviado_em: string
   autor: ApiUsuarioSimple
 }
+
+interface ApiComentario {
+  id: number
+  autor: ApiUsuarioSimple
+  conteudo: string
+  data_envio: string
+  anexos: ApiAnexo[]
+}
+
 
 type ChamadoStatus = "ABERTO" | "EM_ANDAMENTO" | "RESOLVIDO" | "FECHADO" | "ATRASADO" | "REABERTO"
 type ChamadoPrioridade = "BAIXA" | "MEDIA" | "ALTA"
@@ -97,7 +99,7 @@ interface ApiChamadoDetail extends Omit<ApiChamadoList, "comentarios_count"> {
   criado_por: ApiUsuarioSimple
   atribuido_para: ApiUsuarioSimple | null
   comentarios: ApiComentario[]
-  anexos: ApiAnexo[]
+  anexos_criacao: ApiAnexo[]
 }
 
 interface ApiCategoria {
@@ -300,25 +302,32 @@ export default function SuportePage() {
     
     try {
       const formData = new FormData()
-      formData.append('conteudo', newMessage)
+      formData.append('conteudo', newMessage || '(Anexo enviado)')  // 🔥 Fallback se só enviar anexos
       
+      // Adicionar arquivos anexados
       attachedFiles.forEach((file) => {
         formData.append('anexos', file)
       })
       
-      const response = await apiBackend.post(
+      await apiBackend.post(
         `/chamados/chamados/${selectedChamado.id}/adicionar-comentario/`,
         formData
-      ) 
+      )
       
-      // Limpar tudo
+      // 🔥 Limpar estados
       setNewMessage("")
       setAttachedFiles([])
       
-      // Recarregar detalhes
+      // 🔥 Limpar input file do DOM
+      const fileInput = document.getElementById('conversation-file-upload') as HTMLInputElement
+      if (fileInput) {
+        fileInput.value = ''
+      }
+      
+      // Recarregar detalhes do chamado
       await handleViewDetails(selectedChamado.id)
       
-    } catch (err) {
+    } catch (err: any) {
       console.error('Erro ao enviar:', err)
       alert("Erro ao enviar mensagem.")
     } finally {
@@ -329,6 +338,15 @@ export default function SuportePage() {
   // Handler do input de arquivos
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files ? Array.from(e.target.files) : []
+    
+    // 🔥 Validação: máximo 5 arquivos por mensagem
+    const totalFiles = attachedFiles.length + files.length
+    
+    if (totalFiles > 5) {
+      alert(`Você pode anexar no máximo 5 arquivos por mensagem.\nAtualmente você tem ${attachedFiles.length} arquivo(s) selecionado(s).`)
+      return
+    }
+    
     setAttachedFiles(prev => [...prev, ...files])
   }
   
@@ -901,47 +919,15 @@ export default function SuportePage() {
         </div>
       )
     }
-
+  
     if (!selectedChamado) return null
-
+  
     const isAgent = user?.role === "ADMIN" || user?.role === "SUPERADMIN"
     const isCreator = user?.id === selectedChamado.criado_por.id
-
-    // <CHANGE> Função para separar anexos da criação vs conversação
-    const separarAnexos = () => {
-      if (!selectedChamado.anexos || selectedChamado.anexos.length === 0) {
-        return { anexosCriacao: [], anexosConversacao: [] }
-      }
-
-      // Agrupa anexos por timestamp
-      const timestampGroups: { [key: string]: typeof selectedChamado.anexos } = {}
-      
-      selectedChamado.anexos.forEach(anexo => {
-        const timestamp = new Date(anexo.enviado_em).getTime()
-        const timestampKey = Math.floor(timestamp / 60000).toString() // Agrupa por minuto
-        
-        if (!timestampGroups[timestampKey]) {
-          timestampGroups[timestampKey] = []
-        }
-        timestampGroups[timestampKey].push(anexo)
-      })
-
-      // O maior grupo é considerado anexos da criação
-      const grupos = Object.values(timestampGroups)
-      const maiorGrupo = grupos.reduce((prev, current) => 
-        current.length > prev.length ? current : prev
-      , grupos[0])
-
-      const anexosCriacao = maiorGrupo
-      const anexosConversacao = selectedChamado.anexos.filter(
-        anexo => !maiorGrupo.find(a => a.id === anexo.id)
-      )
-
-      return { anexosCriacao, anexosConversacao }
-    }
-
-    const { anexosCriacao, anexosConversacao } = separarAnexos()
-
+  
+    // 🔥 SIMPLIFICADO - Backend já separa os anexos
+    const anexosCriacao = selectedChamado.anexos_criacao || []
+  
     return (
       <div className="max-w-5xl mx-auto space-y-8 animate-fade-in">
         <div className="flex items-center justify-between">
@@ -959,7 +945,7 @@ export default function SuportePage() {
             <span>Voltar para a lista</span>
           </button>
         </div>
-
+  
         <div className="bg-card rounded-2xl border border-border p-6 shadow-sm">
           <div className="flex flex-wrap items-center justify-between gap-4">
             <div className="flex items-center gap-3">
@@ -977,7 +963,7 @@ export default function SuportePage() {
                   Assumir Chamado
                 </button>
               )}
-
+  
               {isAgent &&
                 selectedChamado.atribuido_para?.id === user?.id &&
                 selectedChamado.status === "EM_ANDAMENTO" && (
@@ -990,7 +976,7 @@ export default function SuportePage() {
                     Resolver Chamado
                   </button>
                 )}
-
+  
               {(isCreator || isAgent) && selectedChamado.status === "RESOLVIDO" && (
                 <button
                   onClick={() => handleTicketAction("reabrir")}
@@ -1001,7 +987,7 @@ export default function SuportePage() {
                   Reabrir Chamado
                 </button>
               )}
-
+  
               {isAgent && selectedChamado.status === "RESOLVIDO" && (
                 <button
                   onClick={() => handleTicketAction("fechar")}
@@ -1019,7 +1005,7 @@ export default function SuportePage() {
             Clique para alterar o status do chamado conforme seu perfil de acesso.
           </p>
         </div>
-
+  
         <div className="bg-card rounded-2xl border border-border shadow-sm overflow-hidden">
           {/* Header com gradiente sutil */}
           <div className="bg-gradient-to-r from-brand-pink/5 to-brand-pink/10 p-6 border-b border-border">
@@ -1038,11 +1024,11 @@ export default function SuportePage() {
                     </span>
                   </div>
                 </div>
-
+  
                 <h1 className="text-2xl lg:text-3xl font-bold text-foreground leading-tight">
                   {selectedChamado.titulo}
                 </h1>
-
+  
                 <div className="flex flex-wrap items-center gap-6">
                   <div className="flex items-center gap-2 text-muted-foreground">
                     {getPriorityIcon(selectedChamado.prioridade)}
@@ -1060,7 +1046,7 @@ export default function SuportePage() {
                   )}
                 </div>
               </div>
-
+  
               <div className="text-right space-y-2">
                 <div className="flex items-center justify-end gap-2 text-sm text-muted-foreground">
                   <Calendar className="w-4 h-4" />
@@ -1073,7 +1059,7 @@ export default function SuportePage() {
               </div>
             </div>
           </div>
-
+  
           {/* Conteúdo principal */}
           <div className="p-6 space-y-6">
             {/* Descrição */}
@@ -1086,8 +1072,8 @@ export default function SuportePage() {
                 <p className="text-foreground leading-relaxed whitespace-pre-wrap">{selectedChamado.descricao}</p>
               </div>
             </div>
-
-            {/* <CHANGE> Seção de Anexos da Criação */}
+  
+            {/* 🔥 Anexos da Criação - Agora vem do backend */}
             {anexosCriacao.length > 0 && (
               <div>
                 <h3 className="text-sm font-semibold text-foreground mb-3 flex items-center gap-2">
@@ -1123,7 +1109,7 @@ export default function SuportePage() {
                 </div>
               </div>
             )}
-
+  
             {/* Pessoas envolvidas */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="space-y-3">
@@ -1141,7 +1127,7 @@ export default function SuportePage() {
                   </div>
                 </div>
               </div>
-
+  
               <div className="space-y-3">
                 <h3 className="text-sm font-semibold text-foreground flex items-center gap-2">
                   <Users className="w-4 h-4" />
@@ -1172,7 +1158,7 @@ export default function SuportePage() {
             </div>
           </div>
         </div>
-
+  
         <div className="bg-card rounded-2xl border border-border shadow-sm overflow-hidden">
           <div className="bg-gradient-to-r from-brand-pink/5 to-brand-pink/10 p-6 border-b border-border">
             <div className="flex items-center justify-between">
@@ -1187,82 +1173,72 @@ export default function SuportePage() {
               </div>
             </div>
           </div>
-
-          {/* Lista de comentários melhorada */}
+  
+          {/* Lista de comentários */}
           <div className="p-6">
             <div className="space-y-6 mb-8 max-h-96 overflow-y-auto custom-scrollbar pr-2">
               {selectedChamado.comentarios.length > 0 ? (
-                selectedChamado.comentarios.map((comentario, index) => {
-                  // <CHANGE> Busca anexos relacionados a este comentário
-                  const anexosDoComentario = anexosConversacao.filter(anexo => {
-                    const comentarioTime = new Date(comentario.data_envio).getTime()
-                    const anexoTime = new Date(anexo.enviado_em).getTime()
-                    // Considera anexos enviados até 5 minutos após o comentário
-                    return Math.abs(anexoTime - comentarioTime) < 300000 && anexo.autor.id === comentario.autor.id
-                  })
-
-                  return (
+                selectedChamado.comentarios.map((comentario, index) => (
+                  <div
+                    key={comentario.id}
+                    className={`flex ${comentario.autor.id === user?.id ? "justify-end" : "justify-start"} animate-slide-in-up`}
+                    style={{ animationDelay: `${index * 0.1}s` }}
+                  >
                     <div
-                      key={comentario.id}
-                      className={`flex ${comentario.autor.id === user?.id ? "justify-end" : "justify-start"} animate-slide-in-up`}
-                      style={{ animationDelay: `${index * 0.1}s` }}
+                      className={`max-w-xs lg:max-w-md ${
+                        comentario.autor.id === user?.id ? "bg-brand-pink text-white" : "bg-muted text-foreground"
+                      } rounded-2xl p-4 shadow-sm`}
                     >
-                      <div
-                        className={`max-w-xs lg:max-w-md ${
-                          comentario.autor.id === user?.id ? "bg-brand-pink text-white" : "bg-muted text-foreground"
-                        } rounded-2xl p-4 shadow-sm`}
-                      >
-                        <div className="flex items-center gap-3 mb-3">
-                          <div
-                            className={`w-8 h-8 rounded-full flex items-center justify-center ${
-                              comentario.autor.id === user?.id ? "bg-white/20" : "bg-brand-pink"
-                            }`}
-                          >
-                            <User
-                              className={`w-4 h-4 ${comentario.autor.id === user?.id ? "text-white" : "text-white"}`}
-                            />
-                          </div>
-                          <div className="flex-1 min-w-0">
-                            <div className="flex items-center gap-2">
-                              <span className="text-sm font-medium truncate">{comentario.autor.nome}</span>
-                              <span
-                                className={`text-xs ${
-                                  comentario.autor.id === user?.id ? "text-white/70" : "text-muted-foreground"
-                                }`}
-                              >
-                                {formatDate(comentario.data_envio)}
-                              </span>
-                            </div>
+                      <div className="flex items-center gap-3 mb-3">
+                        <div
+                          className={`w-8 h-8 rounded-full flex items-center justify-center ${
+                            comentario.autor.id === user?.id ? "bg-white/20" : "bg-brand-pink"
+                          }`}
+                        >
+                          <User
+                            className={`w-4 h-4 ${comentario.autor.id === user?.id ? "text-white" : "text-white"}`}
+                          />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2">
+                            <span className="text-sm font-medium truncate">{comentario.autor.nome}</span>
+                            <span
+                              className={`text-xs ${
+                                comentario.autor.id === user?.id ? "text-white/70" : "text-muted-foreground"
+                              }`}
+                            >
+                              {formatDate(comentario.data_envio)}
+                            </span>
                           </div>
                         </div>
-                        <p className="text-sm leading-relaxed whitespace-pre-wrap">{comentario.conteudo}</p>
-                        
-                        {/* <CHANGE> Exibe anexos da conversação junto com a mensagem */}
-                        {anexosDoComentario.length > 0 && (
-                          <div className="mt-3 pt-3 border-t border-white/10 space-y-2">
-                            {anexosDoComentario.map((anexo) => (
-                              <a
-                                key={anexo.id}
-                                href={anexo.url}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className={`flex items-center gap-2 p-2 rounded-lg transition-all ${
-                                  comentario.autor.id === user?.id 
-                                    ? "bg-white/10 hover:bg-white/20" 
-                                    : "bg-brand-pink/10 hover:bg-brand-pink/20"
-                                }`}
-                              >
-                                <Paperclip className="w-3 h-3 flex-shrink-0" />
-                                <span className="text-xs truncate flex-1">{anexo.nome}</span>
-                                <Download className="w-3 h-3 flex-shrink-0" />
-                              </a>
-                            ))}
-                          </div>
-                        )}
                       </div>
+                      <p className="text-sm leading-relaxed whitespace-pre-wrap">{comentario.conteudo}</p>
+                      
+                      {/* 🔥 Anexos vêm do próprio comentário agora */}
+                      {comentario.anexos && comentario.anexos.length > 0 && (
+                        <div className="mt-3 pt-3 border-t border-white/10 space-y-2">
+                          {comentario.anexos.map((anexo) => (
+                            <a
+                              key={anexo.id}
+                              href={anexo.url}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className={`flex items-center gap-2 p-2 rounded-lg transition-all ${
+                                comentario.autor.id === user?.id 
+                                  ? "bg-white/10 hover:bg-white/20" 
+                                  : "bg-brand-pink/10 hover:bg-brand-pink/20"
+                              }`}
+                            >
+                              <Paperclip className="w-3 h-3 flex-shrink-0" />
+                              <span className="text-xs truncate flex-1">{anexo.nome}</span>
+                              <Download className="w-3 h-3 flex-shrink-0" />
+                            </a>
+                          ))}
+                        </div>
+                      )}
                     </div>
-                  )
-                })
+                  </div>
+                ))
               ) : (
                 <div className="text-center py-12">
                   <div className="w-20 h-20 bg-muted rounded-full flex items-center justify-center mx-auto mb-6">
@@ -1279,97 +1255,96 @@ export default function SuportePage() {
                 </div>
               )}
             </div>
-
-            {/* <CHANGE> Formulário de nova mensagem e upload de anexos separados */}
-            {selectedChamado.status === "EM_ANDAMENTO" && (
-            <div className="border-t border-border pt-6 space-y-4">
-              
-              {/* Input de anexos */}
-              <div>
-                <label className="block text-sm font-medium text-foreground mb-2 flex items-center gap-2">
-                  <Paperclip className="w-4 h-4" />
-                  Anexar arquivos (opcional)
-                </label>
+  
+            {/* Formulário de nova mensagem */}
+            {selectedChamado.status === "EM_ANDAMENTO" ? (
+              <div className="border-t border-border pt-6 space-y-4">
                 
-                <div className="relative w-full px-4 py-3 bg-input border-2 border-border rounded-xl hover:border-brand-pink/50 transition-all flex items-center gap-3">
-                  <input
-                    type="file"
-                    multiple
-                    onChange={handleFileChange}
-                    className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
-                    id="conversation-file-upload"
-                  />
-                  <button
-                    type="button"
-                    className="relative z-0 px-4 py-2 bg-white text-gray-800 rounded-lg font-medium text-sm hover:bg-gray-100 transition-colors border border-gray-300 whitespace-nowrap pointer-events-none"
-                  >
-                    Escolher arquivos
-                  </button>
-                  <span className="text-sm text-muted-foreground flex-1 truncate">
-                    {attachedFiles.length === 0 
-                      ? "Nenhum arquivo escolhido"
-                      : `${attachedFiles.length} arquivo(s) selecionado(s)`
-                    }
-                  </span>
-                </div>
-                
-                {/* 🔥 MOSTRAR ARQUIVOS SELECIONADOS */}
-                {attachedFiles.length > 0 && (
-                  <div className="flex flex-wrap gap-2 mt-3">
-                    {attachedFiles.map((file, idx) => (
-                      <div 
-                        key={idx} 
-                        className="flex items-center gap-2 bg-gray-100 px-3 py-1.5 rounded-lg border border-gray-200"
-                      >
-                        <Paperclip className="w-3 h-3 text-gray-500" />
-                        <span className="text-sm text-gray-700 max-w-[200px] truncate">
-                          {file.name}
-                        </span>
-                        <button
-                          onClick={() => handleRemoveFile(idx)}
-                          className="text-gray-500 hover:text-red-500 transition-colors"
-                          type="button"
-                        >
-                          <X className="w-4 h-4" />
-                        </button>
-                      </div>
-                    ))}
+                {/* Input de anexos */}
+                <div>
+                  <label className="block text-sm font-medium text-foreground mb-2 flex items-center gap-2">
+                    <Paperclip className="w-4 h-4" />
+                    Anexar arquivos (opcional - máximo 5)
+                  </label>
+                  
+                  <div className="relative w-full px-4 py-3 bg-input border-2 border-border rounded-xl hover:border-brand-pink/50 transition-all flex items-center gap-3">
+                    <input
+                      type="file"
+                      multiple
+                      onChange={handleFileChange}
+                      className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
+                      id="conversation-file-upload"
+                    />
+                    <button
+                      type="button"
+                      className="relative z-0 px-4 py-2 bg-white text-gray-800 rounded-lg font-medium text-sm hover:bg-gray-100 transition-colors border border-gray-300 whitespace-nowrap pointer-events-none"
+                    >
+                      Escolher arquivos
+                    </button>
+                    <span className="text-sm text-muted-foreground flex-1 truncate">
+                      {attachedFiles.length === 0 
+                        ? "Nenhum arquivo escolhido"
+                        : `${attachedFiles.length} arquivo(s) selecionado(s)`
+                      }
+                    </span>
                   </div>
-                )}
-              </div>
-
-              {/* Formulário de mensagem */}
-              <form onSubmit={handleSendMessage} ref={formRef}> 
-                <div className="relative">
-                  <textarea
-                    value={newMessage}
-                    onChange={(e) => setNewMessage(e.target.value)}
-                    onKeyDown={handleKeyDown}
-                    placeholder="Digite sua mensagem..."
-                    rows={3}
-                    className="w-full px-4 py-3 bg-input border border-border rounded-xl text-foreground placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-brand-pink/50 focus:border-brand-pink transition-all resize-none pr-16"
-                    disabled={loading}
-                  />
-                  <button
-                    type="submit"
-                    disabled={!newMessage.trim() || loading}
-                    className="absolute right-3 top-3 p-2.5 bg-brand-pink text-white rounded-lg hover:bg-brand-pink/90 disabled:opacity-50 disabled:cursor-not-allowed transition-all hover:scale-105 shadow-lg hover:shadow-brand-pink/25"
-                  >
-                    {loading ? (
-                      <Loader2 className="w-4 h-4 animate-spin" />
-                    ) : (
-                      <Send className="w-4 h-4" />
-                    )}
-                  </button>
+                  
+                  {/* Lista de arquivos selecionados */}
+                  {attachedFiles.length > 0 && (
+                    <div className="flex flex-wrap gap-2 mt-3">
+                      {attachedFiles.map((file, idx) => (
+                        <div 
+                          key={idx} 
+                          className="flex items-center gap-2 bg-gray-100 px-3 py-1.5 rounded-lg border border-gray-200"
+                        >
+                          <Paperclip className="w-3 h-3 text-gray-500" />
+                          <span className="text-sm text-gray-700 max-w-[200px] truncate">
+                            {file.name}
+                          </span>
+                          <button
+                            onClick={() => handleRemoveFile(idx)}
+                            className="text-gray-500 hover:text-red-500 transition-colors"
+                            type="button"
+                          >
+                            <X className="w-4 h-4" />
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
                 </div>
-                <p className="text-xs text-muted-foreground mt-3 flex items-center gap-2">
-                  <TrendingUp className="w-3 h-3" />
-                  Pressione Ctrl+Enter para enviar rapidamente
-                </p>
-              </form>
-            </div>
-    
-            )} : (
+  
+                {/* Formulário de mensagem */}
+                <form onSubmit={handleSendMessage} ref={formRef}> 
+                  <div className="relative">
+                    <textarea
+                      value={newMessage}
+                      onChange={(e) => setNewMessage(e.target.value)}
+                      onKeyDown={handleKeyDown}
+                      placeholder="Digite sua mensagem..."
+                      rows={3}
+                      className="w-full px-4 py-3 bg-input border border-border rounded-xl text-foreground placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-brand-pink/50 focus:border-brand-pink transition-all resize-none pr-16"
+                      disabled={loading}
+                    />
+                    <button
+                      type="submit"
+                      disabled={(!newMessage.trim() && attachedFiles.length === 0) || loading}
+                      className="absolute right-3 top-3 p-2.5 bg-brand-pink text-white rounded-lg hover:bg-brand-pink/90 disabled:opacity-50 disabled:cursor-not-allowed transition-all hover:scale-105 shadow-lg hover:shadow-brand-pink/25"
+                    >
+                      {loading ? (
+                        <Loader2 className="w-4 h-4 animate-spin" />
+                      ) : (
+                        <Send className="w-4 h-4" />
+                      )}
+                    </button>
+                  </div>
+                  <p className="text-xs text-muted-foreground mt-3 flex items-center gap-2">
+                    <TrendingUp className="w-3 h-3" />
+                    Pressione Ctrl+Enter para enviar rapidamente
+                  </p>
+                </form>
+              </div>
+            ) : (
               <div className="text-center border-t border-border pt-6">
                 <div className="bg-muted/30 rounded-xl p-6 border border-border">
                   <p className="text-sm text-muted-foreground flex items-center justify-center gap-2">
@@ -1382,7 +1357,7 @@ export default function SuportePage() {
                   </p>
                 </div>
               </div>
-            )
+            )}
           </div>
         </div>
       </div>
