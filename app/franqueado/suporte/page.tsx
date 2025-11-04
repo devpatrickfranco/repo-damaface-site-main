@@ -129,6 +129,7 @@ export default function SuportePage() {
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc")
   const [newMessage, setNewMessage] = useState("")
   const [novoTicketLoading, setNovoTicketLoading] = useState(false)
+  const [novoChamadoLoading, setNovoChamadoLoading] = useState(false)
 
   const [novoChamado, setNovoChamado] = useState({
     titulo: "",
@@ -218,6 +219,8 @@ export default function SuportePage() {
 
   const handleCreateTicket = async (e: React.FormEvent) => {
     e.preventDefault()
+    setNovoChamadoLoading(true)
+
     const payload = {
       titulo: novoChamado.titulo,
       descricao: novoChamado.descricao,
@@ -234,6 +237,7 @@ export default function SuportePage() {
     }
 
     try {
+      setNovoChamadoLoading(true)
       // Usa FormData para permitir anexos
       const formData = new FormData()
       formData.append("titulo", String(payload.titulo))
@@ -263,7 +267,11 @@ export default function SuportePage() {
         : ""
       alert(`Erro ao criar chamado:\n${errorMessages || "Verifique o console para detalhes."}`)
     }
-  }
+    finally {
+      setNovoChamadoLoading(false)
+    }
+  } 
+
 
   const handleTicketAction = async (action: "assumir" | "resolver" | "reabrir" | "fechar") => {
     if (!selectedChamado) return
@@ -815,8 +823,9 @@ export default function SuportePage() {
             <button
               type="submit"
               className="flex-1 px-6 py-3 bg-brand-pink hover:bg-brand-pink/90 text-white rounded-xl font-medium transition-all hover:scale-105 shadow-lg hover:shadow-brand-pink/25"
+              disabled={novoChamadoLoading}
             >
-              Criar Chamado
+              {novoChamadoLoading ? 'Criando...' : 'Criar Chamado'}
             </button>
           </div>
         </form>
