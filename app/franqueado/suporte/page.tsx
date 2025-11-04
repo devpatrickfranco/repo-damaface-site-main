@@ -1,6 +1,6 @@
 "use client"
 
-import type React from "react"
+import React from "react"
 
 import { useState, useEffect } from "react"
 import { useAuth } from "@/context/AuthContext"
@@ -109,6 +109,7 @@ interface ApiCategoria {
 export default function SuportePage() {
   const { user, loading: authLoading, isAuthenticated } = useAuth()
   const router = useRouter()
+  const formRef = React.useRef<HTMLFormElement>(null)
 
   // Estados de controle da UI
   const [activeView, setActiveView] = useState<"lista" | "detalhes" | "criar">("lista")
@@ -372,6 +373,28 @@ export default function SuportePage() {
       minute: "2-digit",
     })
 
+    // Ctrl + Enter
+    const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+      // Verifica se Ctrl + Enter foram pressionados
+      if (e.ctrlKey && e.key === 'Enter') {
+        e.preventDefault(); // Impede a quebra de linha no textarea
+    
+        // Verifica as mesmas condições do seu botão de submit
+        // Certifique-se que 'newMessage' e 'loading' estão acessíveis neste escopo
+        if (!newMessage.trim() || loading) {
+          return;
+        }
+    
+        // Dispara o evento de submit do formulário
+        if (formRef.current) {
+          // Usamos dispatchEvent para simular o submit,
+          // o que vai acionar seu handler `onSubmit={handleSendMessage}`
+          formRef.current.dispatchEvent(
+            new Event('submit', { cancelable: true, bubbles: true })
+          );
+        }
+      }
+    };
   const renderListaTickets = () => (
     <div className="space-y-8 animate-fade-in">
       <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-6">
@@ -1239,7 +1262,6 @@ export default function SuportePage() {
                       onChange={(e) => {
                         // Aqui você vai implementar o upload usando a rota específica
                         const files = e.target.files ? Array.from(e.target.files) : []
-                        console.log("[v0] Arquivos selecionados para upload:", files)
                         // TODO: Implementar upload via rota específica
                       }}
                       className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
@@ -1261,11 +1283,12 @@ export default function SuportePage() {
                 </div>
 
                 {/* Formulário de mensagem */}
-                <form onSubmit={handleSendMessage}>
+                <form onSubmit={handleSendMessage} ref={formRef}> 
                   <div className="relative">
                     <textarea
                       value={newMessage}
                       onChange={(e) => setNewMessage(e.target.value)}
+                      onKeyDown={handleKeyDown}
                       placeholder="Digite sua mensagem..."
                       rows={3}
                       className="w-full px-4 py-3 bg-input border border-border rounded-xl text-foreground placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-brand-pink/50 focus:border-brand-pink transition-all resize-none pr-16"
