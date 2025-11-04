@@ -290,7 +290,7 @@ export default function SuportePage() {
   }
 
   const handleSendMessage = async (e: React.FormEvent) => {
-    setLoading(true)
+    setNewMessage("")
     e.preventDefault()
     if (!newMessage.trim() || !selectedChamado) return
 
