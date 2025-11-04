@@ -2,17 +2,15 @@
 
 import type React from "react"
 import { useState, useEffect } from "react"
-import HeaderFranqueado from "@/app/franqueado/components/HeaderFranqueado"
-import Sidebar from "@/app/franqueado/components/Sidebar"
+
 import { Camera, Save, Loader2, X } from "lucide-react"
 import { apiBackend } from "@/lib/api-backend"
-// Importe a nova interface Profile
 import type { Profile } from "@/types/users"
 
 export default function SettingsPage() {
   const [profileData, setProfileData] = useState({
     nome: "",
-    bio: "", // Adicionado campo bio
+    bio: "",
   })
 
   const [originalData, setOriginalData] = useState({
@@ -21,15 +19,14 @@ export default function SettingsPage() {
     bio: "",
   })
 
-  const MAX_NAME_LENGTH = 100 // Caracteres máximos para o nome
-  const MAX_BIO_LENGTH = 500 // Caracteres máximos para a biografia
+  const MAX_NAME_LENGTH = 100
+  const MAX_BIO_LENGTH = 500
 
   const [previewImage, setPreviewImage] = useState<string | null>(null)
   const [imageFile, setImageFile] = useState<File | null>(null)
   const [loading, setLoading] = useState(false)
   const [fetching, setFetching] = useState(true)
   const [error, setError] = useState<string | null>(null)
-  // Use a interface Profile para o usuário atual
   const [currentUser, setCurrentUser] = useState<Profile | null>(null)
 
   useEffect(() => {
@@ -39,18 +36,17 @@ export default function SettingsPage() {
   const fetchUserData = async () => {
     try {
       setFetching(true)
-      // Use Profile no get
       const userData = await apiBackend.get<Profile>("/users/me/")
 
       setCurrentUser(userData)
       setProfileData({
         nome: userData.nome || "",
-        bio: userData.bio || "", // Definir estado do bio
+        bio: userData.bio || "",
       })
       setOriginalData({
         nome: userData.nome || "",
         imgProfile: userData.imgProfile || "",
-        bio: userData.bio || "", // Definir estado original do bio
+        bio: userData.bio || "",
       })
 
       // Define preview com a URL completa do backend
@@ -104,12 +100,10 @@ export default function SettingsPage() {
     if (!currentUser) return
 
     const hasNameChange = profileData.nome.trim() !== originalData.nome.trim()
-    // Verificar mudança no bio
     const hasBioChange = (profileData.bio || "").trim() !== (originalData.bio || "").trim()
     const hasImageChange =
       imageFile !== null || (previewImage === null && originalData.imgProfile)
 
-    // Adicionar hasBioChange à verificação
     if (!hasNameChange && !hasImageChange && !hasBioChange) {
       alert("Nenhuma alteração foi feita")
       return
@@ -121,7 +115,7 @@ export default function SettingsPage() {
 
       const formData = new FormData()
       formData.append("nome", profileData.nome.trim())
-      formData.append("bio", profileData.bio.trim()) // Adicionar bio ao FormData
+      formData.append("bio", profileData.bio.trim())
 
       if (imageFile) {
         formData.append("imgProfile", imageFile)
@@ -137,12 +131,12 @@ export default function SettingsPage() {
 
       setProfileData({
         nome: response.nome,
-        bio: response.bio || "", // Atualizar bio no estado
+        bio: response.bio || "",
       })
       setOriginalData({
         nome: response.nome,
         imgProfile: response.imgProfile || "",
-        bio: response.bio || "", // Atualizar bio original
+        bio: response.bio || "",
       })
 
       if (response.imgProfile) {
@@ -261,7 +255,6 @@ export default function SettingsPage() {
                 </div>
               </div>
 
-              {/* --- CAMPO DE EMAIL (IMUTÁVEL) --- */}
               <div className="space-y-2">
                 <label
                   htmlFor="email"
@@ -281,7 +274,6 @@ export default function SettingsPage() {
                 </p>
               </div>
 
-              {/* --- NOVO CAMPO DE FRANQUIA (IMUTÁVEL) --- */}
               <div className="space-y-2">
                 <label
                   htmlFor="franquia"
@@ -301,7 +293,6 @@ export default function SettingsPage() {
                 </p>
               </div>
 
-                {/* --- CAMPO DE NOME (EDITÁVEL) --- */}
               <div className="space-y-2">
                 <div className="flex justify-between items-baseline">
                   <label
@@ -310,7 +301,6 @@ export default function SettingsPage() {
                   >
                     Nome Completo
                   </label>
-                  {/* --- CONTADOR VISUAL ADICIONADO --- */}
                   <span className="text-xs text-gray-500">
                     {profileData.nome.length} / {MAX_NAME_LENGTH}
                   </span>
@@ -325,11 +315,10 @@ export default function SettingsPage() {
                   placeholder="Digite seu nome completo"
                   className="w-full h-10 px-3 text-white rounded-md bg-gray-900 border border-gray-700 focus:outline-none focus:ring-2 focus:ring-brand-pink focus:border-brand-pink text-sm placeholder-gray-500"
                   required
-                  maxLength={MAX_NAME_LENGTH} // Mantenha o maxLength
+                  maxLength={MAX_NAME_LENGTH}
                 />
               </div>
 
-              {/* --- NOVO CAMPO DE BIOGRAFIA (EDITÁVEL) --- */}
               <div className="space-y-2">
                 <label
                   htmlFor="bio"

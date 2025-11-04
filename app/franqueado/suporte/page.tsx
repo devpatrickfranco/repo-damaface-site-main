@@ -128,6 +128,8 @@ export default function SuportePage() {
   const [sortField, setSortField] = useState("criado_em")
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc")
   const [newMessage, setNewMessage] = useState("")
+  const [novoTicketLoading, setNovoTicketLoading] = useState(false)
+
   const [novoChamado, setNovoChamado] = useState({
     titulo: "",
     descricao: "",
@@ -180,6 +182,8 @@ export default function SuportePage() {
 
   const handleOpenCreateView = async () => {
     try {
+      setNovoTicketLoading(true)
+
       const catResponse = await apiBackend.get<ApiCategoria[]>("/chamados/categorias/")
       setCategorias(catResponse)
 
@@ -395,10 +399,13 @@ export default function SuportePage() {
           {user?.role === "SUPERADMIN" && <CategoryManager />}
           <button
             onClick={handleOpenCreateView}
+            disabled={novoTicketLoading}
             className="bg-brand-pink hover:bg-brand-pink/90 text-white font-semibold px-6 py-3 rounded-xl flex items-center gap-2 transition-all hover:scale-105 shadow-lg hover:shadow-brand-pink/25"
           >
             <Plus className="w-4 h-4" />
-            <span>Novo Ticket</span>
+            <span>
+              {novoTicketLoading ? "Novo Ticket" : "Abrindo..." }
+            </span>
           </button>
         </div>
       </div>
