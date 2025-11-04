@@ -182,8 +182,7 @@ export default function SuportePage() {
 
   const handleOpenCreateView = async () => {
     try {
-      setNovoTicketLoading(true)
-
+      setNovoTicketLoading(true )
       const catResponse = await apiBackend.get<ApiCategoria[]>("/chamados/categorias/")
       setCategorias(catResponse)
 
@@ -196,6 +195,12 @@ export default function SuportePage() {
       alert("Erro ao carregar dados. Tente novamente.")
       console.error(err)
     }
+   finally {
+    // 3. Independentemente de sucesso ou falha,
+    // reativa o botão e restaura o texto.
+    setNovoTicketLoading(false);
+  }
+
   }
 
   const handleViewDetails = async (chamadoId: number) => {
@@ -403,9 +408,7 @@ export default function SuportePage() {
             className="bg-brand-pink hover:bg-brand-pink/90 text-white font-semibold px-6 py-3 rounded-xl flex items-center gap-2 transition-all hover:scale-105 shadow-lg hover:shadow-brand-pink/25"
           >
             <Plus className="w-4 h-4" />
-            <span>
-              {novoTicketLoading ? "Novo Ticket" : "Abrindo..." }
-            </span>
+            <span>Novo Ticket</span>
           </button>
         </div>
       </div>
