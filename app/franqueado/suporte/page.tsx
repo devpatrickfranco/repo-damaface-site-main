@@ -408,7 +408,9 @@ export default function SuportePage() {
             className="bg-brand-pink hover:bg-brand-pink/90 text-white font-semibold px-6 py-3 rounded-xl flex items-center gap-2 transition-all hover:scale-105 shadow-lg hover:shadow-brand-pink/25"
           >
             <Plus className="w-4 h-4" />
-            <span>Novo Ticket</span>
+            <span>
+              {novoTicketLoading ? 'Abrindo...' : 'Novo Chamado'}
+            </span>
           </button>
         </div>
       </div>
