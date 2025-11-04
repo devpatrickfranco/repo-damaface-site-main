@@ -45,6 +45,7 @@ const HeaderDashboard = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [profileDropdownOpen, setProfileDropdownOpen] = useState(false)
   const [notificationsOpen, setNotificationsOpen] = useState(false)
+  const [isLoggingOut, setIsLoggingOut] = useState(false)
   const { user, logout } = useAuth()
   const router = useRouter() // [ADICIONADO] Hook do Next.js para navegação
 
@@ -132,7 +133,21 @@ const HeaderDashboard = () => {
     
     setNotificationsOpen(false)
   }
-  // --- Fim das Funções de Interação ---
+
+  const handleLogout = async () => {
+    setIsLoggingOut(true) // Define o estado para "saindo..."
+    try {
+      // Chama a função logout original do seu AuthContext
+      await logout()
+      
+      // Se o logout for bem-sucedido, o usuário será redirecionado
+      // e o componente desmontado, então não precisamos redefinir o estado.
+    } catch (error) {
+      console.error('Erro ao fazer logout:', error)
+      // Se o logout falhar, redefina o botão para o estado normal
+      setIsLoggingOut(false)
+    }
+  }
 
   const imageUrl =
     user && user.imgProfile
@@ -298,12 +313,15 @@ const HeaderDashboard = () => {
                 </a>
                 <hr className="my-2 border-gray-700" />
                 <button
-                  onClick={logout}
-                  className="w-full px-4 py-2 text-left hover:bg-gray-700 flex items-center space-x-2 text-red-400"
-                >
-                  <LogOut className="w-4 h-4" />
-                  <span className="text-sm">Sair</span>
-                </button>
+                    onClick={handleLogout} 
+                    disabled={isLoggingOut}
+                    className="w-full px-4 py-2 text-left hover:bg-gray-700 flex items-center space-x-2 text-red-400 disabled:opacity-70 disabled:cursor-not-allowed" // <--- ADICIONADO (disabled styles)
+                  >
+                    <LogOut className="w-4 h-4" />
+                    <span className="text-sm">
+                      {isLoggingOut ? 'Saindo...' : 'Sair'} 
+                    </span>
+                  </button>
               </div>
             )}
           </div>

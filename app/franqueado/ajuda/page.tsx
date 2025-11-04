@@ -1,6 +1,9 @@
 'use client';
 
 import { useState, useRef, useEffect } from 'react';
+import { useAuth } from "@/context/AuthContext"
+import { useRouter } from "next/navigation"
+
 import { Send, Sparkles, MessageCircle, FileText, Users, GraduationCap, ArrowLeft } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 
@@ -12,10 +15,19 @@ interface Message {
 }
 
 const AIHelpPage = () => {
+  const { isAuthenticated, user, loading } = useAuth()
+  const router = useRouter()
+
   const [messages, setMessages] = useState<Message[]>([]);
   const [inputValue, setInputValue] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!loading && !isAuthenticated) {
+      router.push("/franqueado")
+    }
+  }, [isAuthenticated, loading, router])
 
   const suggestedQuestions = [
     {
