@@ -28,7 +28,7 @@ export const apiBackend = {
     // Só adiciona X-CSRFToken se o token existir
     if (csrftoken) {
       headers['X-CSRFToken'] = csrftoken;
-    } else {
+    } else {  
       console.error('❌ CSRF Token não encontrado - requisição pode falhar!');
     }
 
