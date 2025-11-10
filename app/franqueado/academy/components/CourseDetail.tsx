@@ -351,6 +351,11 @@ const handleDownloadCertificado = async () => {
     );
   };
 
+  const imageUrl =
+  user && user.imgProfile
+    ? `${process.env.NEXT_PUBLIC_API_BACKEND_URL}${user.imgProfile}`
+    : null
+
   return (
     <div className="bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900">
       <div className="flex">
@@ -821,9 +826,9 @@ const handleDownloadCertificado = async () => {
                 {/* Formulário para adicionar comentário - só aparece se não tiver comentário */}
                 {user && !meuComentario && (
                   <div className="flex gap-3 mb-6">
-                    {user?.imgProfile ? (
+                    {imageUrl ? (
                       <Image
-                        src={user.imgProfile || "/placeholder.svg"}
+                        src={imageUrl || "/placeholder.svg"}
                         alt={user.nome}
                         width={40}
                         height={40}
