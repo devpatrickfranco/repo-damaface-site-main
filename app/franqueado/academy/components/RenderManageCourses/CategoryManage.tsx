@@ -6,6 +6,7 @@ import { apiBackend } from "@/lib/api-backend"
 import type { Categoria } from "@/types/academy"
 import DynamicIcon from "@/app/franqueado/academy/components/DynamicIcon"
 import allIconNames from "@/data/academy/lucide-icon-names.json"
+import Modal from '@/components/ui/Modal'
 
 interface CategoryManageProps {
   categorias: Categoria[]
@@ -193,7 +194,7 @@ export default function CategoryManage({
         </>
       )}
 
-      {showModal && (
+      <Modal open={showModal} onClose={handleCloseModal}>
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 z-[9999]">
           <div className="bg-gray-800 rounded-xl border border-gray-700 w-full max-w-2xl max-h-[90vh] flex flex-col relative z-[10000]">
             <div className="p-6 border-b border-gray-700 flex justify-between items-center">
@@ -284,7 +285,7 @@ export default function CategoryManage({
             </div>
           </div>
         </div>
-      )}
+      </Modal>
     </div>
   )
 }
