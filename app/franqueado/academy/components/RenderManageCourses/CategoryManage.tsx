@@ -193,7 +193,7 @@ export default function CategoryManage({
           )}
         </>
       )}
-
+      {showModal && (
       <Modal open={showModal} onClose={handleCloseModal}>
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 z-[9999]">
           <div className="bg-gray-800 rounded-xl border border-gray-700 w-full max-w-2xl max-h-[90vh] flex flex-col relative z-[10000]">
@@ -286,6 +286,7 @@ export default function CategoryManage({
           </div>
         </div>
       </Modal>
+      )}
     </div>
   )
 }
