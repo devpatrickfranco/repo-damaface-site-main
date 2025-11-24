@@ -117,7 +117,7 @@ export default function CategoryManage({
   }
 
   return (
-<div className="bg-gradient-to-br from-gray-800/50 to-gray-900/50 backdrop-blur-sm rounded-2xl border border-gray-700/50 p-6 space-y-6 shadow-xl">
+    <div className="bg-gradient-to-br from-gray-800/50 to-gray-900/50 backdrop-blur-sm rounded-2xl border border-gray-700/50 p-6 space-y-6 shadow-xl">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 bg-gradient-to-br from-pink-500/20 to-purple-500/20 rounded-xl flex items-center justify-center">
@@ -194,8 +194,8 @@ export default function CategoryManage({
       )}
 
       {showModal && (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 z-50">
-          <div className="bg-gray-800 rounded-xl border border-gray-700 w-full max-w-2xl max-h-[90vh] flex flex-col">
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 z-[9999]">
+          <div className="bg-gray-800 rounded-xl border border-gray-700 w-full max-w-2xl max-h-[90vh] flex flex-col relative z-[10000]">
             <div className="p-6 border-b border-gray-700 flex justify-between items-center">
               <h2 className="text-xl font-bold text-white">
                 {modalMode === "create" ? "Nova Categoria" : "Editar Categoria"}
@@ -205,7 +205,6 @@ export default function CategoryManage({
               </button>
             </div>
 
-            {/* AQUI ESTÁ O CONTEÚDO DO FORMULÁRIO QUE FALTAVA */}
             <div className="flex-1 overflow-y-auto p-6 space-y-6">
               <div>
                 <label className="block text-sm font-medium text-gray-300 mb-2">Nome da Categoria *</label>
