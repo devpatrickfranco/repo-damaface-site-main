@@ -19,6 +19,7 @@ import { apiBackend } from "@/lib/api-backend"
 import type { Trilha } from "@/types/academy"
 import DynamicIcon from "@/app/franqueado/academy/components/DynamicIcon"
 import allIconNames from "@/data/academy/lucide-icon-names.json"
+import Modal from '@/components/ui/Modal'
 
 interface TrilhaManageProps {
   trilhas: Trilha[]
@@ -293,7 +294,7 @@ export default function TrilhaManage({ trilhas, refetchTrilhas }: TrilhaManagePr
       )}
 
       {/* Modal */}
-      {showModal && (
+      <Modal open={showModal} onClose={handleCloseModal}>
         <div className="fixed inset-0 bg-black/60 backdrop-blur-md flex items-center justify-center p-4 z-50 animate-in fade-in duration-200">
           <div className="bg-gradient-to-br from-gray-800 to-gray-900 rounded-2xl border border-gray-700/50 w-full max-w-2xl max-h-[90vh] flex flex-col shadow-2xl animate-in zoom-in-95 duration-200">
             <div className="p-6 border-b border-gray-700 flex justify-between items-center">
@@ -469,7 +470,7 @@ export default function TrilhaManage({ trilhas, refetchTrilhas }: TrilhaManagePr
             </div>
           </div>
         </div>
-      )}
+      </Modal>
     </div>
   )
 }
