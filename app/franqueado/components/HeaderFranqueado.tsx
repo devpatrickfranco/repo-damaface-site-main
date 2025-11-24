@@ -173,7 +173,7 @@ const HeaderDashboard = () => {
           <button
             onClick={() => setSidebarOpen(!sidebarOpen)}
             className="md:hidden p-2 rounded-lg hover:bg-gray-700"
-            aria-label="Alternar menu lateral" // [ADICIONADO] Acessibilidade
+            aria-label="Alternar menu lateral"
           >
             <Menu className="w-5 h-5 text-gray-300" />
           </button>

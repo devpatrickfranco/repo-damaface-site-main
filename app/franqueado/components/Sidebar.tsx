@@ -12,7 +12,8 @@ import {
   LifeBuoy,
   GraduationCap,
   Rocket,
-  BrainCircuit
+  BrainCircuit,
+  HelpCircle
 } from 'lucide-react'
 import { useRouter, usePathname } from 'next/navigation'
 import { useState } from 'react'
@@ -32,6 +33,7 @@ const Sidebar = () => {
     { id: 'academy', name: 'Academy', icon: GraduationCap, route: '/franqueado/academy', roles: ['SUPERADMIN', 'ADMIN', 'FRANQUEADO', 'FUNCIONARIO'] },
     { id: 'comunicados', name: 'Comunicados', icon: Newspaper, route: '/franqueado/comunicados', roles: ['SUPERADMIN', 'ADMIN', 'FRANQUEADO', 'FUNCIONARIO'] },
     { id: 'damaai', name: 'Dama.ai', icon: BrainCircuit, route: '/franqueado/damaai', roles: ['SUPERADMIN', 'ADMIN', 'FRANQUEADO', 'FUNCIONARIO'] },
+    { id: 'ajuda', name: 'Ajuda', icon: HelpCircle, route: '/franqueado/ajuda', roles: ['SUPERADMIN', 'ADMIN', 'FRANQUEADO', 'FUNCIONARIO'] },
     { id: 'compras', name: 'Compras', icon: ShoppingCart, route: '/franqueado/compras', roles: ['SUPERADMIN', 'ADMIN', 'FRANQUEADO', 'FUNCIONARIO'] },
     { id: 'qualidade', name: 'Qualidade', icon: Award, route: '/franqueado/qualidade', roles: ['SUPERADMIN', 'ADMIN', 'FRANQUEADO', 'FUNCIONARIO'] },
     { id: 'marketing', name: 'Marketing', icon: Megaphone, route: '/franqueado/marketing', roles: ['SUPERADMIN', 'ADMIN', 'FRANQUEADO', 'FUNCIONARIO'] },
