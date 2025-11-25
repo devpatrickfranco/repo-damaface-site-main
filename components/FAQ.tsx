@@ -109,15 +109,6 @@ const FAQ = () => {
 
         {/* CTA */}
         <div className="text-center mt-12 animate-on-scroll">
-          <p className="text-gray-300 mb-6">
-            Não encontrou a resposta que procura?
-          </p>
-          <button
-            onClick={() => window.open('https://typebot.damaface.com.br/agendar Tenho uma dúvida sobre os tratamentos.', '_blank')}
-            className="btn-primary"
-          >
-            Fale conosco no WhatsApp
-          </button>
         <div className="flex justify-center gap-6 text-center mt-12 animate-on-scroll">
           <CtaButtonWhatsapp />
         </div>

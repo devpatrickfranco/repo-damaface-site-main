@@ -38,7 +38,7 @@ export const unidadesData = [
     "nome": "Clínica de Estética - DamaFace Cerquilho",
     "endereço": { "rua": "Rua Francisco da Silva Pontes","numero": "404","bairro": "Centro","cidade": "Cerquilho - SP","CEP": "18520-005" },
     "atendimento": { "segunda_sexta": [8, 19], "sabado": [8, 12], "domingo": [] },
-    "contatos": { "whatsapp": "15996349393","instagram": "damafacecerquilho","facebook": "profile.php?id=100086173280643","followersInstagram": 2830,"followersFacebook": 295 }
+    "contatos": { "whatsapp": "19981361159","instagram": "damafacecerquilho","facebook": "profile.php?id=100086173280643","followersInstagram": 2830,"followersFacebook": 295 }
   },
   {
     "unidade": "Guarulhos - SP",
@@ -52,7 +52,7 @@ export const unidadesData = [
     "nome": "DamaFace Jaguariúna/SP - Harmonização Facial e Corporal",
     "endereço": { "rua": "R. Dr. Clemente Holtman Júnior 347","numero": "Sala 17","bairro": "Centro","cidade": "Jaguariúna - SP","CEP": "13820-000" },
     "atendimento": { "segunda_sexta": [9, 18], "sabado": [], "domingo": [] },
-    "contatos": { "whatsapp": "19994260379","instagram": "damafacejaguariuna","facebook": "DamaFace-Jaguariúna-Harmonização-Facial-e-Corporal-61574524305869","followersInstagram": 896,"followersFacebook": 185 }
+    "contatos": { "whatsapp": "19981361159","instagram": "damafacejaguariuna","facebook": "DamaFace-Jaguariúna-Harmonização-Facial-e-Corporal-61574524305869","followersInstagram": 896,"followersFacebook": 185 }
   },
   {
     "unidade": "Jundiaí - SP",
@@ -129,7 +129,7 @@ export const unidadesData = [
     "nome": "Damaface - Clinica de Harmonização Facial e Corporal",
     "endereço": { "rua": "Avenida Benedito Storani","numero": "164","bairro": "Centro","cidade": "Vinhedo - SP","CEP": "13280-017" },
     "atendimento": { "segunda_sexta": [9, 18], "sabado": [9, 18], "domingo": [] },
-    "contatos": { "whatsapp": "19989264454","instagram": "damafacevinhedo","facebook": "profile.php?id=61555129555408","followersInstagram": 4549,"followersFacebook": 266 }
+    "contatos": { "whatsapp": "19981361159","instagram": "damafacevinhedo","facebook": "profile.php?id=61555129555408","followersInstagram": 4549,"followersFacebook": 266 }
   },
 
   // === DEMAIS ESTADOS (ordem alfabética por UF / Cidade) ===

@@ -122,7 +122,7 @@ const nonInvasiveProcedures = [
                   <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
                 </Link>
                 <a
-                  href="https://typebot.damaface.com.br/agendar Gostaria de agendar uma avaliação para tratamentos não invasivos."
+                  href="https://typebot.damaface.com.br/agendar"
                   target="_blank"
                   className="btn-secondary"
                   rel="noreferrer"
