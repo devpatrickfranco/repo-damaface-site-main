@@ -99,8 +99,8 @@ const Step3: React.FC<Step3Props> = ({ wizard }) => {
             <input
               type="text"
               placeholder="ID do Vídeo no YouTube *"
-              value={currentAula.videoId}
-              onChange={(e) => setCurrentAula((prev) => ({ ...prev, videoId: e.target.value }))}
+              value={currentAula.video_id}
+              onChange={(e) => setCurrentAula((prev) => ({ ...prev, video_id: e.target.value }))}
               className="flex-1 px-4 py-3 bg-gray-700 border border-gray-600 rounded-lg text-white"
             />
             <input

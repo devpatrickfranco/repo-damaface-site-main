@@ -28,7 +28,7 @@ export interface CurrentPerguntaState {
 
 export interface CurrentAulaState {
   titulo: string;
-  videoId: string;
+  video_id: string;
   duracao: string;
   moduloId: string;
 }
@@ -72,7 +72,7 @@ export function useCourseWizard(initialCourse?: Curso | null) {
   
   const [materiaisGerais, setMateriaisGerais] = useState<materiais[]>([]);
   const [currentAula, setCurrentAula] = useState<CurrentAulaState>({
-    titulo: "", videoId: "", duracao: "", moduloId: "",
+    titulo: "", video_id: "", duracao: "", moduloId: "",
   });
   const [currentMaterial, setCurrentMaterial] = useState<CurrentMaterialState>({
     titulo: "", tipo: "pdf", url: "", arquivoFile: undefined,
@@ -107,7 +107,7 @@ export function useCourseWizard(initialCourse?: Curso | null) {
       respostaCorretaIndex: null,
     });
     setCurrentAula({
-      titulo: "", videoId: "", duracao: "", moduloId: "",
+      titulo: "", video_id: "", duracao: "", moduloId: "",
     });
     setCurrentMaterial({
       titulo: "", tipo: "pdf", url: "", arquivoFile: undefined,
@@ -157,7 +157,7 @@ export function useCourseWizard(initialCourse?: Curso | null) {
   };
   
   const handleAddAula = () => {
-    if (!currentAula.titulo.trim() || !currentAula.videoId.trim() || !currentAula.moduloId) {
+    if (!currentAula.titulo.trim() || !currentAula.video_id.trim() || !currentAula.moduloId) {
       alert("Preencha todos os campos obrigatórios da aula e selecione um módulo.");
       return;
     }
@@ -165,7 +165,7 @@ export function useCourseWizard(initialCourse?: Curso | null) {
       id: `aula-${Date.now()}`,
       titulo: currentAula.titulo,
       slug: currentAula.titulo.toLowerCase().replace(/\s+/g, "-"),
-      videoId: currentAula.videoId,
+      video_id: currentAula.video_id,
       duracao: currentAula.duracao || "0:00",
       concluida: false,
     };
@@ -175,7 +175,7 @@ export function useCourseWizard(initialCourse?: Curso | null) {
       )
     );
     setCurrentAula({
-      titulo: "", videoId: "", duracao: "", moduloId: "",
+      titulo: "", video_id: "", duracao: "", moduloId: "",
     });
   };
 
