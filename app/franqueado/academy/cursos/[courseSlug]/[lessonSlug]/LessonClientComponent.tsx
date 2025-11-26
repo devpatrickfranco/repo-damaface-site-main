@@ -25,11 +25,12 @@ export default function LessonPage({ params }: LessonPageProps) {
   const router = useRouter();
   const { courseSlug, lessonSlug } = params;
 
-  const { data: curso, loading: cursoLoading, error: cursoError } = useCurso(courseSlug);
+  const { data: curso, loading: cursoLoading, error: cursoError, refetch: refetchCurso } = useCurso(courseSlug);
   const { data: aulaAtual, loading: aulaLoading, error: aulaError, refetch: refetchAula } = useAula(lessonSlug);
 
   const [showSidebar, setShowSidebar] = useState(true);
   const [marcando, setMarcando] = useState(false);
+  const [concluidaLocal, setConcluidaLocal] = useState<boolean | null>(null);
 
   // Proteção de rota
   useEffect(() => {
@@ -74,28 +75,41 @@ export default function LessonPage({ params }: LessonPageProps) {
     aulaIndex < todasAulas.length - 1 ? todasAulas[aulaIndex + 1] : null;
 
   // Função para marcar aula como concluída
-const handleMarkComplete = async () => {
-  try {
-    setMarcando(true);
+  const handleMarkComplete = async () => {
+    try {
+      setMarcando(true);
 
-    // Atualiza otimizadamente o estado antes do refetch
-    aulaAtual.progresso.concluida = true;
+      // Atualiza estado local imediatamente para feedback visual
+      setConcluidaLocal(true);
 
-    // Faz a requisição
-    await completeLesson(aulaAtual.slug);
-    
-    // Faz o refetch em background, sem travar UI
-    refetchAula();
-  } catch (err) {
-    console.error("Erro ao marcar aula:", err);
-  } finally {
-    setMarcando(false);
-  }
-};
+      // Faz a requisição
+      await completeLesson(aulaAtual.slug);
+      
+      // Aguarda o refetch para garantir que os dados estão atualizados
+      // Refetch tanto da aula quanto do curso (para atualizar a sidebar)
+      await Promise.all([refetchAula(), refetchCurso()]);
+    } catch (err) {
+      console.error("Erro ao marcar aula:", err);
+      // Reverte o estado local em caso de erro
+      setConcluidaLocal(null);
+    } finally {
+      setMarcando(false);
+    }
+  };
 
 
   // Aula concluida - bool
-  const concluida = aulaAtual.progresso?.concluida || false;
+  // Usa estado local se disponível, senão usa o valor do hook
+  const concluida = concluidaLocal !== null 
+    ? concluidaLocal 
+    : (aulaAtual.progresso?.concluida || false);
+
+  // Sincroniza estado local com dados do hook quando mudarem
+  useEffect(() => {
+    if (aulaAtual?.progresso?.concluida !== undefined) {
+      setConcluidaLocal(aulaAtual.progresso.concluida);
+    }
+  }, [aulaAtual?.progresso?.concluida]);
 
 
   return (
