@@ -20,7 +20,6 @@ export default function ComunicadoList({ comunicados, onUpdate }: ComunicadoList
   const [isEditModalOpen, setIsEditModalOpen] = useState(false)
 
   const handleViewDetails = (comunicado: ComunicadoType) => {
-    console.log("[v0] Abrindo detalhes do comunicado:", comunicado)
     setSelectedComunicado(comunicado)
     setIsDetailModalOpen(true)
   }
@@ -50,7 +49,6 @@ export default function ComunicadoList({ comunicados, onUpdate }: ComunicadoList
 
   // Função para quando marcar como lido
   const handleMarcarComoLido = (comunicadoId: number) => {
-    console.log("[v0] Marcando comunicado como lido:", comunicadoId)
     // Atualiza o estado local do comunicado selecionado
     if (selectedComunicado && selectedComunicado.id === comunicadoId) {
       setSelectedComunicado({
@@ -63,9 +61,6 @@ export default function ComunicadoList({ comunicados, onUpdate }: ComunicadoList
     onUpdate()
   }
 
-  // <CHANGE> Adicionada validação mais robusta para comunicados
-  console.log("[v0] Comunicados recebidos no ComunicadoList:", comunicados)
-  console.log("[v0] Tipo:", typeof comunicados, "É array?", Array.isArray(comunicados))
 
   if (!comunicados || !Array.isArray(comunicados) || comunicados.length === 0) {
     return (

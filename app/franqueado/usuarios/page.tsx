@@ -95,21 +95,16 @@ export default function UsuariosPage() {
         if (Array.isArray(franquiasRes.value)) {
           // A resposta é diretamente um array
           franquiasData = franquiasRes.value
-          console.log("[v0] Dados são array direto")
         } else if (franquiasRes.value?.data && Array.isArray(franquiasRes.value.data)) {
           // A resposta tem propriedade data (formato axios)
           franquiasData = franquiasRes.value.data
-          console.log("[v0] Dados estão em response.data")
         } else if (franquiasRes.value?.data?.data && Array.isArray(franquiasRes.value.data.data)) {
           // A resposta tem data aninhado
           franquiasData = franquiasRes.value.data.data
-          console.log("[v0] Dados estão em response.data.data")
         }
         
-        console.log("[v0] Franquias processadas:", franquiasData)
         setFranquias(franquiasData)
       } else {
-        console.error("[v0] Erro ao buscar franquias:", franquiasRes.reason)
         setFranquias([])
       }
 
@@ -123,7 +118,6 @@ export default function UsuariosPage() {
       setFranquias([])
     } finally {
       setPageLoading(false)
-      console.log("[v0] Busca de dados finalizada")
     }
   }, [])
 

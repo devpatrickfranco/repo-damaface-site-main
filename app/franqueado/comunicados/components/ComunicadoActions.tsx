@@ -12,6 +12,8 @@ export default function ComunicadoActions() {
   // Função para ser passada para o modal, para que ele possa avisar quando um novo comunicado foi criado
   const handleSuccess = () => {
     console.log("Comunicado criado, recarregar lista!")
+    window.location.reload()
+    
   }
 
   const canCreate = user?.role === "ADMIN" || user?.role === "SUPERADMIN"

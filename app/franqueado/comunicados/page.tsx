@@ -18,7 +18,6 @@ export default function ComunicadosPage() {
     if (isAuthenticated) {
       try {
         setPageLoading(true)
-        console.log("[v0] Buscando comunicados...")
         
         const response = await apiBackend.get("/dashboard/comunicados/")
         let comunicadosData = []
@@ -30,7 +29,6 @@ export default function ComunicadosPage() {
         } else if (response?.data?.data && Array.isArray(response.data.data)) {
 
           comunicadosData = response.data.data
-          console.log("[v0] Dados estão em response.data.data")
         }
         
         setComunicados(comunicadosData)
