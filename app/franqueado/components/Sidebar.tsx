@@ -1,17 +1,13 @@
 'use client'
 
 import { 
-  ShoppingCart,
-  Award,
   Megaphone,
-  BarChart3,
   X,
   Newspaper,
   Users2,
   Home, 
   LifeBuoy,
   GraduationCap,
-  Rocket,
   BrainCircuit,
   HelpCircle
 } from 'lucide-react'
@@ -29,16 +25,12 @@ const Sidebar = () => {
 
   const allNavLinks = [
     { id: 'dashboard', name: 'Dashboard', icon: Home, route: '/franqueado/dashboard', roles: ['SUPERADMIN', 'ADMIN', 'FRANQUEADO', 'FUNCIONARIO'] },
-    { id: 'suporte', name: 'Suporte', icon: LifeBuoy, route: '/franqueado/suporte', roles: ['SUPERADMIN', 'ADMIN', 'FRANQUEADO', 'FUNCIONARIO'] },
     { id: 'academy', name: 'Academy', icon: GraduationCap, route: '/franqueado/academy', roles: ['SUPERADMIN', 'ADMIN', 'FRANQUEADO', 'FUNCIONARIO'] },
+    { id: 'ajuda', name: 'Ajuda', icon: HelpCircle, route: '/franqueado/ajuda', roles: ['SUPERADMIN', 'ADMIN', 'FRANQUEADO', 'FUNCIONARIO'] },
+    { id: 'suporte', name: 'Suporte', icon: LifeBuoy, route: '/franqueado/suporte', roles: ['SUPERADMIN', 'ADMIN', 'FRANQUEADO', 'FUNCIONARIO'] },
     { id: 'comunicados', name: 'Comunicados', icon: Newspaper, route: '/franqueado/comunicados', roles: ['SUPERADMIN', 'ADMIN', 'FRANQUEADO', 'FUNCIONARIO'] },
     { id: 'damaai', name: 'Dama.ai', icon: BrainCircuit, route: '/franqueado/damaai', roles: ['SUPERADMIN', 'ADMIN', 'FRANQUEADO', 'FUNCIONARIO'] },
-    { id: 'ajuda', name: 'Ajuda', icon: HelpCircle, route: '/franqueado/ajuda', roles: ['SUPERADMIN', 'ADMIN', 'FRANQUEADO', 'FUNCIONARIO'] },
-    { id: 'compras', name: 'Compras', icon: ShoppingCart, route: '/franqueado/compras', roles: ['SUPERADMIN', 'ADMIN', 'FRANQUEADO', 'FUNCIONARIO'] },
-    { id: 'qualidade', name: 'Qualidade', icon: Award, route: '/franqueado/qualidade', roles: ['SUPERADMIN', 'ADMIN', 'FRANQUEADO', 'FUNCIONARIO'] },
     { id: 'marketing', name: 'Marketing', icon: Megaphone, route: '/franqueado/marketing', roles: ['SUPERADMIN', 'ADMIN', 'FRANQUEADO', 'FUNCIONARIO'] },
-    { id: 'bi', name: 'BI', icon: BarChart3, route: '/franqueado/bi', roles: ['SUPERADMIN', 'ADMIN'] },
-    { id: 'implantacao', name: 'Implantação', icon: Rocket, route: '/franqueado/implantacao', roles: ['SUPERADMIN', 'ADMIN'] },
     { id: 'usuarios', name: 'Usuarios', icon: Users2, route: '/franqueado/usuarios', roles: ['SUPERADMIN'] }
   ]
 
