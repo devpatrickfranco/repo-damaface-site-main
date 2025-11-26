@@ -25,7 +25,7 @@ export default function LessonPage({ params }: LessonPageProps) {
   const router = useRouter();
   const { courseSlug, lessonSlug } = params;
 
-  const { data: curso, loading: cursoLoading, error: cursoError } = useCurso(courseSlug);
+  const { data: curso, loading: cursoLoading, error: cursoError, refetch: refetchCurso } = useCurso(courseSlug);
   const { data: aulaAtual, loading: aulaLoading, error: aulaError, refetch: refetchAula } = useAula(lessonSlug);
 
   const [showSidebar, setShowSidebar] = useState(true);
@@ -74,24 +74,34 @@ export default function LessonPage({ params }: LessonPageProps) {
     aulaIndex < todasAulas.length - 1 ? todasAulas[aulaIndex + 1] : null;
 
   // Função para marcar aula como concluída
-const handleMarkComplete = async () => {
-  try {
-    setMarcando(true);
-
-    // Atualiza otimizadamente o estado antes do refetch
-    aulaAtual.progresso.concluida = true;
-
-    // Faz a requisição
-    await completeLesson(aulaAtual.slug);
-    
-    // Faz o refetch em background, sem travar UI
-    refetchAula();
-  } catch (err) {
-    console.error("Erro ao marcar aula:", err);
-  } finally {
-    setMarcando(false);
-  }
-};
+  const handleMarkComplete = async () => {
+    try {
+      setMarcando(true);
+  
+      // 1. Atualiza otimisticamente (UI responde rápido)
+      if (aulaAtual.progresso) {
+        aulaAtual.progresso.concluida = true;
+      }
+  
+      // 2. Faz a requisição
+      await completeLesson(aulaAtual.slug);
+      
+      // 3. ✅ RECARREGA AMBOS (em paralelo para ser mais rápido)
+      await Promise.all([
+        refetchAula(),
+        refetchCurso()
+      ]);
+  
+    } catch (err) {
+      console.error("Erro ao marcar aula:", err);
+      // Reverte a mudança otimista em caso de erro
+      if (aulaAtual.progresso) {
+        aulaAtual.progresso.concluida = false;
+      }
+    } finally {
+      setMarcando(false);
+    }
+  };
 
 
   // Aula concluida - bool
