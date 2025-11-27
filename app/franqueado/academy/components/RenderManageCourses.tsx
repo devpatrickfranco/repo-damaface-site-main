@@ -94,11 +94,14 @@
             data.quizzes = {
               id: String(quizData.id),
               titulo: quizData.titulo,
-              descricao: quizData.descricao,
-              nota_minima: quizData.nota_minima,
-              tentativas_maximas: quizData.tentativas_maximas,
+              descricao: quizData.descricao || "Avaliação do curso",
+              nota_minima: quizData.nota_minima || "70.00",
+              tentativas_maximas: quizData.tentativas_maximas || 3,
               perguntas: perguntasFormatadas
             };
+            
+            // Armazenar quizId no objeto do curso para uso posterior
+            data.quizId = quizData.id;
           } catch (quizErr: any) {
             console.warn("Erro ao buscar quiz completo:", quizErr);
             // Continua mesmo se não conseguir buscar o quiz
@@ -116,6 +119,35 @@
     
     const selectedCourse = modalMode === "edit" && fullCourseData ? fullCourseData : null;
     const wizard = useCourseWizard(selectedCourse);
+
+    const handleDeleteQuiz = async () => {
+      if (!wizard.quizId) {
+        alert("Não há quiz para deletar.");
+        return;
+      }
+
+      if (!confirm(`Tem certeza que deseja deletar o quiz "${wizard.quizTitle}"? Esta ação não pode ser desfeita.`)) {
+        return;
+      }
+
+      try {
+        await apiBackend.delete(`/academy/quizzes/${wizard.quizId}/`);
+        alert("Quiz deletado com sucesso!");
+        // Recarregar dados do curso para atualizar estado
+        if (selectedCourseSlug) {
+          await fetchFullCourse(selectedCourseSlug);
+        }
+      } catch (err: any) {
+        console.error("Erro ao deletar quiz:", err);
+        alert(err.response?.data?.message || "Erro ao deletar quiz. Veja o console para mais detalhes.");
+      }
+    };
+    
+    // Adicionar handleDeleteQuiz ao wizard object para passar ao Step2
+    const wizardWithDelete = {
+      ...wizard,
+      handleDeleteQuiz,
+    };
 
     const refetchAllData = () => {
       refetchCursos();
@@ -145,6 +177,38 @@
       alert("Preencha os campos obrigatórios (*) no Passo 1.");
       wizard.setStep(1);
       return;
+    }
+
+    // Validações do quiz
+    if (wizard.perguntas.length > 0) {
+      if (!wizard.quizTitle.trim()) {
+        alert("O título do quiz é obrigatório quando há perguntas.");
+        wizard.setStep(2);
+        return;
+      }
+      
+      // Validar que cada pergunta tem exatamente 1 resposta correta
+      const perguntasInvalidas = wizard.perguntas.filter(p => {
+        const respostasCorretas = p.opcoes.filter(opt => opt.correta).length;
+        return respostasCorretas !== 1;
+      });
+      
+      if (perguntasInvalidas.length > 0) {
+        alert(`Cada pergunta deve ter exatamente 1 resposta correta. Verifique as perguntas: ${perguntasInvalidas.map((p, idx) => idx + 1).join(", ")}`);
+        wizard.setStep(2);
+        return;
+      }
+      
+      // Validar que todas as opções estão preenchidas
+      const opcoesVazias = wizard.perguntas.some(p => 
+        p.opcoes.some(opt => !opt.texto.trim())
+      );
+      
+      if (opcoesVazias) {
+        alert("Todas as opções das perguntas devem estar preenchidas.");
+        wizard.setStep(2);
+        return;
+      }
     }
 
     setIsSubmitting(true);
@@ -178,22 +242,8 @@
         }
       });
 
-      // ---------- Quiz do curso ----------
-      const quizzesFormatted = wizard.perguntas.length > 0 ? [{
-        titulo: wizard.quizTitle || `Quiz do Curso ${wizard.formData.titulo}`,
-        descricao: "Avaliação do curso",
-        nota_minima: 70.0,
-        tentativas_maximas: 3,
-        perguntas: wizard.perguntas.map((pergunta, idx) => ({
-          texto: pergunta.texto,
-          tipo: "multipla",
-          ordem: idx + 1,
-          opcoes: pergunta.opcoes.map(opcao => ({
-            texto: opcao.texto,
-            correta: opcao.correta || false,
-          })),
-        })),
-      }] : [];
+      // ---------- Quiz do curso (será salvo separadamente via rota /quizzes) ----------
+      // Não incluir quiz no payload do curso, será salvo separadamente
 
       // ---------- Módulos e aulas ----------
       const modulosFormatted = wizard.modulos.map((modulo, idxModulo) => ({
@@ -227,7 +277,7 @@
 
       // Sempre incluir relacionamentos se houver
       if (materiaisFormatted.length > 0) payload.materiais = materiaisFormatted;
-      if (quizzesFormatted.length > 0) payload.quizzes = quizzesFormatted;
+      // Quiz será salvo separadamente via rota /quizzes
       if (modulosFormatted.length > 0) payload.modulos = modulosFormatted;
 
       // ---------- URL e método ----------
@@ -285,6 +335,54 @@
       } else {
         // Envio simples sem arquivos
         await apiBackend[method](url, payload);
+      }
+
+      // ---------- Salvar Quiz separadamente via rota /quizzes ----------
+      if (wizard.perguntas.length > 0 && wizard.quizTitle.trim()) {
+        const quizPayload = {
+          titulo: wizard.quizTitle,
+          descricao: "Avaliação do curso",
+          nota_minima: wizard.notaMinima.toString(),
+          tentativas_maximas: wizard.tentativasMaximas,
+          perguntas: wizard.perguntas.map((pergunta, idx) => ({
+            texto: pergunta.texto,
+            tipo: "multipla",
+            ordem: idx + 1,
+            opcoes: pergunta.opcoes.map(opcao => ({
+              texto: opcao.texto,
+              correta: opcao.correta || false,
+            })),
+          })),
+        };
+
+        try {
+          if (wizard.quizId) {
+            // Atualizar quiz existente
+            await apiBackend.patch(`/academy/quizzes/${wizard.quizId}/`, quizPayload);
+            console.log("Quiz atualizado com sucesso");
+          } else {
+            // Criar novo quiz
+            const newQuiz = await apiBackend.post(`/academy/quizzes/`, quizPayload);
+            console.log("Quiz criado com sucesso:", newQuiz);
+            // Associar quiz ao curso (se necessário, ajustar conforme backend)
+            if (newQuiz && newQuiz.id && selectedCourseSlug) {
+              // Se o backend precisar associar explicitamente, fazer aqui
+              // Por enquanto, assumimos que o backend faz isso automaticamente
+            }
+          }
+        } catch (quizErr: any) {
+          console.error("Erro ao salvar quiz:", quizErr);
+          throw new Error(`Erro ao salvar quiz: ${quizErr.response?.data?.message || quizErr.message}`);
+        }
+      } else if (wizard.quizId && wizard.perguntas.length === 0) {
+        // Se tinha quiz mas agora não tem perguntas, deletar o quiz
+        try {
+          await apiBackend.delete(`/academy/quizzes/${wizard.quizId}/`);
+          console.log("Quiz deletado (sem perguntas)");
+        } catch (quizErr: any) {
+          console.error("Erro ao deletar quiz:", quizErr);
+          // Não bloquear o salvamento do curso se falhar ao deletar quiz
+        }
       }
 
       // ---------- Finalização ----------
@@ -415,7 +513,7 @@
                   ) : (
                     <>
                       {wizard.step === 1 && <Step1 formData={wizard.formData} setFormData={wizard.setFormData} categorias={categorias} />}
-                      {wizard.step === 2 && <Step2 wizard={wizard} />}
+                      {wizard.step === 2 && <Step2 wizard={wizardWithDelete} />}
                       {wizard.step === 3 && <Step3 wizard={wizard} />}
                     </>
                   )}
