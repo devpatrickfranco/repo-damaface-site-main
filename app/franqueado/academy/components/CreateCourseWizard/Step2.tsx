@@ -7,7 +7,9 @@ import { Trash2, PlusCircle, CheckCircle, Edit2, X, ChevronUp, ChevronDown, Save
 import type { useCourseWizard } from "@/hooks/useCourseWizard"
 
 interface Step2Props {
-  wizard: ReturnType<typeof useCourseWizard>
+  wizard: ReturnType<typeof useCourseWizard> & {
+    handleDeleteQuiz?: () => Promise<void>
+  }
 }
 
 const Step2: React.FC<Step2Props> = ({ wizard }) => {
