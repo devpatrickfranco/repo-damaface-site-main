@@ -287,6 +287,7 @@
       const method = modalMode === "create" ? "post" : "patch";
 
       // ---------- Envio (sempre com FormData se houver arquivos) ----------
+      let cursoResponse: any = null;
       if (wizard.formData.capaFile || materiaisArquivos.length > 0) {
         const formData = new FormData();
 
@@ -325,16 +326,35 @@
           formData.append(`material_arquivo_${item.index}`, item.file);
         });
 
-        await apiBackend[method](url, formData);
+        cursoResponse = await apiBackend[method](url, formData);
         
       } else {
         // Envio simples sem arquivos
-        await apiBackend[method](url, payload);
+        cursoResponse = await apiBackend[method](url, payload);
+      }
+
+      // Obter o ID do curso após salvar (da resposta ou do curso existente)
+      let cursoId: number | null = null;
+      if (modalMode === "edit" && fullCourseData?.id) {
+        cursoId = fullCourseData.id;
+      } else if (modalMode === "create" && cursoResponse?.id) {
+        // Se criou um novo curso, usar o ID da resposta
+        cursoId = cursoResponse.id;
+      }
+      
+      // Se ainda não tem cursoId, tentar buscar pelo slug (fallback)
+      if (!cursoId && selectedCourseSlug) {
+        try {
+          const cursoBuscado = await apiBackend.get<any>(`/academy/cursos/${selectedCourseSlug}/`);
+          cursoId = cursoBuscado?.id || null;
+        } catch (err) {
+          console.warn("Não foi possível obter ID do curso:", err);
+        }
       }
 
       // ---------- Salvar Quiz separadamente via rota /quizzes ----------
       if (wizard.perguntas.length > 0 && wizard.quizTitle.trim()) {
-        const quizPayload = {
+        const quizPayload: any = {
           titulo: wizard.quizTitle,
           descricao: "Avaliação do curso",
           nota_minima: wizard.notaMinima.toString(),
@@ -350,20 +370,23 @@
           })),
         };
 
+        // Adicionar curso_id ao payload quando criar novo quiz
+        if (!wizard.quizId && cursoId) {
+          quizPayload.curso = cursoId;
+        }
+
         try {
           if (wizard.quizId) {
             // Atualizar quiz existente
             await apiBackend.patch(`/academy/quizzes/${wizard.quizId}/`, quizPayload);
             console.log("Quiz atualizado com sucesso");
           } else {
-            // Criar novo quiz
-            const newQuiz = await apiBackend.post(`/academy/quizzes/`, quizPayload);
-            console.log("Quiz criado com sucesso:", newQuiz);
-            // Associar quiz ao curso (se necessário, ajustar conforme backend)
-            if (newQuiz && newQuiz.id && selectedCourseSlug) {
-              // Se o backend precisar associar explicitamente, fazer aqui
-              // Por enquanto, assumimos que o backend faz isso automaticamente
+            // Criar novo quiz - garantir que tem curso_id
+            if (!cursoId) {
+              throw new Error("Não foi possível obter o ID do curso para vincular o quiz.");
             }
+            await apiBackend.post(`/academy/quizzes/`, quizPayload);
+            console.log("Quiz criado e vinculado ao curso com sucesso");
           }
         } catch (quizErr: any) {
           console.error("Erro ao salvar quiz:", quizErr);
@@ -476,6 +499,11 @@
                     )}
                     {modalMode === "edit" && errorFullCourse && (
                       <p className="text-sm text-red-400 mt-1">Erro ao carregar curso: {errorFullCourse}</p>
+                    )}
+                    {isSubmitting && (
+                      <p className="text-sm text-blue-400 mt-1 animate-pulse">
+                        {modalMode === "create" ? "Criando curso e salvando dados..." : "Salvando alterações..."}
+                      </p>
                     )}
                     <div className="flex items-center space-x-2 mt-2">
                       {[1, 2, 3].map(stepNumber => (

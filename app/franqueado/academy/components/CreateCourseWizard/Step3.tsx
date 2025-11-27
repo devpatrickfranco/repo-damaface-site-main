@@ -139,7 +139,7 @@ const Step3: React.FC<Step3Props> = ({ wizard }) => {
                 ...prev,
                 tipo: e.target.value as materiais["tipo"],
                 url: "",
-                arquivoFile: undefined, // ✅ Limpa arquivo ao trocar tipo
+                arquivoFile: undefined,
               }))
             }
             className="w-full px-4 py-3 bg-gray-700 border border-gray-600 rounded-lg text-white"
@@ -148,6 +148,7 @@ const Step3: React.FC<Step3Props> = ({ wizard }) => {
             <option value="link">Link Externo</option>
             <option value="video">Vídeo (URL)</option>
           </select>
+          {/*xlsx, docx, csv, pptx, pdf, png, jpg, mp4, mp3, txt, zip, */}
           {currentMaterial.tipo === "pdf" ? (
             <div className="space-y-2">
               <div
