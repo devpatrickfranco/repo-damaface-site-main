@@ -247,18 +247,11 @@
           })),
         }));
     
-        // ========== 3. OBTER ID DO CURSO (para vincular quiz) ==========
-        let cursoId: number | null = null;
+        // ========== 3. PREPARAR QUIZ PAYLOAD ==========
+        let quizPayload: any = null;
         
-        if (modalMode === "edit" && fullCourseData?.id) {
-          cursoId = fullCourseData.id;
-        }
-    
-        // ========== 4. SALVAR/ATUALIZAR QUIZ PRIMEIRO ==========
-        let quizIdParaVincular: number | null = wizard.quizId || null;
-    
         if (wizard.perguntas.length > 0 && wizard.quizTitle.trim()) {
-          const quizPayload: any = {
+          quizPayload = {
             titulo: wizard.quizTitle,
             descricao: "Avaliação do curso",
             nota_minima: wizard.notaMinima.toString(),
@@ -273,40 +266,9 @@
               })),
             })),
           };
-    
-          // ✅ SEMPRE incluir curso_id quando disponível
-          if (cursoId) {
-            quizPayload.curso = cursoId;
-          }
-    
-          try {
-            if (wizard.quizId) {
-              // ✅ Atualizar quiz existente
-              await apiBackend.patch(`/academy/quizzes/${wizard.quizId}/`, quizPayload);
-              quizIdParaVincular = wizard.quizId;
-              console.log("✅ Quiz atualizado com sucesso");
-            } else {
-              // ✅ Criar novo quiz
-              const quizResponse = await apiBackend.post(`/academy/quizzes/`, quizPayload);
-              quizIdParaVincular = quizResponse.id;
-              console.log("✅ Quiz criado com sucesso, ID:", quizIdParaVincular);
-            }
-          } catch (quizErr: any) {
-            console.error("❌ Erro ao salvar quiz:", quizErr);
-            throw new Error(`Erro ao salvar quiz: ${quizErr.response?.data?.message || quizErr.message}`);
-          }
-        } else if (wizard.quizId && wizard.perguntas.length === 0) {
-          // ✅ Deletar quiz se não tem mais perguntas
-          try {
-            await apiBackend.delete(`/academy/quizzes/${wizard.quizId}/`);
-            quizIdParaVincular = null;
-            console.log("✅ Quiz deletado (sem perguntas)");
-          } catch (quizErr: any) {
-            console.error("❌ Erro ao deletar quiz:", quizErr);
-          }
         }
     
-        // ========== 5. PREPARAR PAYLOAD DO CURSO ==========
+        // ========== 4. PREPARAR PAYLOAD DO CURSO ==========
         const payload: any = {
           titulo: wizard.formData.titulo,
           descricao: wizard.formData.descricao,
@@ -324,6 +286,61 @@
         // Adicionar preço se pago
         if (wizard.formData.status === "Pago" && wizard.formData.preco) {
           payload.preco = wizard.formData.preco;
+        }
+    
+        // ✅ Na criação: incluir quiz no payload do curso
+        if (modalMode === "create" && quizPayload) {
+          payload.quiz = quizPayload;
+        }
+    
+        // ========== 5. SALVAR/ATUALIZAR QUIZ (APENAS NA EDIÇÃO) ==========
+        if (modalMode === "edit") {
+          if (wizard.perguntas.length > 0 && wizard.quizTitle.trim()) {
+            // ✅ Atualizar quiz existente usando rota /quizzes
+            const quizUpdatePayload: any = {
+              titulo: wizard.quizTitle,
+              descricao: "Avaliação do curso",
+              nota_minima: wizard.notaMinima.toString(),
+              tentativas_maximas: wizard.tentativasMaximas,
+              perguntas: wizard.perguntas.map((pergunta, idx) => ({
+                texto: pergunta.texto,
+                tipo: "multipla",
+                ordem: idx + 1,
+                opcoes: pergunta.opcoes.map(opcao => ({
+                  texto: opcao.texto,
+                  correta: opcao.correta || false,
+                })),
+              })),
+            };
+    
+            // Incluir curso_id se disponível
+            if (fullCourseData?.id) {
+              quizUpdatePayload.curso = fullCourseData.id;
+            }
+    
+            try {
+              if (wizard.quizId) {
+                // ✅ Atualizar quiz existente
+                await apiBackend.patch(`/academy/quizzes/${wizard.quizId}/`, quizUpdatePayload);
+                console.log("✅ Quiz atualizado com sucesso");
+              } else {
+                // ✅ Criar novo quiz na edição
+                const quizResponse = await apiBackend.post(`/academy/quizzes/`, quizUpdatePayload);
+                console.log("✅ Quiz criado com sucesso, ID:", quizResponse.id);
+              }
+            } catch (quizErr: any) {
+              console.error("❌ Erro ao salvar quiz:", quizErr);
+              throw new Error(`Erro ao salvar quiz: ${quizErr.response?.data?.message || quizErr.message}`);
+            }
+          } else if (wizard.quizId && wizard.perguntas.length === 0) {
+            // ✅ Deletar quiz se não tem mais perguntas
+            try {
+              await apiBackend.delete(`/academy/quizzes/${wizard.quizId}/`);
+              console.log("✅ Quiz deletado (sem perguntas)");
+            } catch (quizErr: any) {
+              console.error("❌ Erro ao deletar quiz:", quizErr);
+            }
+          }
         }
     
         // ========== 6. DETERMINAR URL E MÉTODO ==========
@@ -346,7 +363,7 @@
     
           // Campos básicos
           Object.keys(payload).forEach(key => {
-            if (key === 'modulos' || key === 'materiais') {
+            if (key === 'modulos' || key === 'materiais' || key === 'quiz') {
               formData.append(key, JSON.stringify(payload[key]));
             } else {
               formData.append(key, String(payload[key]));
@@ -371,22 +388,7 @@
           console.log("✅ Curso salvo com JSON");
         }
     
-        // ========== 8. SE CRIOU CURSO NOVO, ATUALIZAR QUIZ COM CURSO_ID ==========
-        if (modalMode === "create" && cursoResponse?.id && quizIdParaVincular && !wizard.quizId) {
-          // O quiz foi criado antes do curso, então não tinha curso_id
-          // Agora precisamos atualizar o quiz com o curso_id
-          try {
-            await apiBackend.patch(`/academy/quizzes/${quizIdParaVincular}/`, {
-              curso: cursoResponse.id
-            });
-            console.log("✅ Quiz vinculado ao curso criado");
-          } catch (err) {
-            console.warn("⚠️ Erro ao vincular quiz ao curso:", err);
-            // Não bloqueia o fluxo
-          }
-        }
-    
-        // ========== 9. FINALIZAÇÃO ==========
+        // ========== 8. FINALIZAÇÃO ==========
         await refetchCursos();
         
         if (modalMode === "edit" && selectedCourseSlug) {
