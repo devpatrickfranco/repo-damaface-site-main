@@ -65,8 +65,47 @@
       setLoadingFullCourse(true);
       setErrorFullCourse(null);
       try {
-        const data = await apiBackend.get<Curso>(`/academy/cursos/${slug}/`);
-        setFullCourseData(data);
+        const data = await apiBackend.get<any>(`/academy/cursos/${slug}/`);
+        
+        // Se o curso tiver quizzes, buscar os dados completos do quiz
+        if (data.quizzes && Array.isArray(data.quizzes) && data.quizzes.length > 0) {
+          const quizId = data.quizzes[0].id;
+          try {
+            const quizData = await apiBackend.get<any>(`/academy/quizzes/${quizId}/`);
+            
+            // Transformar as perguntas para o formato esperado pelo wizard
+            const perguntasFormatadas = (quizData.perguntas || []).map((pergunta: any) => {
+              // Encontrar a opção correta
+              const opcaoCorreta = pergunta.opcoes?.find((op: any) => op.correta === true);
+              
+              return {
+                id: String(pergunta.id),
+                texto: pergunta.texto,
+                opcoes: (pergunta.opcoes || []).map((opcao: any) => ({
+                  id: String(opcao.id),
+                  texto: opcao.texto,
+                  correta: opcao.correta || false
+                })),
+                respostaCorretaId: opcaoCorreta ? String(opcaoCorreta.id) : ""
+              };
+            });
+            
+            // Mesclar os dados completos do quiz no objeto do curso
+            data.quizzes = {
+              id: String(quizData.id),
+              titulo: quizData.titulo,
+              descricao: quizData.descricao,
+              nota_minima: quizData.nota_minima,
+              tentativas_maximas: quizData.tentativas_maximas,
+              perguntas: perguntasFormatadas
+            };
+          } catch (quizErr: any) {
+            console.warn("Erro ao buscar quiz completo:", quizErr);
+            // Continua mesmo se não conseguir buscar o quiz
+          }
+        }
+        
+        setFullCourseData(data as Curso);
       } catch (err: any) {
         setErrorFullCourse(err.message || "Erro ao carregar curso");
         console.error("Erro ao buscar curso completo:", err);
