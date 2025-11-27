@@ -172,252 +172,239 @@
       await fetchFullCourse(curso.slug);
     };
     
-  const handleSubmit = async () => {
-    if (!wizard.formData.titulo || !wizard.formData.categoriaId || !wizard.formData.duracao) {
-      alert("Preencha os campos obrigatórios (*) no Passo 1.\n Preencha o titulo, selecione uma categoria e diga a duração do curso.");
-      wizard.setStep(1);
-      return;
-    }
-
-    // Validações do quiz
-    if (wizard.perguntas.length > 0) {
-      if (!wizard.quizTitle.trim()) {
-        alert("O título do quiz é obrigatório quando há perguntas.");
-        wizard.setStep(2);
+    const handleSubmit = async () => {
+      // ========== VALIDAÇÕES ==========
+      if (!wizard.formData.titulo || !wizard.formData.categoriaId || !wizard.formData.duracao) {
+        alert("Preencha os campos obrigatórios (*) no Passo 1.");
+        wizard.setStep(1);
         return;
       }
-      
-      // Validar que cada pergunta tem exatamente 1 resposta correta
-      const perguntasInvalidas = wizard.perguntas.filter(p => {
-        const respostasCorretas = p.opcoes.filter(opt => opt.correta).length;
-        return respostasCorretas !== 1;
-      });
-      
-      if (perguntasInvalidas.length > 0) {
-        alert(`Cada pergunta deve ter exatamente 1 resposta correta. Verifique as perguntas: ${perguntasInvalidas.map((p, idx) => idx + 1).join(", ")}`);
-        wizard.setStep(2);
-        return;
-      }
-      
-      // Validar que todas as opções estão preenchidas
-      const opcoesVazias = wizard.perguntas.some(p => 
-        p.opcoes.some(opt => !opt.texto.trim())
-      );
-      
-      if (opcoesVazias) {
-        alert("Todas as opções das perguntas devem estar preenchidas.");
-        wizard.setStep(2);
-        return;
-      }
-    }
-
-    setIsSubmitting(true);
-
-    try {
-      const materiaisFormatted: any[] = [];
-      const materiaisArquivos: { index: number; file: File }[] = [];
-
-      wizard.materiaisGerais.forEach((material, idx) => {
-        if (material.tipo.toLowerCase() === "pdf" && material.arquivoFile) {
-          materiaisArquivos.push({
-            index: idx,
-            file: material.arquivoFile
-          });
-
-          materiaisFormatted.push({
-            titulo: material.titulo,
-            tipo: "pdf",
-            // IMPORTANTE: Não envie null, envie undefined ou string vazia se necessário
-            // O backend vai ignorar url se tiver arquivo, mas melhor não mandar null
-          });
-        } else {
-          materiaisFormatted.push({
-            titulo: material.titulo,
-            tipo: material.tipo.toLowerCase(),
-            // GARANTIA: Se url for null ou undefined, manda string vazia
-            url: material.url || "" 
-          });
+    
+      if (wizard.perguntas.length > 0) {
+        if (!wizard.quizTitle.trim()) {
+          alert("O título do quiz é obrigatório quando há perguntas.");
+          wizard.setStep(2);
+          return;
         }
-      });
-
-      // ---------- Módulos e aulas ----------
-      const modulosFormatted = wizard.modulos.map((modulo, idxModulo) => ({
-        titulo: modulo.titulo,
-        ordem: idxModulo + 1,
-        aulas: modulo.aulas.map((aula, idxAula) => ({
-          titulo: aula.titulo,
-          video_id: aula.video_id || "", 
-          duracao: aula.duracao || "",
-          ordem: idxAula + 1,
-        })),
-      }));
-
-      // ---------- Payload base do curso ----------
-      const payload: any = {
-        titulo: wizard.formData.titulo,
-        descricao: wizard.formData.descricao,
-        instrutor_nome: wizard.formData.instrutor?.nome || "Instrutor",
-        instrutor_bio: wizard.formData.instrutor?.bio || "",
-        categoria: wizard.formData.categoriaId,
-        nivel: wizard.formData.nivel,
-        duracao: wizard.formData.duracao,
-        publicado: true,
-        destaque: false,
-      };
-
-      // Adicionar preço se pago
-      if (wizard.formData.status === "Pago" && wizard.formData.preco) {
-        payload.preco = wizard.formData.preco;
-      }
-
-      // Sempre incluir relacionamentos se houver
-      if (materiaisFormatted.length > 0) payload.materiais = materiaisFormatted;
-      // Quiz será salvo separadamente via rota /quizzes
-      if (modulosFormatted.length > 0) payload.modulos = modulosFormatted;
-
-      // ---------- URL e método ----------
-  if (!selectedCourseSlug && modalMode !== 'create') {
-    alert('Erro: curso selecionado não possui slug.');
-    return;
-    }
-    const url = modalMode === 'create'
-      ? '/academy/cursos/'
-      : `/academy/cursos/${selectedCourseSlug}/`;
-
-      const method = modalMode === "create" ? "post" : "patch";
-
-      // ---------- Envio (sempre com FormData se houver arquivos) ----------
-      let cursoResponse: any = null;
-      if (wizard.formData.capaFile || materiaisArquivos.length > 0) {
-        const formData = new FormData();
-
-        formData.append("titulo", payload.titulo);
-        formData.append("descricao", payload.descricao);
-        formData.append("instrutor_nome", payload.instrutor_nome);
-        formData.append("instrutor_bio", payload.instrutor_bio);
-        formData.append("categoria", payload.categoria);
-        formData.append("nivel", payload.nivel);
-        formData.append("duracao", payload.duracao);
-        formData.append("publicado", String(payload.publicado));
-        formData.append("destaque", String(payload.destaque));
-
-        if (payload.preco) {
-          formData.append("preco", String(payload.preco));
-        }
-
-        // Adicionar arrays como JSON
-        if (payload.modulos) {
-          formData.append("modulos", JSON.stringify(payload.modulos));
-        }
-        if (payload.quizzes) {
-          formData.append("quizzes", JSON.stringify(payload.quizzes));
-        }
-        if (payload.materiais) {
-          formData.append("materiais", JSON.stringify(payload.materiais));
-        }
-
-        // Adicionar capa se houver
-        if (wizard.formData.capaFile) {
-          formData.append("capa", wizard.formData.capaFile);
-        }
-
-        // Adicionar os arquivos PDF reais
-        materiaisArquivos.forEach((item) => {
-          formData.append(`material_arquivo_${item.index}`, item.file);
-        });
-
-        cursoResponse = await apiBackend[method](url, formData);
         
-      } else {
-        // Envio simples sem arquivos
-        cursoResponse = await apiBackend[method](url, payload);
-      }
-
-      // Obter o ID do curso após salvar (da resposta ou do curso existente)
-      let cursoId: number | null = null;
-      if (modalMode === "edit" && fullCourseData?.id) {
-        cursoId = fullCourseData.id;
-      } else if (modalMode === "create" && cursoResponse?.id) {
-        // Se criou um novo curso, usar o ID da resposta
-        cursoId = cursoResponse.id;
-      }
-      
-      // Se ainda não tem cursoId, tentar buscar pelo slug (fallback)
-      if (!cursoId && selectedCourseSlug) {
-        try {
-          const cursoBuscado = await apiBackend.get<any>(`/academy/cursos/${selectedCourseSlug}/`);
-          cursoId = cursoBuscado?.id || null;
-        } catch (err) {
-          console.warn("Não foi possível obter ID do curso:", err);
+        const perguntasInvalidas = wizard.perguntas.filter(p => {
+          const respostasCorretas = p.opcoes.filter(opt => opt.correta).length;
+          return respostasCorretas !== 1;
+        });
+        
+        if (perguntasInvalidas.length > 0) {
+          alert(`Cada pergunta deve ter exatamente 1 resposta correta.`);
+          wizard.setStep(2);
+          return;
         }
       }
-
-      // ---------- Salvar Quiz separadamente via rota /quizzes ----------
-      if (wizard.perguntas.length > 0 && wizard.quizTitle.trim()) {
-        const quizPayload: any = {
-          titulo: wizard.quizTitle,
-          descricao: "Avaliação do curso",
-          nota_minima: wizard.notaMinima.toString(),
-          tentativas_maximas: wizard.tentativasMaximas,
-          perguntas: wizard.perguntas.map((pergunta, idx) => ({
-            texto: pergunta.texto,
-            tipo: "multipla",
-            ordem: idx + 1,
-            opcoes: pergunta.opcoes.map(opcao => ({
-              texto: opcao.texto,
-              correta: opcao.correta || false,
-            })),
-          })),
-        };
-
-        // Adicionar curso_id ao payload quando criar novo quiz
-        if (!wizard.quizId && cursoId) {
-          quizPayload.curso = cursoId;
-        }
-
-        try {
-          if (wizard.quizId) {
-            // Atualizar quiz existente
-            await apiBackend.patch(`/academy/quizzes/${wizard.quizId}/`, quizPayload);
-            console.log("Quiz atualizado com sucesso");
+    
+      setIsSubmitting(true);
+    
+      try {
+        // ========== 1. PREPARAR MATERIAIS ==========
+        const materiaisFormatted: any[] = [];
+        const materiaisArquivos: { index: number; file: File }[] = [];
+    
+        wizard.materiaisGerais.forEach((material, idx) => {
+          if (material.tipo.toLowerCase() === "pdf" && material.arquivoFile) {
+            materiaisArquivos.push({ index: idx, file: material.arquivoFile });
+            materiaisFormatted.push({
+              titulo: material.titulo,
+              tipo: "pdf",
+            });
           } else {
-            // Criar novo quiz - garantir que tem curso_id
-            if (!cursoId) {
-              throw new Error("Não foi possível obter o ID do curso para vincular o quiz.");
-            }
-            await apiBackend.post(`/academy/quizzes/`, quizPayload);
-            console.log("Quiz criado e vinculado ao curso com sucesso");
+            materiaisFormatted.push({
+              titulo: material.titulo,
+              tipo: material.tipo.toLowerCase(),
+              url: material.url || ""
+            });
           }
-        } catch (quizErr: any) {
-          console.error("Erro ao salvar quiz:", quizErr);
-          throw new Error(`Erro ao salvar quiz: ${quizErr.response?.data?.message || quizErr.message}`);
+        });
+    
+        // ========== 2. PREPARAR MÓDULOS E AULAS ==========
+        const modulosFormatted = wizard.modulos.map((modulo, idxModulo) => ({
+          titulo: modulo.titulo,
+          ordem: idxModulo + 1,
+          aulas: modulo.aulas.map((aula, idxAula) => ({
+            titulo: aula.titulo,
+            video_id: aula.video_id || "",
+            duracao: aula.duracao || "",
+            ordem: idxAula + 1,
+          })),
+        }));
+    
+        // ========== 3. OBTER ID DO CURSO (para vincular quiz) ==========
+        let cursoId: number | null = null;
+        
+        if (modalMode === "edit" && fullCourseData?.id) {
+          cursoId = fullCourseData.id;
         }
-      } else if (wizard.quizId && wizard.perguntas.length === 0) {
-        // Se tinha quiz mas agora não tem perguntas, deletar o quiz
-        try {
-          await apiBackend.delete(`/academy/quizzes/${wizard.quizId}/`);
-          console.log("Quiz deletado (sem perguntas)");
-        } catch (quizErr: any) {
-          console.error("Erro ao deletar quiz:", quizErr);
-          // Não bloquear o salvamento do curso se falhar ao deletar quiz
+    
+        // ========== 4. SALVAR/ATUALIZAR QUIZ PRIMEIRO ==========
+        let quizIdParaVincular: number | null = wizard.quizId || null;
+    
+        if (wizard.perguntas.length > 0 && wizard.quizTitle.trim()) {
+          const quizPayload: any = {
+            titulo: wizard.quizTitle,
+            descricao: "Avaliação do curso",
+            nota_minima: wizard.notaMinima.toString(),
+            tentativas_maximas: wizard.tentativasMaximas,
+            perguntas: wizard.perguntas.map((pergunta, idx) => ({
+              texto: pergunta.texto,
+              tipo: "multipla",
+              ordem: idx + 1,
+              opcoes: pergunta.opcoes.map(opcao => ({
+                texto: opcao.texto,
+                correta: opcao.correta || false,
+              })),
+            })),
+          };
+    
+          try {
+            if (wizard.quizId) {
+              // ✅ Atualizar quiz existente
+              await apiBackend.patch(`/academy/quizzes/${wizard.quizId}/`, quizPayload);
+              quizIdParaVincular = wizard.quizId;
+              console.log("Quiz atualizado com sucesso");
+            } else {
+              // ✅ Criar novo quiz
+              // Se estiver editando curso, vincular ao curso existente
+              if (cursoId) {
+                quizPayload.curso = cursoId;
+              }
+              
+              const quizResponse = await apiBackend.post(`/academy/quizzes/`, quizPayload);
+              quizIdParaVincular = quizResponse.id;
+              console.log("Quiz criado com sucesso, ID:", quizIdParaVincular);
+            }
+          } catch (quizErr: any) {
+            console.error("Erro ao salvar quiz:", quizErr);
+            throw new Error(`Erro ao salvar quiz: ${quizErr.response?.data?.message || quizErr.message}`);
+          }
+        } else if (wizard.quizId && wizard.perguntas.length === 0) {
+          // ✅ Deletar quiz se não tem mais perguntas
+          try {
+            await apiBackend.delete(`/academy/quizzes/${wizard.quizId}/`);
+            quizIdParaVincular = null;
+            console.log("Quiz deletado (sem perguntas)");
+          } catch (quizErr: any) {
+            console.error("Erro ao deletar quiz:", quizErr);
+          }
         }
+    
+        // ========== 5. PREPARAR PAYLOAD DO CURSO ==========
+        const payload: any = {
+          titulo: wizard.formData.titulo,
+          descricao: wizard.formData.descricao,
+          instrutor_nome: wizard.formData.instrutor?.nome || "Instrutor",
+          instrutor_bio: wizard.formData.instrutor?.bio || "",
+          categoria: wizard.formData.categoriaId,
+          nivel: wizard.formData.nivel,
+          duracao: wizard.formData.duracao,
+          publicado: true,
+          destaque: false,
+          modulos: modulosFormatted, // ✅ Sempre enviar módulos
+          materiais: materiaisFormatted, // ✅ Sempre enviar materiais
+        };
+    
+        // Adicionar preço se pago
+        if (wizard.formData.status === "Pago" && wizard.formData.preco) {
+          payload.preco = wizard.formData.preco;
+        }
+    
+        // ✅ Se tiver quiz vinculado, adicionar ao payload
+        // IMPORTANTE: Enviar apenas array com {id, titulo} conforme esperado pelo backend
+        if (quizIdParaVincular) {
+          payload.quizzes = [{
+            id: quizIdParaVincular,
+            titulo: wizard.quizTitle
+          }];
+        } else {
+          payload.quizzes = []; // ✅ Array vazio para remover quizzes
+        }
+    
+        // ========== 6. DETERMINAR URL E MÉTODO ==========
+        if (!selectedCourseSlug && modalMode !== 'create') {
+          alert('Erro: curso selecionado não possui slug.');
+          return;
+        }
+        
+        const url = modalMode === 'create'
+          ? '/academy/cursos/'
+          : `/academy/cursos/${selectedCourseSlug}/`;
+        const method = modalMode === "create" ? "post" : "patch";
+    
+        // ========== 7. ENVIAR CURSO ==========
+        let cursoResponse: any = null;
+        
+        if (wizard.formData.capaFile || materiaisArquivos.length > 0) {
+          // Envio com FormData (tem arquivos)
+          const formData = new FormData();
+    
+          // Campos básicos
+          Object.keys(payload).forEach(key => {
+            if (key === 'modulos' || key === 'quizzes' || key === 'materiais') {
+              formData.append(key, JSON.stringify(payload[key]));
+            } else {
+              formData.append(key, String(payload[key]));
+            }
+          });
+    
+          // Adicionar capa se houver
+          if (wizard.formData.capaFile) {
+            formData.append("capa", wizard.formData.capaFile);
+          }
+    
+          // Adicionar arquivos PDF
+          materiaisArquivos.forEach((item) => {
+            formData.append(`material_arquivo_${item.index}`, item.file);
+          });
+    
+          cursoResponse = await apiBackend[method](url, formData);
+        } else {
+          // Envio simples sem arquivos
+          cursoResponse = await apiBackend[method](url, payload);
+        }
+    
+        // ========== 8. SE CRIOU CURSO NOVO, ATUALIZAR QUIZ COM CURSO_ID ==========
+        if (modalMode === "create" && cursoResponse?.id && quizIdParaVincular && !wizard.quizId) {
+          // O quiz foi criado antes do curso, então não tinha curso_id
+          // Agora precisamos atualizar o quiz com o curso_id
+          try {
+            await apiBackend.patch(`/academy/quizzes/${quizIdParaVincular}/`, {
+              curso: cursoResponse.id
+            });
+            console.log("Quiz vinculado ao curso criado");
+          } catch (err) {
+            console.warn("Erro ao vincular quiz ao curso:", err);
+          }
+        }
+    
+        // ========== 9. FINALIZAÇÃO ==========
+        await refetchCursos();
+        
+        if (modalMode === "edit" && selectedCourseSlug) {
+          // ✅ Recarregar dados completos após editar
+          await fetchFullCourse(selectedCourseSlug);
+          alert("Curso atualizado com sucesso!");
+          // Manter modal aberto para ver as mudanças
+        } else {
+          setModalMode(null);
+          setSelectedCourseSlug(null);
+          setFullCourseData(null);
+          wizard.resetWizard();
+          alert("Curso criado com sucesso!");
+        }
+        
+      } catch (err: any) {
+        console.error("Erro ao salvar curso:", err);
+        console.error("Detalhes do erro:", err.response);
+        alert(err.message || "Erro ao salvar curso. Veja o console para mais detalhes.");
+      } finally {
+        setIsSubmitting(false);
       }
-
-      // ---------- Finalização ----------
-      refetchCursos();
-      setModalMode(null);
-      setSelectedCourseSlug(null);
-      setFullCourseData(null);
-      wizard.resetWizard();
-      alert("Curso salvo com sucesso!");
-    } catch (err: any) {
-      console.error("Erro ao salvar curso:", err);
-      console.error("Detalhes do erro:", err.response);
-      alert(err.response || "Erro ao salvar curso. Veja o console para mais detalhes.");
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
+    };
     // Garantir que os tipos sejam explícitos
     const filteredCursos = cursos.filter((curso: Curso) =>
       (curso.titulo.toLowerCase().includes(searchTerm.toLowerCase()) ||
