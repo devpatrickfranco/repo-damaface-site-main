@@ -175,11 +175,12 @@
     const handleSubmit = async () => {
       // ========== VALIDAÇÕES ==========
       if (!wizard.formData.titulo || !wizard.formData.categoriaId || !wizard.formData.duracao) {
-        alert("Preencha os campos obrigatórios (*) no Passo 1.");
+        alert("Preencha os campos obrigatórios (*) no Passo 1.\nPreencha o título, selecione uma categoria e diga a duração do curso.");
         wizard.setStep(1);
         return;
       }
     
+      // Validações do quiz
       if (wizard.perguntas.length > 0) {
         if (!wizard.quizTitle.trim()) {
           alert("O título do quiz é obrigatório quando há perguntas.");
@@ -187,13 +188,25 @@
           return;
         }
         
+        // Validar que cada pergunta tem exatamente 1 resposta correta
         const perguntasInvalidas = wizard.perguntas.filter(p => {
           const respostasCorretas = p.opcoes.filter(opt => opt.correta).length;
           return respostasCorretas !== 1;
         });
         
         if (perguntasInvalidas.length > 0) {
-          alert(`Cada pergunta deve ter exatamente 1 resposta correta.`);
+          alert(`Cada pergunta deve ter exatamente 1 resposta correta. Verifique as perguntas: ${perguntasInvalidas.map((p, idx) => idx + 1).join(", ")}`);
+          wizard.setStep(2);
+          return;
+        }
+        
+        // ✅ Validar que todas as opções estão preenchidas
+        const opcoesVazias = wizard.perguntas.some(p => 
+          p.opcoes.some(opt => !opt.texto.trim())
+        );
+        
+        if (opcoesVazias) {
+          alert("Todas as opções das perguntas devem estar preenchidas.");
           wizard.setStep(2);
           return;
         }
@@ -261,25 +274,25 @@
             })),
           };
     
+          // ✅ SEMPRE incluir curso_id quando disponível
+          if (cursoId) {
+            quizPayload.curso = cursoId;
+          }
+    
           try {
             if (wizard.quizId) {
               // ✅ Atualizar quiz existente
               await apiBackend.patch(`/academy/quizzes/${wizard.quizId}/`, quizPayload);
               quizIdParaVincular = wizard.quizId;
-              console.log("Quiz atualizado com sucesso");
+              console.log("✅ Quiz atualizado com sucesso");
             } else {
               // ✅ Criar novo quiz
-              // Se estiver editando curso, vincular ao curso existente
-              if (cursoId) {
-                quizPayload.curso = cursoId;
-              }
-              
               const quizResponse = await apiBackend.post(`/academy/quizzes/`, quizPayload);
               quizIdParaVincular = quizResponse.id;
-              console.log("Quiz criado com sucesso, ID:", quizIdParaVincular);
+              console.log("✅ Quiz criado com sucesso, ID:", quizIdParaVincular);
             }
           } catch (quizErr: any) {
-            console.error("Erro ao salvar quiz:", quizErr);
+            console.error("❌ Erro ao salvar quiz:", quizErr);
             throw new Error(`Erro ao salvar quiz: ${quizErr.response?.data?.message || quizErr.message}`);
           }
         } else if (wizard.quizId && wizard.perguntas.length === 0) {
@@ -287,9 +300,9 @@
           try {
             await apiBackend.delete(`/academy/quizzes/${wizard.quizId}/`);
             quizIdParaVincular = null;
-            console.log("Quiz deletado (sem perguntas)");
+            console.log("✅ Quiz deletado (sem perguntas)");
           } catch (quizErr: any) {
-            console.error("Erro ao deletar quiz:", quizErr);
+            console.error("❌ Erro ao deletar quiz:", quizErr);
           }
         }
     
@@ -304,24 +317,13 @@
           duracao: wizard.formData.duracao,
           publicado: true,
           destaque: false,
-          modulos: modulosFormatted, // ✅ Sempre enviar módulos
-          materiais: materiaisFormatted, // ✅ Sempre enviar materiais
+          modulos: modulosFormatted,
+          materiais: materiaisFormatted,
         };
     
         // Adicionar preço se pago
         if (wizard.formData.status === "Pago" && wizard.formData.preco) {
           payload.preco = wizard.formData.preco;
-        }
-    
-        // ✅ Se tiver quiz vinculado, adicionar ao payload
-        // IMPORTANTE: Enviar apenas array com {id, titulo} conforme esperado pelo backend
-        if (quizIdParaVincular) {
-          payload.quizzes = [{
-            id: quizIdParaVincular,
-            titulo: wizard.quizTitle
-          }];
-        } else {
-          payload.quizzes = []; // ✅ Array vazio para remover quizzes
         }
     
         // ========== 6. DETERMINAR URL E MÉTODO ==========
@@ -344,7 +346,7 @@
     
           // Campos básicos
           Object.keys(payload).forEach(key => {
-            if (key === 'modulos' || key === 'quizzes' || key === 'materiais') {
+            if (key === 'modulos' || key === 'materiais') {
               formData.append(key, JSON.stringify(payload[key]));
             } else {
               formData.append(key, String(payload[key]));
@@ -362,9 +364,11 @@
           });
     
           cursoResponse = await apiBackend[method](url, formData);
+          console.log("✅ Curso salvo com FormData");
         } else {
           // Envio simples sem arquivos
           cursoResponse = await apiBackend[method](url, payload);
+          console.log("✅ Curso salvo com JSON");
         }
     
         // ========== 8. SE CRIOU CURSO NOVO, ATUALIZAR QUIZ COM CURSO_ID ==========
@@ -375,9 +379,10 @@
             await apiBackend.patch(`/academy/quizzes/${quizIdParaVincular}/`, {
               curso: cursoResponse.id
             });
-            console.log("Quiz vinculado ao curso criado");
+            console.log("✅ Quiz vinculado ao curso criado");
           } catch (err) {
-            console.warn("Erro ao vincular quiz ao curso:", err);
+            console.warn("⚠️ Erro ao vincular quiz ao curso:", err);
+            // Não bloqueia o fluxo
           }
         }
     
@@ -387,18 +392,18 @@
         if (modalMode === "edit" && selectedCourseSlug) {
           // ✅ Recarregar dados completos após editar
           await fetchFullCourse(selectedCourseSlug);
-          alert("Curso atualizado com sucesso!");
-          // Manter modal aberto para ver as mudanças
+          alert("✅ Curso atualizado com sucesso!");
+          // Mantém modal aberto para ver as mudanças
         } else {
           setModalMode(null);
           setSelectedCourseSlug(null);
           setFullCourseData(null);
           wizard.resetWizard();
-          alert("Curso criado com sucesso!");
+          alert("✅ Curso criado com sucesso!");
         }
         
       } catch (err: any) {
-        console.error("Erro ao salvar curso:", err);
+        console.error("❌ Erro ao salvar curso:", err);
         console.error("Detalhes do erro:", err.response);
         alert(err.message || "Erro ao salvar curso. Veja o console para mais detalhes.");
       } finally {
