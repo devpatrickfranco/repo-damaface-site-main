@@ -174,7 +174,7 @@
     
   const handleSubmit = async () => {
     if (!wizard.formData.titulo || !wizard.formData.categoriaId || !wizard.formData.duracao) {
-      alert("Preencha os campos obrigatórios (*) no Passo 1.");
+      alert("Preencha os campos obrigatórios (*) no Passo 1.\n Preencha o titulo, selecione uma categoria e diga a duração do curso.");
       wizard.setStep(1);
       return;
     }
@@ -214,36 +214,31 @@
     setIsSubmitting(true);
 
     try {
-      // ---------- Materiais do curso ----------
       const materiaisFormatted: any[] = [];
       const materiaisArquivos: { index: number; file: File }[] = [];
 
       wizard.materiaisGerais.forEach((material, idx) => {
         if (material.tipo.toLowerCase() === "pdf" && material.arquivoFile) {
-          // guarda o arquivo para enviar depois
           materiaisArquivos.push({
             index: idx,
             file: material.arquivoFile
           });
 
-          // adiciona os metadados SEM a url (será preenchida pelo backend)
           materiaisFormatted.push({
             titulo: material.titulo,
             tipo: "pdf",
-            // Não enviar url para PDFs que serão uploaded
+            // IMPORTANTE: Não envie null, envie undefined ou string vazia se necessário
+            // O backend vai ignorar url se tiver arquivo, mas melhor não mandar null
           });
         } else {
-          // link externo ou vídeo
           materiaisFormatted.push({
             titulo: material.titulo,
             tipo: material.tipo.toLowerCase(),
-            url: material.url
+            // GARANTIA: Se url for null ou undefined, manda string vazia
+            url: material.url || "" 
           });
         }
       });
-
-      // ---------- Quiz do curso (será salvo separadamente via rota /quizzes) ----------
-      // Não incluir quiz no payload do curso, será salvo separadamente
 
       // ---------- Módulos e aulas ----------
       const modulosFormatted = wizard.modulos.map((modulo, idxModulo) => ({
@@ -251,8 +246,8 @@
         ordem: idxModulo + 1,
         aulas: modulo.aulas.map((aula, idxAula) => ({
           titulo: aula.titulo,
-          video_id: aula.video_id,
-          duracao: aula.duracao,
+          video_id: aula.video_id || "", 
+          duracao: aula.duracao || "",
           ordem: idxAula + 1,
         })),
       }));
