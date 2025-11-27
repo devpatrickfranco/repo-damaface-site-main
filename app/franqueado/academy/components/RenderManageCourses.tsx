@@ -53,9 +53,29 @@
     const [filterStatus, setFilterStatus] = useState<"all" | "livre" | "pago">("all");
     
     const [modalMode, setModalMode] = useState<"create" | "edit" | null>(null);
-    const [selectedCourse, setSelectedCourse] = useState<Curso | null>(null);
+    const [selectedCourseSlug, setSelectedCourseSlug] = useState<string | null>(null);
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const [fullCourseData, setFullCourseData] = useState<Curso | null>(null);
+    const [loadingFullCourse, setLoadingFullCourse] = useState(false);
+    const [errorFullCourse, setErrorFullCourse] = useState<string | null>(null);
     
+    // Buscar dados completos do curso quando estiver em modo de edição
+    const fetchFullCourse = async (slug: string) => {
+      if (!slug) return;
+      setLoadingFullCourse(true);
+      setErrorFullCourse(null);
+      try {
+        const data = await apiBackend.get<Curso>(`/academy/cursos/${slug}/`);
+        setFullCourseData(data);
+      } catch (err: any) {
+        setErrorFullCourse(err.message || "Erro ao carregar curso");
+        console.error("Erro ao buscar curso completo:", err);
+      } finally {
+        setLoadingFullCourse(false);
+      }
+    };
+    
+    const selectedCourse = modalMode === "edit" && fullCourseData ? fullCourseData : null;
     const wizard = useCourseWizard(selectedCourse);
 
     const refetchAllData = () => {
@@ -65,14 +85,20 @@
     };
 
     const openCreateModal = () => {
-      setSelectedCourse(null);
+      setSelectedCourseSlug(null);
       wizard.resetWizard();
       setModalMode("create");
     };
 
-    const openEditModal = (curso: Curso) => {
-      setSelectedCourse(curso);
+    const openEditModal = async (curso: Curso) => {
+      if (!curso.slug) {
+        alert("Erro: curso não possui slug válido.");
+        return;
+      }
+      setSelectedCourseSlug(curso.slug);
       setModalMode("edit");
+      setFullCourseData(null); // Limpar dados anteriores
+      await fetchFullCourse(curso.slug);
     };
     
   const handleSubmit = async () => {
@@ -166,13 +192,13 @@
       if (modulosFormatted.length > 0) payload.modulos = modulosFormatted;
 
       // ---------- URL e método ----------
-  if (!selectedCourse?.slug && modalMode !== 'create') {
+  if (!selectedCourseSlug && modalMode !== 'create') {
     alert('Erro: curso selecionado não possui slug.');
     return;
     }
     const url = modalMode === 'create'
       ? '/academy/cursos/'
-      : `/academy/cursos/${selectedCourse?.slug}/`;
+      : `/academy/cursos/${selectedCourseSlug}/`;
 
       const method = modalMode === "create" ? "post" : "patch";
 
@@ -225,6 +251,8 @@
       // ---------- Finalização ----------
       refetchCursos();
       setModalMode(null);
+      setSelectedCourseSlug(null);
+      setFullCourseData(null);
       wizard.resetWizard();
       alert("Curso salvo com sucesso!");
     } catch (err: any) {
@@ -311,6 +339,12 @@
                     <h2 className="text-xl font-bold text-white">
                       {modalMode === "create" ? "Criar Novo Curso" : "Editar Curso"}
                     </h2>
+                    {modalMode === "edit" && loadingFullCourse && (
+                      <p className="text-sm text-gray-400 mt-1">Carregando dados do curso...</p>
+                    )}
+                    {modalMode === "edit" && errorFullCourse && (
+                      <p className="text-sm text-red-400 mt-1">Erro ao carregar curso: {errorFullCourse}</p>
+                    )}
                     <div className="flex items-center space-x-2 mt-2">
                       {[1, 2, 3].map(stepNumber => (
                         <div key={stepNumber} className={`flex items-center ${stepNumber < 3 ? "mr-2" : ""}`}>
@@ -322,15 +356,30 @@
                       ))}
                     </div>
                   </div>
-                  <button onClick={() => { setModalMode(null); wizard.resetWizard(); }} className="p-2 text-gray-400 hover:text-white hover:bg-gray-700 rounded-lg transition-all">
+                  <button onClick={() => { setModalMode(null); setSelectedCourseSlug(null); setFullCourseData(null); wizard.resetWizard(); }} className="p-2 text-gray-400 hover:text-white hover:bg-gray-700 rounded-lg transition-all">
                     <X className="w-5 h-5" />
                   </button>
                 </div>
 
                 <div className="flex-1 overflow-y-auto p-6">
-                  {wizard.step === 1 && <Step1 formData={wizard.formData} setFormData={wizard.setFormData} categorias={categorias} />}
-                  {wizard.step === 2 && <Step2 wizard={wizard} />}
-                  {wizard.step === 3 && <Step3 wizard={wizard} />}
+                  {modalMode === "edit" && loadingFullCourse ? (
+                    <div className="flex items-center justify-center min-h-[400px]">
+                      <Loader2 className="w-8 h-8 text-pink-500 animate-spin" />
+                    </div>
+                  ) : modalMode === "edit" && errorFullCourse ? (
+                    <div className="bg-red-500/10 border border-red-500/30 rounded-xl p-6 text-center">
+                      <p className="text-red-400 mb-4">{errorFullCourse}</p>
+                      <button onClick={() => { setModalMode(null); setSelectedCourseSlug(null); setFullCourseData(null); }} className="px-4 py-2 bg-red-500 hover:bg-red-600 text-white rounded-lg transition-colors">
+                        Fechar
+                      </button>
+                    </div>
+                  ) : (
+                    <>
+                      {wizard.step === 1 && <Step1 formData={wizard.formData} setFormData={wizard.setFormData} categorias={categorias} />}
+                      {wizard.step === 2 && <Step2 wizard={wizard} />}
+                      {wizard.step === 3 && <Step3 wizard={wizard} />}
+                    </>
+                  )}
                 </div>
 
                 <div className="p-6 border-t border-gray-700 flex justify-between">
@@ -343,7 +392,7 @@
                     )}
                   </div>
                   <div className="flex space-x-3">
-                    <button onClick={() => { setModalMode(null); wizard.resetWizard(); }} className="px-4 py-2 text-gray-400 hover:text-white hover:bg-gray-700 rounded-lg transition-all">
+                    <button onClick={() => { setModalMode(null); setSelectedCourseSlug(null); setFullCourseData(null); wizard.resetWizard(); }} className="px-4 py-2 text-gray-400 hover:text-white hover:bg-gray-700 rounded-lg transition-all">
                       Cancelar
                     </button>
                     {wizard.step < 3 ? (

@@ -88,7 +88,7 @@ export function useCourseWizard(initialCourse?: Curso | null) {
       setModulos(modulos || []);
       setQuizTitle(quizzes?.titulo || "");
       setPerguntas(quizzes?.perguntas || []);
-      setMateriaisGerais(materiaisGerais || []);
+      setMateriaisGerais(materiais || []);
       setStep(1);
     }
   }, [initialCourse]);
