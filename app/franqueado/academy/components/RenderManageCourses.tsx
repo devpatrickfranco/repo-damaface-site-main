@@ -289,7 +289,7 @@
         // ======= 2) CRIAR/EDITAR QUIZ SE EXISTIR =======
         if (wizard.perguntas.length > 0) {
           const quizPayload = {
-            curso: cursoId,
+            curso_id: cursoId,
             titulo: wizard.quizTitle,
             descricao: "Avaliação do curso",
             nota_minima: wizard.notaMinima,
