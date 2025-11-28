@@ -224,18 +224,44 @@ export default function RenderManageCourses() {
       });
   
       // ======= FORMATAR MÓDULOS (COM IDs PARA NÃO DELETAR PROGRESSO) =======
-      const modulosFormatted = wizard.modulos.map((modulo, idxModulo) => ({
-        id: modulo.id, // <--- IMPORTANTE: Envia ID se existir
-        titulo: modulo.titulo,
-        ordem: idxModulo + 1,
-        aulas: modulo.aulas.map((aula, idxAula) => ({
-          id: aula.id, // <--- IMPORTANTE: Envia ID se existir
-          titulo: aula.titulo,
-          video_id: aula.video_id,
-          duracao: aula.duracao,
-          ordem: idxAula + 1,
-        }))
-      }));
+      // Função auxiliar para verificar se um ID é válido (número do backend) ou temporário (string)
+      const isValidBackendId = (id: string | number | undefined): boolean => {
+        if (!id) return false;
+        // Se for número, é válido
+        if (typeof id === 'number') return true;
+        // Se for string que começa com "mod-", "aula-", "p-", "opt-" é temporário
+        if (typeof id === 'string' && (id.startsWith('mod-') || id.startsWith('aula-') || id.startsWith('p-') || id.startsWith('opt-'))) {
+          return false;
+        }
+        // Se for string numérica, converter e verificar
+        const numId = Number(id);
+        return !isNaN(numId) && numId > 0;
+      };
+
+      const modulosFormatted = wizard.modulos.map((modulo, idxModulo) => {
+        const moduloPayload: any = {
+          titulo: modulo.titulo,
+          ordem: idxModulo + 1,
+          aulas: modulo.aulas.map((aula, idxAula) => {
+            const aulaPayload: any = {
+              titulo: aula.titulo,
+              video_id: aula.video_id,
+              duracao: aula.duracao,
+              ordem: idxAula + 1,
+            };
+            // Só adiciona ID se for válido (número do backend) e estiver editando
+            if (modalMode === "edit" && isValidBackendId(aula.id)) {
+              aulaPayload.id = typeof aula.id === 'string' ? Number(aula.id) : aula.id;
+            }
+            return aulaPayload;
+          })
+        };
+        // Só adiciona ID se for válido (número do backend) e estiver editando
+        if (modalMode === "edit" && isValidBackendId(modulo.id)) {
+          moduloPayload.id = typeof modulo.id === 'string' ? Number(modulo.id) : modulo.id;
+        }
+        return moduloPayload;
+      });
   
       // ======= PAYLOAD DO CURSO =======
       const payload: any = {
@@ -300,17 +326,29 @@ export default function RenderManageCourses() {
           descricao: "Avaliação do curso",
           nota_minima: wizard.notaMinima,
           tentativas_maximas: wizard.tentativasMaximas,
-          perguntas: wizard.perguntas.map((p, idx) => ({
-            id: p.id, // <--- IMPORTANTE: Envia ID da pergunta
-            texto: p.texto,
-            tipo: "multipla",
-            ordem: idx + 1,
-            opcoes: p.opcoes.map(o => ({
-              id: o.id, // <--- IMPORTANTE: Envia ID da opção
-              texto: o.texto,
-              correta: o.correta,
-            })),
-          })),
+          perguntas: wizard.perguntas.map((p, idx) => {
+            const perguntaPayload: any = {
+              texto: p.texto,
+              tipo: "multipla",
+              ordem: idx + 1,
+              opcoes: p.opcoes.map(o => {
+                const opcaoPayload: any = {
+                  texto: o.texto,
+                  correta: o.correta,
+                };
+                // Só adiciona ID se for válido (número do backend) e estiver editando
+                if (modalMode === "edit" && isValidBackendId(o.id)) {
+                  opcaoPayload.id = typeof o.id === 'string' ? Number(o.id) : o.id;
+                }
+                return opcaoPayload;
+              }),
+            };
+            // Só adiciona ID se for válido (número do backend) e estiver editando
+            if (modalMode === "edit" && isValidBackendId(p.id)) {
+              perguntaPayload.id = typeof p.id === 'string' ? Number(p.id) : p.id;
+            }
+            return perguntaPayload;
+          }),
         };
   
         if (modalMode === "edit" && wizard.quizId) {
