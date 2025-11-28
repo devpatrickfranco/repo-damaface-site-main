@@ -202,7 +202,7 @@ const Step3: React.FC<Step3Props> = ({ wizard }) => {
             }
             className="w-full px-4 py-3 bg-gray-700 border border-gray-600 rounded-lg text-white"
           >
-            <option value="pdf">Arquivo (Upload: xlsx, docx, csv, pptx, pdf, png, jpg, mp4, mp3, txt, zip)</option>
+            <option value="pdf">Arquivo Upload</option>
             <option value="link">Link Externo</option>
             <option value="video">Vídeo (URL)</option>
           </select>
