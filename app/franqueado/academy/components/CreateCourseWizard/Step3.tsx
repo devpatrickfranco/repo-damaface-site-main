@@ -4,7 +4,7 @@
 import type React from "react"
 import { useRef } from "react"
 import type { materiais } from "@/types/academy"
-import { PlusCircle, Trash2, PlayCircle, FileText, Link, Video, Upload } from "lucide-react"
+import { PlusCircle, Trash2, PlayCircle, FileText, Link, Video, Upload, Edit2, Save, X } from "lucide-react"
 
 import type { useCourseWizard } from "@/hooks/useCourseWizard"
 
@@ -17,8 +17,19 @@ const Step3: React.FC<Step3Props> = ({ wizard }) => {
     modulos,
     currentAula,
     setCurrentAula,
+    editingAulaId,
     handleAddAula,
+    handleEditAula,
+    handleUpdateAula,
+    handleCancelEditAula,
     handleRemoveAula,
+    editingModuloId,
+    editingModuloTitulo,
+    setEditingModuloTitulo,
+    handleEditModulo,
+    handleUpdateModulo,
+    handleCancelEditModulo,
+    handleRemoveModulo,
     materiaisGerais,
     currentMaterial,
     setCurrentMaterial,
@@ -112,11 +123,27 @@ const Step3: React.FC<Step3Props> = ({ wizard }) => {
             />
           </div>
           <button
-            onClick={handleAddAula}
+            onClick={editingAulaId ? handleUpdateAula : handleAddAula}
             className="w-full bg-pink-500 hover:bg-pink-600 text-white font-medium px-4 py-3 rounded-lg flex items-center justify-center gap-2"
           >
-            <PlusCircle size={18} /> Adicionar Aula
+            {editingAulaId ? (
+              <>
+                <Save size={18} /> Salvar Alterações
+              </>
+            ) : (
+              <>
+                <PlusCircle size={18} /> Adicionar Aula
+              </>
+            )}
           </button>
+          {editingAulaId && (
+            <button
+              onClick={handleCancelEditAula}
+              className="w-full bg-gray-600 hover:bg-gray-700 text-white font-medium px-4 py-3 rounded-lg flex items-center justify-center gap-2"
+            >
+              <X size={18} /> Cancelar Edição
+            </button>
+          )}
         </div>
       </div>
 
@@ -212,23 +239,136 @@ const Step3: React.FC<Step3Props> = ({ wizard }) => {
           {modulos.length > 0 ? (
             modulos.map((modulo) => (
               <div key={modulo.id} className="bg-gray-900 p-4 rounded-lg border border-gray-700">
-                <p className="font-bold text-pink-400">{modulo.titulo}</p>
+                {/* Cabeçalho do Módulo com Edição */}
+                <div className="flex items-center justify-between mb-3">
+                  {editingModuloId === modulo.id ? (
+                    <div className="flex items-center gap-2 flex-1">
+                      <input
+                        type="text"
+                        value={editingModuloTitulo}
+                        onChange={(e) => setEditingModuloTitulo(e.target.value)}
+                        className="flex-1 px-3 py-2 bg-gray-800 border border-gray-600 rounded-lg font-bold text-pink-400"
+                        placeholder="Nome do módulo"
+                        autoFocus
+                      />
+                      <button
+                        onClick={handleUpdateModulo}
+                        className="p-2 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors"
+                        title="Salvar"
+                      >
+                        <Save size={16} />
+                      </button>
+                      <button
+                        onClick={handleCancelEditModulo}
+                        className="p-2 bg-gray-600 hover:bg-gray-700 text-white rounded-lg transition-colors"
+                        title="Cancelar"
+                      >
+                        <X size={16} />
+                      </button>
+                    </div>
+                  ) : (
+                    <div className="flex items-center gap-2 flex-1">
+                      <p className="font-bold text-pink-400">{modulo.titulo}</p>
+                      <button
+                        onClick={() => handleEditModulo(modulo.id)}
+                        className="p-1 text-gray-400 hover:text-blue-400 transition-colors"
+                        title="Editar nome do módulo"
+                      >
+                        <Edit2 size={14} />
+                      </button>
+                    </div>
+                  )}
+                  <button
+                    onClick={() => {
+                      if (confirm(`Tem certeza que deseja excluir o módulo "${modulo.titulo}"? Todas as aulas deste módulo também serão excluídas.`)) {
+                        handleRemoveModulo(modulo.id);
+                      }
+                    }}
+                    className="p-1 text-red-400 hover:text-red-300 transition-colors"
+                    title="Excluir módulo"
+                  >
+                    <Trash2 size={16} />
+                  </button>
+                </div>
+                
+                {/* Lista de Aulas */}
                 <div className="mt-2 space-y-2">
                   {modulo.aulas.length > 0 ? (
                     modulo.aulas.map((aula) => (
-                      <div key={aula.id} className="flex justify-between items-center bg-gray-800 p-2 rounded">
-                        <div className="flex items-center gap-3 text-sm text-gray-300">
-                          <PlayCircle className="text-gray-500" size={16} />
-                          <span>
-                            {aula.titulo} ({aula.duracao})
-                          </span>
-                        </div>
-                        <button
-                          onClick={() => handleRemoveAula(modulo.id, aula.id)}
-                          className="text-red-400 hover:text-red-300"
-                        >
-                          <Trash2 size={16} />
-                        </button>
+                      <div key={aula.id} className="bg-gray-800 p-3 rounded-lg">
+                        {editingAulaId === aula.id ? (
+                          <div className="space-y-2">
+                            <input
+                              type="text"
+                              value={currentAula.titulo}
+                              onChange={(e) => setCurrentAula((prev) => ({ ...prev, titulo: e.target.value }))}
+                              placeholder="Título da Aula *"
+                              className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white text-sm"
+                            />
+                            <input
+                              type="text"
+                              value={currentAula.video_id}
+                              onChange={(e) => setCurrentAula((prev) => ({ ...prev, video_id: e.target.value }))}
+                              placeholder="ID do Vídeo no YouTube *"
+                              className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white text-sm"
+                            />
+                            <div className="flex gap-2">
+                              <input
+                                type="text"
+                                value={currentAula.duracao}
+                                onChange={(e) => setCurrentAula((prev) => ({ ...prev, duracao: e.target.value }))}
+                                placeholder="Duração (Ex: 10:45)"
+                                className="flex-1 px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white text-sm"
+                              />
+                              <button
+                                onClick={handleUpdateAula}
+                                className="p-2 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors"
+                                title="Salvar"
+                              >
+                                <Save size={14} />
+                              </button>
+                              <button
+                                onClick={handleCancelEditAula}
+                                className="p-2 bg-gray-600 hover:bg-gray-700 text-white rounded-lg transition-colors"
+                                title="Cancelar"
+                              >
+                                <X size={14} />
+                              </button>
+                            </div>
+                          </div>
+                        ) : (
+                          <div className="flex justify-between items-center">
+                            <div className="flex items-center gap-3 text-sm text-gray-300 flex-1">
+                              <PlayCircle className="text-gray-500" size={16} />
+                              <div className="flex-1">
+                                <p className="text-white font-medium">{aula.titulo}</p>
+                                <p className="text-xs text-gray-400">
+                                  Video ID: {aula.video_id} • Duração: {aula.duracao}
+                                </p>
+                              </div>
+                            </div>
+                            <div className="flex items-center gap-2">
+                              <button
+                                onClick={() => handleEditAula(modulo.id, aula.id)}
+                                className="p-1 text-gray-400 hover:text-blue-400 transition-colors"
+                                title="Editar aula"
+                              >
+                                <Edit2 size={14} />
+                              </button>
+                              <button
+                                onClick={() => {
+                                  if (confirm(`Tem certeza que deseja excluir a aula "${aula.titulo}"?`)) {
+                                    handleRemoveAula(modulo.id, aula.id);
+                                  }
+                                }}
+                                className="p-1 text-red-400 hover:text-red-300 transition-colors"
+                                title="Excluir aula"
+                              >
+                                <Trash2 size={14} />
+                              </button>
+                            </div>
+                          </div>
+                        )}
                       </div>
                     ))
                   ) : (

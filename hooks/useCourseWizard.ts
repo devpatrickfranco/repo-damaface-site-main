@@ -78,6 +78,9 @@ export function useCourseWizard(initialCourse?: Curso | null) {
   const [currentAula, setCurrentAula] = useState<CurrentAulaState>({
     titulo: "", video_id: "", duracao: "", moduloId: "",
   });
+  const [editingAulaId, setEditingAulaId] = useState<string | null>(null);
+  const [editingModuloId, setEditingModuloId] = useState<string | null>(null);
+  const [editingModuloTitulo, setEditingModuloTitulo] = useState<string>("");
   const [currentMaterial, setCurrentMaterial] = useState<CurrentMaterialState>({
     titulo: "", tipo: "pdf", url: "", arquivoFile: undefined,
   });
@@ -142,6 +145,9 @@ export function useCourseWizard(initialCourse?: Curso | null) {
     setTentativasMaximas(3);
     setPerguntas([]);
     setEditingPerguntaId(null);
+    setEditingAulaId(null);
+    setEditingModuloId(null);
+    setEditingModuloTitulo("");
     setMateriaisGerais([]);
     setCurrentPergunta({
       texto: "",
@@ -296,6 +302,99 @@ export function useCourseWizard(initialCourse?: Curso | null) {
         modulo.id === moduloId ? { ...modulo, aulas: modulo.aulas.filter(aula => aula.id !== aulaId) } : modulo
       )
     );
+    if (editingAulaId === aulaId) {
+      setEditingAulaId(null);
+      setCurrentAula({
+        titulo: "", video_id: "", duracao: "", moduloId: "",
+      });
+    }
+  };
+
+  const handleEditAula = (moduloId: string, aulaId: string) => {
+    const modulo = modulos.find(m => m.id === moduloId);
+    if (!modulo) return;
+    
+    const aula = modulo.aulas.find(a => a.id === aulaId);
+    if (!aula) return;
+    
+    setEditingAulaId(aulaId);
+    setCurrentAula({
+      titulo: aula.titulo,
+      video_id: aula.video_id || "",
+      duracao: aula.duracao || "",
+      moduloId: moduloId,
+    });
+  };
+
+  const handleUpdateAula = () => {
+    if (!editingAulaId || !currentAula.titulo.trim() || !currentAula.video_id.trim() || !currentAula.moduloId) {
+      alert("Preencha todos os campos obrigatórios da aula.");
+      return;
+    }
+    
+    setModulos(prev =>
+      prev.map(modulo =>
+        modulo.id === currentAula.moduloId
+          ? {
+              ...modulo,
+              aulas: modulo.aulas.map(aula =>
+                aula.id === editingAulaId
+                  ? {
+                      ...aula,
+                      titulo: currentAula.titulo,
+                      video_id: currentAula.video_id,
+                      duracao: currentAula.duracao || "0:00",
+                      slug: currentAula.titulo.toLowerCase().replace(/\s+/g, "-"),
+                    }
+                  : aula
+              ),
+            }
+          : modulo
+      )
+    );
+    
+    setEditingAulaId(null);
+    setCurrentAula({
+      titulo: "", video_id: "", duracao: "", moduloId: "",
+    });
+  };
+
+  const handleCancelEditAula = () => {
+    setEditingAulaId(null);
+    setCurrentAula({
+      titulo: "", video_id: "", duracao: "", moduloId: "",
+    });
+  };
+
+  const handleEditModulo = (moduloId: string) => {
+    const modulo = modulos.find(m => m.id === moduloId);
+    if (!modulo) return;
+    
+    setEditingModuloId(moduloId);
+    setEditingModuloTitulo(modulo.titulo);
+  };
+
+  const handleUpdateModulo = () => {
+    if (!editingModuloId || !editingModuloTitulo.trim()) {
+      alert("O nome do módulo não pode estar vazio.");
+      return;
+    }
+    
+    setModulos(prev =>
+      prev.map(modulo =>
+        modulo.id === editingModuloId
+          ? { ...modulo, titulo: editingModuloTitulo }
+          : modulo
+      )
+    );
+    
+    setEditingModuloId(null);
+    setEditingModuloTitulo("");
+  };
+
+  const handleCancelEditModulo = () => {
+    setEditingModuloId(null);
+    setEditingModuloTitulo("");
   };
 
   const handleAddMaterial = () => {
@@ -337,6 +436,12 @@ export function useCourseWizard(initialCourse?: Curso | null) {
     setCurrentModuloName,
     handleAddModulo,
     handleRemoveModulo,
+    editingModuloId,
+    editingModuloTitulo,
+    setEditingModuloTitulo,
+    handleEditModulo,
+    handleUpdateModulo,
+    handleCancelEditModulo,
     quizTitle,
     setQuizTitle,
     quizId,
@@ -357,7 +462,11 @@ export function useCourseWizard(initialCourse?: Curso | null) {
     materiaisGerais,
     currentAula,
     setCurrentAula,
+    editingAulaId,
     handleAddAula,
+    handleEditAula,
+    handleUpdateAula,
+    handleCancelEditAula,
     handleRemoveAula,
     currentMaterial,
     setCurrentMaterial,
