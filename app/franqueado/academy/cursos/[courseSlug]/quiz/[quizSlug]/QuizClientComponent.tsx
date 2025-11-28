@@ -123,13 +123,15 @@ export default function QuizClientComponent({ params }: QuizClientComponentProps
     setEnviandoQuiz(true);
     
     try {
-      // Converter respostas para o formato esperado pela API (Record<string, string>)
+      // Converter respostas para o formato esperado pela API
+      // Formato: { respostas: { "perguntaId": "opcaoId", "perguntaId": "opcaoId" } }
       const respostasFormatadas: Record<string, string> = {};
       Object.entries(respostasUsuario).forEach(([perguntaId, opcaoId]) => {
         respostasFormatadas[String(perguntaId)] = String(opcaoId);
       });
       
       // Enviar respostas para a API
+      // A função submitQuiz já envia no formato: { respostas: respostasFormatadas }
       const response = await submitQuiz(String(quiz.id), respostasFormatadas);
       
       // A API deve retornar a nota calculada
