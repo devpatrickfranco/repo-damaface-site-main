@@ -146,7 +146,7 @@ const RenderManageStudents: FC = () => {
       
       try {
         // Tentar endpoint específico de alunos
-        response = await apiBackend.get<AlunoBasico[]>('/academy/alunos/');
+        response = await apiBackend.get<AlunoBasico[]>('/academy/alunos/detalhes');
       } catch (err1) {
         try {
           // Se falhar, tentar buscar usuários e filtrar os que são alunos
@@ -253,7 +253,7 @@ const RenderManageStudents: FC = () => {
             </button>
           </div>
         </div>
-      );
+      );  
     }
     
     // Se não houver dados ainda, não renderizar
