@@ -39,15 +39,46 @@ const Step3: React.FC<Step3Props> = ({ wizard }) => {
 
   const fileInputRef = useRef<HTMLInputElement>(null)
 
+  // Tipos de arquivo permitidos
+  const allowedFileTypes = [
+    'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', // xlsx
+    'application/vnd.ms-excel', // xls
+    'application/vnd.openxmlformats-officedocument.wordprocessingml.document', // docx
+    'application/msword', // doc
+    'text/csv', // csv
+    'application/vnd.openxmlformats-officedocument.presentationml.presentation', // pptx
+    'application/vnd.ms-powerpoint', // ppt
+    'application/pdf', // pdf
+    'image/png', // png
+    'image/jpeg', // jpg, jpeg
+    'image/jpg', // jpg
+    'video/mp4', // mp4
+    'audio/mpeg', // mp3
+    'audio/mp3', // mp3
+    'text/plain', // txt
+    'application/zip', // zip
+  ]
+
+  const allowedExtensions = ['.xlsx', '.xls', '.docx', '.doc', '.csv', '.pptx', '.ppt', '.pdf', '.png', '.jpg', '.jpeg', '.mp4', '.mp3', '.txt', '.zip']
+
+  const getFileExtension = (filename: string): string => {
+    return filename.toLowerCase().substring(filename.lastIndexOf('.'))
+  }
+
+  const isValidFileType = (file: File): boolean => {
+    const extension = getFileExtension(file.name)
+    return allowedExtensions.includes(extension) || allowedFileTypes.includes(file.type)
+  }
+
   const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0]
     if (file) {
-      if (currentMaterial.tipo === "pdf" && file.type !== "application/pdf") {
-        alert("Por favor, selecione apenas arquivos PDF.")
+      if (!isValidFileType(file)) {
+        alert(`Tipo de arquivo não permitido. Formatos aceitos: ${allowedExtensions.join(', ')}`)
         return
       }
-      if (file.size > 10 * 1024 * 1024) {
-        alert("O arquivo deve ter no máximo 10MB.")
+      if (file.size > 50 * 1024 * 1024) {
+        alert("O arquivo deve ter no máximo 50MB.")
         return
       }
 
@@ -150,7 +181,7 @@ const Step3: React.FC<Step3Props> = ({ wizard }) => {
       {/* 2. Formulário para Adicionar Materiais de Estudo */}
       <div className="p-4 bg-gray-900 rounded-lg border border-gray-700">
         <h3 className="text-lg font-semibold text-white mb-3">2. Adicionar Materiais de Estudo</h3>
-        <p className="text-sm text-gray-400 mb-4">Adicione PDFs, links ou vídeos complementares para todo o curso.</p>
+        <p className="text-sm text-gray-400 mb-4">Adicione arquivos, links ou vídeos complementares para todo o curso.</p>
         <div className="space-y-4">
           <input
             type="text"
@@ -171,11 +202,10 @@ const Step3: React.FC<Step3Props> = ({ wizard }) => {
             }
             className="w-full px-4 py-3 bg-gray-700 border border-gray-600 rounded-lg text-white"
           >
-            <option value="pdf">PDF (Upload)</option>
+            <option value="pdf">Arquivo (Upload: xlsx, docx, csv, pptx, pdf, png, jpg, mp4, mp3, txt, zip)</option>
             <option value="link">Link Externo</option>
             <option value="video">Vídeo (URL)</option>
           </select>
-          {/*xlsx, docx, csv, pptx, pdf, png, jpg, mp4, mp3, txt, zip, */}
           {currentMaterial.tipo === "pdf" ? (
             <div className="space-y-2">
               <div
@@ -183,10 +213,18 @@ const Step3: React.FC<Step3Props> = ({ wizard }) => {
                 className="w-full p-4 bg-gray-700 border border-gray-600 rounded-lg cursor-pointer hover:bg-gray-600 flex items-center justify-center gap-2 text-gray-300"
               >
                 <Upload size={18} />
-                {currentMaterial.arquivoFile ? currentMaterial.arquivoFile.name : "Clique para fazer upload do PDF"}
+                {currentMaterial.arquivoFile ? currentMaterial.arquivoFile.name : "Clique para fazer upload do arquivo"}
               </div>
-              <input ref={fileInputRef} type="file" accept=".pdf" onChange={handleFileUpload} className="hidden" />
-              <p className="text-xs text-gray-500">Máximo 10MB.</p>
+              <input 
+                ref={fileInputRef} 
+                type="file" 
+                accept=".xlsx,.xls,.docx,.doc,.csv,.pptx,.ppt,.pdf,.png,.jpg,.jpeg,.mp4,.mp3,.txt,.zip" 
+                onChange={handleFileUpload} 
+                className="hidden" 
+              />
+              <p className="text-xs text-gray-500">
+                Formatos aceitos: xlsx, docx, csv, pptx, pdf, png, jpg, mp4, mp3, txt, zip. Máximo 50MB.
+              </p>
             </div>
           ) : (
             <input
