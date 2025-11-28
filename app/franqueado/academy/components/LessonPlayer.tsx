@@ -45,10 +45,27 @@ export default function LessonPlayer({
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(0);
   const [progress, setProgress] = useState(0);
+  const [videoError, setVideoError] = useState<string | null>(null);
   const playerRef = useRef<HTMLDivElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
 
+
+  // Função para validar o formato do video_id do YouTube
+  const validateVideoId = (videoId: string | undefined): boolean => {
+    if (!videoId || typeof videoId !== 'string') {
+      return false;
+    }
+    // YouTube video IDs são geralmente 11 caracteres alfanuméricos
+    // Mas podem ter variações, então validamos se não está vazio e tem pelo menos 1 caractere
+    const trimmedId = videoId.trim();
+    if (trimmedId.length === 0) {
+      return false;
+    }
+    // Validação básica: deve conter apenas caracteres alfanuméricos, hífens e underscores
+    // e ter entre 1 e 20 caracteres (formato típico do YouTube)
+    return /^[a-zA-Z0-9_-]{1,20}$/.test(trimmedId);
+  };
 
   if (!aulaAtual.video_id) {
     return (
@@ -61,6 +78,19 @@ export default function LessonPlayer({
       </div>
     );
   }
+
+  // Validar o video_id antes de usar - definir erro inicial se inválido
+  useEffect(() => {
+    if (aulaAtual.video_id && !validateVideoId(aulaAtual.video_id)) {
+      const errorMessage = `Video ID inválido: "${aulaAtual.video_id}". O ID do vídeo deve ser uma string válida do YouTube.`;
+      console.error(errorMessage);
+      setVideoError(errorMessage);
+      // Lançar exceção de forma assíncrona para travar a aplicação
+      setTimeout(() => {
+        throw new Error(errorMessage);
+      }, 0);
+    }
+  }, [aulaAtual.video_id]);
 
   // Carregar a API do YouTube
   useEffect(() => {
@@ -139,52 +169,137 @@ export default function LessonPlayer({
     };
   }, [player, isPlaying]);
   useEffect(() => {
-    if (isAPIReady && playerRef.current && !player) {
-      const ytPlayer = new window.YT.Player(playerRef.current, {
-        videoId: aulaAtual.video_id,
-        width: '100%',
-        height: '100%',
-        playerVars: {
-          autoplay: 0,
-          controls: 0, // Remove controles do YouTube
-          disablekb: 1, // Desabilita controles do teclado
-          fs: 0, // Remove botão de fullscreen do YouTube
-          iv_load_policy: 3, // Remove anotações
-          modestbranding: 1, // Remove logo do YouTube
-          rel: 0, // Remove vídeos relacionados
-          showinfo: 0, // Remove informações do vídeo
-        },
-        events: {
-          onReady: (event: any) => {
-            setPlayer(event.target);
-            // Obter duração inicial quando o vídeo carregar
-            setTimeout(() => {
-              updateVideoInfo();
-            }, 1000);
+    if (isAPIReady && playerRef.current && !player && aulaAtual.video_id) {
+      // Validar novamente antes de criar o player
+      if (!validateVideoId(aulaAtual.video_id)) {
+        const errorMessage = `Video ID inválido: "${aulaAtual.video_id}". Não é possível carregar o vídeo.`;
+        console.error(errorMessage);
+        setVideoError(errorMessage);
+        // Lançar exceção de forma assíncrona para travar a aplicação
+        setTimeout(() => {
+          throw new Error(errorMessage);
+        }, 0);
+        return;
+      }
+
+      try {
+        const ytPlayer = new window.YT.Player(playerRef.current, {
+          videoId: aulaAtual.video_id.trim(),
+          width: '100%',
+          height: '100%',
+          playerVars: {
+            autoplay: 0,
+            controls: 0, // Remove controles do YouTube
+            disablekb: 1, // Desabilita controles do teclado
+            fs: 0, // Remove botão de fullscreen do YouTube
+            iv_load_policy: 3, // Remove anotações
+            modestbranding: 1, // Remove logo do YouTube
+            rel: 0, // Remove vídeos relacionados
+            showinfo: 0, // Remove informações do vídeo
           },
-          onStateChange: (event: any) => {
-            // 1 = playing, 2 = paused
-            const playing = event.data === 1;
-            setIsPlaying(playing);
-            
-            // Atualizar informações imediatamente quando o estado mudar
-            if (playing) {
-              updateVideoInfo();
-            }
+          events: {
+            onReady: (event: any) => {
+              setPlayer(event.target);
+              setVideoError(null); // Limpar erro se o vídeo carregar com sucesso
+              // Obter duração inicial quando o vídeo carregar
+              setTimeout(() => {
+                updateVideoInfo();
+              }, 1000);
+            },
+            onStateChange: (event: any) => {
+              // 1 = playing, 2 = paused
+              const playing = event.data === 1;
+              setIsPlaying(playing);
+              
+              // Atualizar informações imediatamente quando o estado mudar
+              if (playing) {
+                updateVideoInfo();
+              }
+            },
+            onError: (event: any) => {
+              // Códigos de erro do YouTube Player API:
+              // 2 = O valor do parâmetro de solicitação inválido
+              // 5 = O conteúdo HTML5 do player não pode ser encontrado
+              // 100 = O vídeo solicitado não foi encontrado
+              // 101 = O proprietário do vídeo não permite a reprodução em players incorporados
+              // 150 = O proprietário do vídeo não permite a reprodução em players incorporados
+              const errorCode = event.data;
+              let errorMessage = `Erro ao carregar o vídeo (Código: ${errorCode}). `;
+              
+              switch (errorCode) {
+                case 2:
+                  errorMessage += `Video ID inválido: "${aulaAtual.video_id}". O ID fornecido não é válido.`;
+                  break;
+                case 100:
+                  errorMessage += `O vídeo com ID "${aulaAtual.video_id}" não foi encontrado no YouTube.`;
+                  break;
+                case 101:
+                case 150:
+                  errorMessage += `O vídeo com ID "${aulaAtual.video_id}" não permite reprodução em players incorporados.`;
+                  break;
+                case 5:
+                  errorMessage += `Erro ao carregar o player HTML5.`;
+                  break;
+                default:
+                  errorMessage += `Erro desconhecido ao carregar o vídeo.`;
+              }
+              
+              console.error('Erro no YouTube Player:', errorMessage);
+              setVideoError(errorMessage);
+              // Lançar exceção de forma assíncrona para travar a aplicação
+              setTimeout(() => {
+                throw new Error(errorMessage);
+              }, 0);
+            },
           },
-        },
-      });
+        });
+      } catch (error) {
+        const errorMessage = error instanceof Error 
+          ? error.message 
+          : `Erro ao inicializar o player do YouTube para o vídeo ID: "${aulaAtual.video_id}"`;
+        console.error(errorMessage, error);
+        setVideoError(errorMessage);
+        // Lançar exceção de forma assíncrona para travar a aplicação
+        setTimeout(() => {
+          throw error instanceof Error ? error : new Error(errorMessage);
+        }, 0);
+      }
     }
   }, [isAPIReady, aulaAtual.video_id]);
 
   // Atualizar vídeo quando a aula mudar
   useEffect(() => {
     if (player && aulaAtual.video_id) {
-      player.loadVideoById(aulaAtual.video_id);
-      // Reset dos valores quando trocar de vídeo
-      setCurrentTime(0);
-      setDuration(0);
-      setProgress(0);
+      // Validar antes de carregar
+      if (!validateVideoId(aulaAtual.video_id)) {
+        const errorMessage = `Video ID inválido: "${aulaAtual.video_id}". Não é possível carregar o vídeo.`;
+        console.error(errorMessage);
+        setVideoError(errorMessage);
+        // Lançar exceção de forma assíncrona para travar a aplicação
+        setTimeout(() => {
+          throw new Error(errorMessage);
+        }, 0);
+        return;
+      }
+
+      try {
+        player.loadVideoById(aulaAtual.video_id.trim());
+        // Reset dos valores quando trocar de vídeo
+        setCurrentTime(0);
+        setDuration(0);
+        setProgress(0);
+        setVideoError(null); // Limpar erro anterior
+      } catch (error) {
+        const errorMessage = error instanceof Error 
+          ? error.message 
+          : `Erro ao carregar o vídeo com ID: "${aulaAtual.video_id}"`;
+        console.error(errorMessage, error);
+        setVideoError(errorMessage);
+        // Lançar exceção de forma assíncrona para travar a aplicação
+        setTimeout(() => {
+          throw error instanceof Error ? error : new Error(errorMessage);
+        }, 0);
+      }
     }
   }, [player, aulaAtual.video_id]);
 
@@ -248,7 +363,16 @@ export default function LessonPlayer({
     >
       {/* Player Container */}
       <div className="absolute inset-0 w-full h-full">
-        {!isAPIReady ? (
+        {videoError ? (
+          // Exibir erro se houver problema com o video_id
+          <div className="w-full h-full flex flex-col items-center justify-center bg-red-900/20 text-center p-8">
+            <div className="text-red-400 text-xl font-semibold mb-4">Erro ao carregar vídeo</div>
+            <div className="text-red-300 text-sm mb-2">{videoError}</div>
+            <div className="text-red-200 text-xs mt-4">
+              Por favor, verifique se o Video ID está correto e se o vídeo existe no YouTube.
+            </div>
+          </div>
+        ) : !isAPIReady ? (
           // Loading placeholder
           <div className="w-full h-full flex items-center justify-center bg-gray-900">
             <div className="text-white">Carregando player...</div>
