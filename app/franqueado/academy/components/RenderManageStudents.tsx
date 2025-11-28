@@ -1,4 +1,4 @@
-import { useState, FC, ReactNode, useMemo } from 'react';
+import { useState, FC, ReactNode, useMemo, useEffect, useCallback } from 'react';
 
 // Ícones da biblioteca lucide-react
 import {
@@ -12,10 +12,13 @@ import {
   User,
   BookOpen,
   Award,
+  Loader2,
 } from 'lucide-react';
 
 // Importando os tipos e dados
 import { Aluno, FiltrosAlunos, CursoProgresso, HistoricoAtividade } from '@/types/academy';
+import { useAlunoDetalhes } from '@/hooks/useApi';
+import { apiBackend } from '@/lib/api-backend';
 
 // --- Tipos para Filtros ---
 interface CursoParaFiltro {
@@ -32,304 +35,35 @@ interface Engajamento {
 
 
 
-const alunosData: Aluno[] = [
-  {
-    usuario: {
-      id: 1,
-      nome: 'João Silva',
-      email: 'joao@email.com',
-      role: 'FUNCIONARIO',
-      imgProfile: 'https://images.pexels.com/photos/5327921/pexels-photo-5327921.jpeg',
-      franquia: 1,
-      franquia_nome: 'Franquia Centro',
-      aluno_id: 1
-    },
-    id: 'aluno-1',
-    dataMatricula: '2025-01-15',
-    status: 'ATIVO',
-    telefone: '(11) 99999-9999',
-    cursosProgresso: [
-      {
-        cursoId: '1',
-        titulo: 'Fundamentos do Marketing Digital para Franquias',
-        progresso: 100,
-        dataInicio: '2025-01-20',
-        dataUltimoacesso: '2025-09-24',
-        dataTermino: '2025-09-20',
-        status: 'Concluído',
-        modulosProgresso: [
-          { moduloId: '1-1', concluido: true, aulasAssistidas: ['1-1-1', '1-1-2', '1-1-3'] },
-          { moduloId: '1-2', concluido: true, aulasAssistidas: ['1-2-1', '1-2-2'] }
-        ],
-        quiz: {
-          tentativas: [
-            {
-              id: 't1-1',
-              quizId: 'q1',
-              nota: 95,
-              dataRealizacao: '2025-09-20',
-              respostas: [],
-              tempoGasto: 15
-            }
-          ],
-          melhorNota: 95,
-          aprovado: true,
-          dataUltimaRealizacao: '2025-09-20'
-        }
-      },
-      {
-        cursoId: '2',
-        titulo: 'Procedimentos Operacionais Padrão (POPs)',
-        progresso: 75,
-        dataInicio: '2025-09-18',
-        dataUltimoacesso: '2025-09-24',
-        status: 'Em Andamento',
-        modulosProgresso: [
-          { moduloId: '2-1', concluido: true, aulasAssistidas: ['2-1-1'] }
-        ],
-        quiz: {
-          tentativas: [
-            {
-              id: 't1-2a',
-              quizId: 'q2',
-              nota: 65,
-              dataRealizacao: '2025-09-21',
-              respostas: [],
-              tempoGasto: 12
-            },
-            {
-              id: 't1-2b',
-              quizId: 'q2',
-              nota: 75,
-              dataRealizacao: '2025-09-22',
-              respostas: [],
-              tempoGasto: 10
-            },
-            {
-              id: 't1-2c',
-              quizId: 'q2',
-              nota: 80,
-              dataRealizacao: '2025-09-23',
-              respostas: [],
-              tempoGasto: 8
-            }
-          ],
-          melhorNota: 80,
-          aprovado: true,
-          dataUltimaRealizacao: '2025-09-23'
-        }
-      }
-    ],
-    historicoAtividade: [
-      { id: 'h1-1', data: '2025-09-24', tipo: 'AULA_ASSISTIDA', acao: 'Assistiu a aula "Implementação de POPs"', cursoId: '2' },
-      { id: 'h1-2', data: '2025-09-23', tipo: 'QUIZ_APROVADO', acao: 'Aprovado no quiz de POPs com 80% (3ª tentativa)', cursoId: '2', nota: 80 },
-      { id: 'h1-3', data: '2025-09-20', tipo: 'CURSO_CONCLUIDO', acao: 'Concluiu "Fundamentos do Marketing Digital para Franquias"', cursoId: '1' }
-    ],
-    certificados: [
-      {
-        id: 'cert-1',
-        cursoId: '1',
-        cursoTitulo: 'Fundamentos do Marketing Digital para Franquias',
-        dataEmissao: '2025-09-20',
-        notaFinal: 95,
-        cargaHoraria: '4h 30min',
-        codigo: 'CERT-2025-001'
-      }
-    ],
-    preferencias: {
-      notificacoes: { email: true, push: true, lembretesEstudo: true },
-      idioma: 'pt-BR',
-      velocidadeVideo: 1.25,
-      qualidadeVideo: 'auto',
-      temaDarkMode: true
-    },
-    estatisticas: {
-      totalCursos: 2,
-      cursosCompletos: 1,
-      cursosEmAndamento: 1,
-      totalHorasEstudadas: 12.5,
-      mediaNotas: 87.5,
-      streakDias: 15,
-      ultimoAcesso: '2025-09-24',
-      tempoMedioSessao: 45,
-      diasAtivo: 28
-    }
-  },
-  {
-    usuario: {
-      id: 2,
-      nome: 'Maria Santos',
-      email: 'maria@email.com',
-      role: 'FRANQUEADO',
-      imgProfile: 'https://images.pexels.com/photos/5327656/pexels-photo-5327656.jpeg',
-      franquia: 2,
-      franquia_nome: 'Franquia Norte',
-      aluno_id: 2
-    },
-    id: 'aluno-2',
-    dataMatricula: '2025-02-01',
-    status: 'ATIVO',
-    telefone: '(11) 88888-8888',
-    cursosProgresso: [
-      {
-        cursoId: '1',
-        titulo: 'Fundamentos do Marketing Digital para Franquias',
-        progresso: 100,
-        dataInicio: '2025-02-05',
-        dataUltimoacesso: '2025-09-10',
-        dataTermino: '2025-09-10',
-        status: 'Concluído',
-        modulosProgresso: [
-          { moduloId: '1-1', concluido: true, aulasAssistidas: ['1-1-1', '1-1-2', '1-1-3'] },
-          { moduloId: '1-2', concluido: true, aulasAssistidas: ['1-2-1', '1-2-2'] }
-        ],
-        quiz: {
-          tentativas: [
-            {
-              id: 't2-1',
-              quizId: 'q1',
-              nota: 100,
-              dataRealizacao: '2025-09-10',
-              respostas: [],
-              tempoGasto: 12
-            }
-          ],
-          melhorNota: 100,
-          aprovado: true,
-          dataUltimaRealizacao: '2025-09-10'
-        }
-      },
-      {
-        cursoId: '3',
-        titulo: 'Excelência no Atendimento ao Cliente',
-        progresso: 100,
-        dataInicio: '2025-09-05',
-        dataUltimoacesso: '2025-09-15',
-        dataTermino: '2025-09-15',
-        status: 'Concluído',
-        modulosProgresso: [],
-        quiz: {
-          tentativas: [
-            {
-              id: 't2-3a',
-              quizId: 'q3',
-              nota: 85,
-              dataRealizacao: '2025-09-14',
-              respostas: [],
-              tempoGasto: 18
-            },
-            {
-              id: 't2-3b',
-              quizId: 'q3',
-              nota: 92,
-              dataRealizacao: '2025-09-15',
-              respostas: [],
-              tempoGasto: 14
-            }
-          ],
-          melhorNota: 92,
-          aprovado: true,
-          dataUltimaRealizacao: '2025-09-15'
-        }
-      }
-    ],
-    historicoAtividade: [
-      { id: 'h2-1', data: '2025-09-15', tipo: 'CURSO_CONCLUIDO', acao: 'Concluiu "Excelência no Atendimento ao Cliente"', cursoId: '3' },
-      { id: 'h2-2', data: '2025-09-15', tipo: 'CERTIFICADO_EMITIDO', acao: 'Certificado emitido para "Excelência no Atendimento ao Cliente"', cursoId: '3' },
-      { id: 'h2-3', data: '2025-09-10', tipo: 'QUIZ_APROVADO', acao: 'Aprovado no quiz de Marketing Digital com 100%', cursoId: '1', nota: 100 }
-    ],
-    certificados: [
-      {
-        id: 'cert-2',
-        cursoId: '1',
-        cursoTitulo: 'Fundamentos do Marketing Digital para Franquias',
-        dataEmissao: '2025-09-10',
-        notaFinal: 100,
-        cargaHoraria: '4h 30min',
-        codigo: 'CERT-2025-002'
-      },
-      {
-        id: 'cert-3',
-        cursoId: '3',
-        cursoTitulo: 'Excelência no Atendimento ao Cliente',
-        dataEmissao: '2025-09-15',
-        notaFinal: 92,
-        cargaHoraria: '5h 45min',
-        codigo: 'CERT-2025-003'
-      }
-    ],
-    preferencias: {
-      notificacoes: { email: true, push: false, lembretesEstudo: false },
-      idioma: 'pt-BR',
-      velocidadeVideo: 1,
-      qualidadeVideo: '1080p',
-      temaDarkMode: false
-    },
-    estatisticas: {
-      totalCursos: 2,
-      cursosCompletos: 2,
-      cursosEmAndamento: 0,
-      totalHorasEstudadas: 18.2,
-      mediaNotas: 96,
-      streakDias: 5,
-      ultimoAcesso: '2025-09-15',
-      tempoMedioSessao: 38,
-      diasAtivo: 35
-    }
-  },
-  {
-    usuario: {
-      id: 3,
-      nome: 'Pedro Costa',
-      email: 'pedro@email.com',
-      role: 'FUNCIONARIO',
-      imgProfile: 'https://images.pexels.com/photos/5327585/pexels-photo-5327585.jpeg',
-      franquia: 1,
-      franquia_nome: 'Franquia Centro',
-      aluno_id: 3
-    },
-    id: 'aluno-3',
-    dataMatricula: '2025-01-20',
-    status: 'INATIVO',
-    telefone: '(11) 77777-7777',
-    cursosProgresso: [
-      {
-        cursoId: '1',
-        titulo: 'Fundamentos do Marketing Digital para Franquias',
-        progresso: 30,
-        dataInicio: '2025-08-08',
-        dataUltimoacesso: '2025-08-10',
-        status: 'Em Andamento',
-        modulosProgresso: [
-          { moduloId: '1-1', concluido: false, aulasAssistidas: ['1-1-1'] }
-        ]
-      }
-    ],
-    historicoAtividade: [
-      { id: 'h3-1', data: '2025-08-10', tipo: 'AULA_ASSISTIDA', acao: 'Assistiu a aula "O que é Marketing Digital"', cursoId: '1' },
-      { id: 'h3-2', data: '2025-08-08', tipo: 'CURSO_INICIADO', acao: 'Iniciou o curso "Fundamentos do Marketing Digital para Franquias"', cursoId: '1' }
-    ],
-    certificados: [],
-    preferencias: {
-      notificacoes: { email: true, push: true, lembretesEstudo: true },
-      idioma: 'pt-BR',
-      velocidadeVideo: 1,
-      qualidadeVideo: 'auto',
-      temaDarkMode: true
-    },
-    estatisticas: {
-      totalCursos: 1,
-      cursosCompletos: 0,
-      cursosEmAndamento: 1,
-      totalHorasEstudadas: 2.5,
-      mediaNotas: 0,
-      streakDias: 0,
-      ultimoAcesso: '2025-08-10',
-      tempoMedioSessao: 25,
-      diasAtivo: 3
-    }
-  }
-];
+// Interface para a resposta da API de listagem de alunos (apenas dados básicos)
+interface AlunoBasico {
+  usuario: {
+    id: number;
+    nome: string;
+    email: string;
+    role: string;
+    imgProfile: string | null;
+    franquia: number | null;
+    franquia_nome: string | null;
+    aluno_id: number;
+  };
+  id: string;
+  dataMatricula: string;
+  status: 'ATIVO' | 'INATIVO' | 'SUSPENSO';
+  telefone?: string | null;
+  // Estatísticas básicas para exibição na lista
+  estatisticas?: {
+    totalCursos: number;
+    cursosCompletos: number;
+    cursosEmAndamento: number;
+    totalHorasEstudadas: number;
+    mediaNotas: number;
+    streakDias: number;
+    ultimoAcesso: string;
+    tempoMedioSessao: number;
+    diasAtivo: number;
+  };
+}
 
 // --- Funções Auxiliares ---
 const calcularMediaQuizzes = (aluno: Aluno): string => {
@@ -387,21 +121,98 @@ const RenderManageStudents: FC = () => {
   const [cursoFilter, setCursoFilter] = useState<string>('all');
   const [performanceFilter, setPerformanceFilter] = useState<string>('all');
   const [statusFilter, setStatusFilter] = useState<string>('all');
-  const [alunoSelecionado, setAlunoSelecionado] = useState<Aluno | null>(null);
+  const [alunoSelecionadoId, setAlunoSelecionadoId] = useState<number | null>(null);
   const [abaModal, setAbaModal] = useState<string>('resumo');
+  
+  // Estados para lista de alunos
+  const [alunosLista, setAlunosLista] = useState<AlunoBasico[]>([]);
+  const [loadingLista, setLoadingLista] = useState<boolean>(true);
+  const [errorLista, setErrorLista] = useState<string | null>(null);
+  
+  // Hook para buscar detalhes do aluno selecionado
+  const { data: alunoSelecionado, loading: loadingDetalhes, error: errorDetalhes } = useAlunoDetalhes(
+    alunoSelecionadoId,
+    alunoSelecionadoId !== null
+  );
+  
+  // Buscar lista de alunos
+  const fetchAlunos = useCallback(async () => {
+    setLoadingLista(true);
+    setErrorLista(null);
+    
+    try {
+      // Tentar buscar de diferentes endpoints possíveis
+      let response: AlunoBasico[] = [];
+      
+      try {
+        // Tentar endpoint específico de alunos
+        response = await apiBackend.get<AlunoBasico[]>('/academy/alunos/');
+      } catch (err1) {
+        try {
+          // Se falhar, tentar buscar usuários e filtrar os que são alunos
+          const usuarios = await apiBackend.get<any[]>('/users/usuarios/');
+          // Filtrar apenas usuários que têm aluno_id
+          response = usuarios
+            .filter((u: any) => u.aluno_id !== null && u.aluno_id !== undefined)
+            .map((u: any) => ({
+              usuario: {
+                id: u.id,
+                nome: u.nome || u.email,
+                email: u.email,
+                role: u.role,
+                imgProfile: u.imgProfile || null,
+                franquia: u.franquia || null,
+                franquia_nome: u.franquia_nome || null,
+                aluno_id: u.aluno_id,
+              },
+              id: `aluno-${u.aluno_id}`,
+              dataMatricula: u.data_criacao || new Date().toISOString().split('T')[0],
+              status: u.is_active ? 'ATIVO' : 'INATIVO',
+              telefone: u.telefone || null,
+            }));
+        } catch (err2) {
+          throw new Error('Não foi possível carregar a lista de alunos');
+        }
+      }
+      
+      setAlunosLista(Array.isArray(response) ? response : []);
+    } catch (err: any) {
+      setErrorLista(err.message || 'Erro ao carregar lista de alunos');
+      setAlunosLista([]);
+    } finally {
+      setLoadingLista(false);
+    }
+  }, []);
+  
+  useEffect(() => {
+    fetchAlunos();
+  }, [fetchAlunos]);
 
+  // Função auxiliar para calcular média de quizzes a partir de estatísticas básicas
+  const calcularMediaQuizzesBasico = (aluno: AlunoBasico): string => {
+    if (!aluno.estatisticas || aluno.estatisticas.mediaNotas === undefined) {
+      return 'N/A';
+    }
+    return aluno.estatisticas.mediaNotas.toFixed(1);
+  };
+  
+  // Função auxiliar para calcular progresso geral a partir de estatísticas básicas
+  const calcularProgressoGeralBasico = (aluno: AlunoBasico): number => {
+    if (!aluno.estatisticas || aluno.estatisticas.totalCursos === 0) {
+      return 0;
+    }
+    // Aproximação baseada em cursos completos vs total
+    return (aluno.estatisticas.cursosCompletos / aluno.estatisticas.totalCursos) * 100;
+  };
+  
   const alunosFiltrados = useMemo(() => {
-    return alunosData.filter((aluno: Aluno) => {
+    return alunosLista.filter((aluno: AlunoBasico) => {
       // Filtro de busca
       const searchMatch = aluno.usuario.nome.toLowerCase().includes(searchTerm.toLowerCase()) ||
                           aluno.usuario.email.toLowerCase().includes(searchTerm.toLowerCase());
       
-      // Filtro de curso
-      const cursoMatch = cursoFilter === 'all' || 
-                        aluno.cursosProgresso.some(curso => curso.cursoId === cursoFilter);
-
-      // Filtro de performance
-      const media = parseFloat(calcularMediaQuizzes(aluno));
+      // Filtro de performance (baseado em estatísticas básicas)
+      const media = parseFloat(calcularMediaQuizzesBasico(aluno));
       const performanceMatch = performanceFilter === 'all' ||
                               (performanceFilter === 'abaixo70' && !isNaN(media) && media < 70) ||
                               (performanceFilter === 'acima90' && !isNaN(media) && media >= 90);
@@ -409,16 +220,50 @@ const RenderManageStudents: FC = () => {
       // Filtro de status
       const statusMatch = statusFilter === 'all' || aluno.status === statusFilter;
 
-      return searchMatch && cursoMatch && performanceMatch && statusMatch;
+      return searchMatch && performanceMatch && statusMatch;
     });
-  }, [searchTerm, cursoFilter, performanceFilter, statusFilter]);
+  }, [searchTerm, cursoFilter, performanceFilter, statusFilter, alunosLista]);
   
   const renderModalDetalhes = () => {
+    if (!alunoSelecionadoId) return null;
+    
+    // Mostrar loading enquanto busca detalhes
+    if (loadingDetalhes) {
+      return (
+        <div className="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50">
+          <div className="bg-gray-800 rounded-xl border border-gray-700 p-8 flex flex-col items-center gap-4">
+            <Loader2 className="w-8 h-8 text-pink-400 animate-spin" />
+            <p className="text-white">Carregando detalhes do aluno...</p>
+          </div>
+        </div>
+      );
+    }
+    
+    // Mostrar erro se houver
+    if (errorDetalhes) {
+      return (
+        <div className="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50">
+          <div className="bg-gray-800 rounded-xl border border-gray-700 p-8 flex flex-col items-center gap-4 max-w-md">
+            <p className="text-red-400 text-center">{errorDetalhes}</p>
+            <button
+              onClick={() => setAlunoSelecionadoId(null)}
+              className="bg-gray-700 hover:bg-gray-600 text-white px-4 py-2 rounded-lg"
+            >
+              Fechar
+            </button>
+          </div>
+        </div>
+      );
+    }
+    
+    // Se não houver dados ainda, não renderizar
     if (!alunoSelecionado) return null;
 
     const mediaQuizzes = calcularMediaQuizzes(alunoSelecionado);
     const progressoGeral = calcularProgressoGeral(alunoSelecionado);
-    const taxaConclusao = alunoSelecionado.estatisticas.cursosCompletos / alunoSelecionado.estatisticas.totalCursos * 100;
+    const taxaConclusao = alunoSelecionado.estatisticas.totalCursos > 0 
+      ? (alunoSelecionado.estatisticas.cursosCompletos / alunoSelecionado.estatisticas.totalCursos) * 100 
+      : 0;
     
     return (
         <div className="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50 p-4">
@@ -455,7 +300,7 @@ const RenderManageStudents: FC = () => {
                             </div>
                         </div>
                     </div>
-                    <button onClick={() => setAlunoSelecionado(null)} className="text-gray-400 hover:text-white"> 
+                    <button onClick={() => setAlunoSelecionadoId(null)} className="text-gray-400 hover:text-white"> 
                       <X className="w-6 h-6" /> 
                     </button>
                 </div>
@@ -784,10 +629,34 @@ const RenderManageStudents: FC = () => {
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-700">
-              {alunosFiltrados.length > 0 && alunosFiltrados.map((aluno: Aluno) => {
-                const engajamento = getEngajamento(aluno.estatisticas.ultimoAcesso);
-                const mediaQuizzes = calcularMediaQuizzes(aluno);
-                const progressoGeral = calcularProgressoGeral(aluno);
+              {loadingLista ? (
+                <tr>
+                  <td colSpan={7} className="px-6 py-8 text-center">
+                    <div className="flex items-center justify-center gap-2 text-gray-400">
+                      <Loader2 className="w-5 h-5 animate-spin" />
+                      <span>Carregando alunos...</span>
+                    </div>
+                  </td>
+                </tr>
+              ) : errorLista ? (
+                <tr>
+                  <td colSpan={7} className="px-6 py-8 text-center">
+                    <div className="text-red-400">
+                      <p>{errorLista}</p>
+                      <button
+                        onClick={fetchAlunos}
+                        className="mt-2 text-sm text-blue-400 hover:text-blue-300"
+                      >
+                        Tentar novamente
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              ) : alunosFiltrados.length > 0 ? alunosFiltrados.map((aluno: AlunoBasico) => {
+                const ultimoAcesso = aluno.estatisticas?.ultimoAcesso || aluno.dataMatricula;
+                const engajamento = getEngajamento(ultimoAcesso);
+                const mediaQuizzes = calcularMediaQuizzesBasico(aluno);
+                const progressoGeral = calcularProgressoGeralBasico(aluno);
 
                 return (
                   <tr key={aluno.id} className="hover:bg-gray-700/30 transition-colors">
@@ -837,7 +706,7 @@ const RenderManageStudents: FC = () => {
                     <td className="px-6 py-4 whitespace-nowrap">
                       <button 
                         onClick={() => { 
-                          setAlunoSelecionado(aluno); 
+                          setAlunoSelecionadoId(aluno.usuario.aluno_id); 
                           setAbaModal('resumo'); 
                         }} 
                         className="text-blue-400 hover:text-blue-300 p-2 rounded-full hover:bg-blue-500/10 transition-colors"
@@ -848,10 +717,10 @@ const RenderManageStudents: FC = () => {
                     </td>
                   </tr>
                 );
-              })}
+              }) : null}
             </tbody>
           </table>
-          {alunosFiltrados.length === 0 && (
+          {!loadingLista && !errorLista && alunosFiltrados.length === 0 && (
             <div className="text-center py-10 text-gray-500">
               <User className="w-12 h-12 mx-auto mb-3 text-gray-600" />
               <p>Nenhum aluno encontrado.</p>

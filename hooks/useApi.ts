@@ -2,6 +2,7 @@
 import { useState, useEffect } from 'react';
 import { apiBackend, getBlob } from '@/lib/api-backend';
 import { AxiosError } from 'axios';
+import type { Aluno } from '@/types/academy';
 
 interface CertificadoResponse {
   certificado: {
@@ -117,6 +118,110 @@ export function useValidarCertificado(codigo: string | null) {
     codigo ? `/academy/certificados/validar/${codigo}/` : '',
     [codigo]
   );
+}
+
+// ==================== HOOKS DE ALUNOS ====================
+
+/**
+ * Hook para buscar detalhes completos de um aluno
+ * @param alunoId - ID numérico do aluno (pk)
+ * @param enabled - Se false, não faz a requisição (útil para requisições condicionais)
+ */
+export function useAlunoDetalhes(alunoId: number | null, enabled: boolean = true) {
+  const [state, setState] = useState<{
+    data: Aluno | null;
+    loading: boolean;
+    error: string | null;
+  }>({
+    data: null,
+    loading: false,
+    error: null,
+  });
+
+  useEffect(() => {
+    // Não faz requisição se alunoId for null ou enabled for false
+    if (!alunoId || !enabled) {
+      setState({
+        data: null,
+        loading: false,
+        error: null,
+      });
+      return;
+    }
+
+    const fetchDetalhes = async () => {
+      setState(prev => ({ ...prev, loading: true, error: null }));
+      
+      try {
+        const response = await apiBackend.get<Aluno>(`/api/academy/aluno/${alunoId}/detalhes/`);
+        
+        setState({
+          data: response,
+          loading: false,
+          error: null,
+        });
+      } catch (err: any) {
+        let errorMessage = 'Erro ao carregar detalhes do aluno';
+        
+        // Tratamento de erros específicos
+        if (err.message) {
+          if (err.message.includes('403')) {
+            errorMessage = 'Você não tem permissão para acessar este recurso';
+          } else if (err.message.includes('404')) {
+            errorMessage = 'Aluno não encontrado';
+          } else if (err.message.includes('401')) {
+            errorMessage = 'Você precisa estar autenticado para acessar este recurso';
+          } else {
+            errorMessage = err.message;
+          }
+        }
+        
+        setState({
+          data: null,
+          loading: false,
+          error: errorMessage,
+        });
+      }
+    };
+
+    fetchDetalhes();
+  }, [alunoId, enabled]);
+
+  return {
+    ...state,
+    refetch: () => {
+      if (alunoId && enabled) {
+        setState(prev => ({ ...prev, loading: true, error: null }));
+        apiBackend.get<Aluno>(`/api/academy/aluno/${alunoId}/detalhes/`)
+          .then(response => {
+            setState({
+              data: response,
+              loading: false,
+              error: null,
+            });
+          })
+          .catch((err: any) => {
+            let errorMessage = 'Erro ao carregar detalhes do aluno';
+            if (err.message) {
+              if (err.message.includes('403')) {
+                errorMessage = 'Você não tem permissão para acessar este recurso';
+              } else if (err.message.includes('404')) {
+                errorMessage = 'Aluno não encontrado';
+              } else if (err.message.includes('401')) {
+                errorMessage = 'Você precisa estar autenticado para acessar este recurso';
+              } else {
+                errorMessage = err.message;
+              }
+            }
+            setState({
+              data: null,
+              loading: false,
+              error: errorMessage,
+            });
+          });
+      }
+    },
+  };
 }
 
 // ==================== MUTATIONS - CURSOS ====================

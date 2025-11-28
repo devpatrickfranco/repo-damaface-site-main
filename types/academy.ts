@@ -189,20 +189,6 @@ export interface Certificado {
   urlPdf?: string;
 }
 
-/**
- * Preferências de aprendizado do aluno
- */
-export interface PreferenciasAluno {
-  notificacoes: {
-    email: boolean;
-    push: boolean;
-    lembretesEstudo: boolean;
-  };
-  idioma: 'pt-BR' | 'en' | 'es';
-  velocidadeVideo: number; // 0.5, 1, 1.25, 1.5, 2
-  qualidadeVideo: 'auto' | '720p' | '1080p';
-  temaDarkMode: boolean;
-}
 
 /**
  * Estatísticas de aprendizado do aluno
@@ -237,8 +223,6 @@ export interface Aluno {
   historicoAtividade: HistoricoAtividade[];
   certificados: Certificado[];
   
-  // Configurações e preferências
-  preferencias: PreferenciasAluno;
   
   // Estatísticas calculadas
   estatisticas: EstatisticasAluno;
