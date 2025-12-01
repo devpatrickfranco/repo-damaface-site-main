@@ -48,10 +48,13 @@ interface AlunoBasico {
     aluno_id: number;
   };
   id: string;
-  dataMatricula: string;
   status: 'ATIVO' | 'INATIVO' | 'SUSPENSO';
+  engajamento: 'Alto' | 'Médio' | 'Baixo';
+  progressoGeral: number;
+  mediaNotas: string | number;
+  dataMatricula?: string;
   telefone?: string | null;
-  // Estatísticas básicas para exibição na lista
+  // Estatísticas básicas para exibição na lista (opcional, para compatibilidade)
   estatisticas?: {
     totalCursos: number;
     cursosCompletos: number;
@@ -90,19 +93,14 @@ const calcularProgressoGeral = (aluno: Aluno): number => {
   return totalProgresso / aluno.cursosProgresso.length;
 };
 
-const getEngajamento = (ultimoAcesso: string): Engajamento => {
-    const hoje = new Date();
-    const dataAcesso = new Date(ultimoAcesso);
-    const diffTime = Math.abs(hoje.getTime() - dataAcesso.getTime());
-    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-
-    if (diffDays <= 7) return { 
+const getEngajamentoFromString = (engajamento: 'Alto' | 'Médio' | 'Baixo'): Engajamento => {
+    if (engajamento === 'Alto') return { 
       texto: 'Alto', 
       icon: <TrendingUp className="w-4 h-4 text-green-400" />, 
       cor: 'text-green-400', 
       bg: 'bg-green-500/20' 
     };
-    if (diffDays <= 30) return { 
+    if (engajamento === 'Médio') return { 
       texto: 'Médio', 
       icon: <Activity className="w-4 h-4 text-yellow-400" />, 
       cor: 'text-yellow-400', 
@@ -166,8 +164,11 @@ const RenderManageStudents: FC = () => {
                 aluno_id: u.aluno_id,
               },
               id: `aluno-${u.aluno_id}`,
-              dataMatricula: u.data_criacao || new Date().toISOString().split('T')[0],
               status: u.is_active ? 'ATIVO' : 'INATIVO',
+              engajamento: u.engajamento || 'Baixo',
+              progressoGeral: u.progressoGeral || 0,
+              mediaNotas: u.mediaNotas || 'N/A',
+              dataMatricula: u.data_criacao || new Date().toISOString().split('T')[0],
               telefone: u.telefone || null,
             }));
         } catch (err2) {
@@ -188,21 +189,15 @@ const RenderManageStudents: FC = () => {
     fetchAlunos();
   }, [fetchAlunos]);
 
-  // Função auxiliar para calcular média de quizzes a partir de estatísticas básicas
-  const calcularMediaQuizzesBasico = (aluno: AlunoBasico): string => {
-    if (!aluno.estatisticas || aluno.estatisticas.mediaNotas === undefined) {
+  // Função auxiliar para formatar média de notas da API
+  const formatarMediaNotas = (mediaNotas: string | number): string => {
+    if (typeof mediaNotas === 'string' && mediaNotas === 'N/A') {
       return 'N/A';
     }
-    return aluno.estatisticas.mediaNotas.toFixed(1);
-  };
-  
-  // Função auxiliar para calcular progresso geral a partir de estatísticas básicas
-  const calcularProgressoGeralBasico = (aluno: AlunoBasico): number => {
-    if (!aluno.estatisticas || aluno.estatisticas.totalCursos === 0) {
-      return 0;
+    if (typeof mediaNotas === 'number') {
+      return mediaNotas.toFixed(1);
     }
-    // Aproximação baseada em cursos completos vs total
-    return (aluno.estatisticas.cursosCompletos / aluno.estatisticas.totalCursos) * 100;
+    return String(mediaNotas);
   };
   
   const alunosFiltrados = useMemo(() => {
@@ -211,8 +206,9 @@ const RenderManageStudents: FC = () => {
       const searchMatch = aluno.usuario.nome.toLowerCase().includes(searchTerm.toLowerCase()) ||
                           aluno.usuario.email.toLowerCase().includes(searchTerm.toLowerCase());
       
-      // Filtro de performance (baseado em estatísticas básicas)
-      const media = parseFloat(calcularMediaQuizzesBasico(aluno));
+      // Filtro de performance (baseado em mediaNotas da API)
+      const media = typeof aluno.mediaNotas === 'number' ? aluno.mediaNotas : 
+                    (typeof aluno.mediaNotas === 'string' && aluno.mediaNotas !== 'N/A' ? parseFloat(aluno.mediaNotas) : NaN);
       const performanceMatch = performanceFilter === 'all' ||
                               (performanceFilter === 'abaixo70' && !isNaN(media) && media < 70) ||
                               (performanceFilter === 'acima90' && !isNaN(media) && media >= 90);
@@ -289,9 +285,11 @@ const RenderManageStudents: FC = () => {
                               </span>
                             </div>
                             <div className="flex items-center gap-4 mt-1">
-                              <p className="text-xs text-gray-500">
-                                Membro desde: {new Date(alunoSelecionado.dataMatricula).toLocaleDateString('pt-BR')}
-                              </p>
+                              {alunoSelecionado.dataMatricula && (
+                                <p className="text-xs text-gray-500">
+                                  Membro desde: {new Date(alunoSelecionado.dataMatricula).toLocaleDateString('pt-BR')}
+                                </p>
+                              )}
                               <p className="text-xs text-gray-500">
                                 {alunoSelecionado.usuario.franquia_nome || 'Franqueadora'}
                               </p>
@@ -651,10 +649,9 @@ const RenderManageStudents: FC = () => {
                   </td>
                 </tr>
               ) : alunosFiltrados.length > 0 ? alunosFiltrados.map((aluno: AlunoBasico) => {
-                const ultimoAcesso = aluno.estatisticas?.ultimoAcesso || aluno.dataMatricula;
-                const engajamento = getEngajamento(ultimoAcesso);
-                const mediaQuizzes = calcularMediaQuizzesBasico(aluno);
-                const progressoGeral = calcularProgressoGeralBasico(aluno);
+                const engajamento = getEngajamentoFromString(aluno.engajamento);
+                const mediaQuizzes = formatarMediaNotas(aluno.mediaNotas);
+                const progressoGeral = aluno.progressoGeral;
 
                 return (
                   <tr key={aluno.id} className="hover:bg-gray-700/30 transition-colors">
