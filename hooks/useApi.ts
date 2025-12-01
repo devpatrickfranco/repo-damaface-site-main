@@ -153,7 +153,7 @@ export function useAlunoDetalhes(alunoId: number | null, enabled: boolean = true
       setState(prev => ({ ...prev, loading: true, error: null }));
       
       try {
-        const response = await apiBackend.get<Aluno>(`/api/academy/aluno/${alunoId}/detalhes/`);
+        const response = await apiBackend.get<Aluno>(`/academy/alunos/${alunoId}/detalhes/`);
         
         setState({
           data: response,
@@ -192,7 +192,7 @@ export function useAlunoDetalhes(alunoId: number | null, enabled: boolean = true
     refetch: () => {
       if (alunoId && enabled) {
         setState(prev => ({ ...prev, loading: true, error: null }));
-        apiBackend.get<Aluno>(`/api/academy/aluno/${alunoId}/detalhes/`)
+        apiBackend.get<Aluno>(`/academy/alunos/${alunoId}/detalhes/`)
           .then(response => {
             setState({
               data: response,
