@@ -212,8 +212,9 @@ const RenderManageStudents: FC = () => {
       // Filtro de performance (baseado em mediaNotas da API)
       const media = typeof aluno.mediaNotas === 'number' ? aluno.mediaNotas : 
                     (typeof aluno.mediaNotas === 'string' && aluno.mediaNotas !== 'N/A' ? parseFloat(aluno.mediaNotas) : NaN);
+      const temMediaNA = aluno.mediaNotas === 'N/A';
       const performanceMatch = performanceFilter === 'all' ||
-                              (performanceFilter === 'abaixo70' && !isNaN(media) && media < 70) ||
+                              (performanceFilter === 'abaixo70' && (temMediaNA || (!isNaN(media) && media < 70))) ||
                               (performanceFilter === 'acima90' && !isNaN(media) && media >= 90);
 
       // Filtro de status
