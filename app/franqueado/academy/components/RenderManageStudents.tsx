@@ -292,11 +292,9 @@ const RenderManageStudents: FC = () => {
                               <p className="text-xs text-gray-500">
                                 Membro desde: {new Date(alunoSelecionado.dataMatricula).toLocaleDateString('pt-BR')}
                               </p>
-                              {alunoSelecionado.usuario.franquia_nome && (
-                                <p className="text-xs text-gray-500">
-                                  {alunoSelecionado.usuario.franquia_nome}
-                                </p>
-                              )}
+                              <p className="text-xs text-gray-500">
+                                {alunoSelecionado.usuario.franquia_nome || 'Franqueadora'}
+                              </p>
                             </div>
                         </div>
                     </div>
@@ -674,7 +672,7 @@ const RenderManageStudents: FC = () => {
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm text-gray-300">{aluno.usuario.franquia_nome || 'N/A'}</div>
+                      <div className="text-sm text-gray-300">{aluno.usuario.franquia_nome || 'Franqueadora'}</div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <span className={`px-2 py-1 text-xs rounded-full ${
