@@ -17,7 +17,7 @@ import {
 
 // Importando os tipos e dados
 import { Aluno, FiltrosAlunos, CursoProgresso, HistoricoAtividade } from '@/types/academy';
-import { useAlunoDetalhes } from '@/hooks/useApi';
+import { useAlunoDetalhes, downloadCertificado } from '@/hooks/useApi';
 import { apiBackend } from '@/lib/api-backend';
 import { gerarPDFRelatorio } from '@/lib/utils';
 
@@ -123,6 +123,7 @@ const RenderManageStudents: FC = () => {
   const [alunoSelecionadoId, setAlunoSelecionadoId] = useState<number | null>(null);
   const [abaModal, setAbaModal] = useState<string>('resumo');
   const [exportandoRelatorio, setExportandoRelatorio] = useState<boolean>(false);
+  const [baixandoCertificado, setBaixandoCertificado] = useState<string | null>(null);
   
   // Estados para lista de alunos
   const [alunosLista, setAlunosLista] = useState<AlunoBasico[]>([]);
@@ -536,8 +537,50 @@ const RenderManageStudents: FC = () => {
                                   </div>
                                   <div className="flex items-center gap-2">
                                     <Award className="w-8 h-8 text-yellow-500" />
-                                    <button className="bg-yellow-600 hover:bg-yellow-700 text-white px-3 py-1 rounded text-sm transition-colors">
-                                      Download
+                                    <button 
+                                      onClick={async () => {
+                                        try {
+                                          setBaixandoCertificado(certificado.codigo);
+                                          
+                                          // Faz o download do PDF usando o código de validação
+                                          const blobResponse = await downloadCertificado(certificado.codigo);
+                                          
+                                          // Cria um link temporário para download
+                                          const blob = new Blob([blobResponse], { type: 'application/pdf' });
+                                          const url = window.URL.createObjectURL(blob);
+                                          const link = document.createElement('a');
+                                          link.href = url;
+                                          link.download = `certificado-${certificado.cursoTitulo.replace(/\s+/g, '-').toLowerCase()}.pdf`;
+                                          document.body.appendChild(link);
+                                          link.click();
+                                          document.body.removeChild(link);
+                                          window.URL.revokeObjectURL(url);
+                                          
+                                          alert("Certificado baixado com sucesso!");
+                                        } catch (error: any) {
+                                          console.error("Erro ao baixar certificado:", error);
+                                          const errorMessage = error.response?.data?.error || 
+                                                              error.response?.data?.detail || 
+                                                              "Erro ao baixar certificado. Tente novamente.";
+                                          alert(errorMessage);
+                                        } finally {
+                                          setBaixandoCertificado(null);
+                                        }
+                                      }}
+                                      disabled={baixandoCertificado === certificado.codigo}
+                                      className="bg-yellow-600 hover:bg-yellow-700 text-white px-3 py-1 rounded text-sm transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                                    >
+                                      {baixandoCertificado === certificado.codigo ? (
+                                        <>
+                                          <Loader2 className="w-4 h-4 animate-spin" />
+                                          <span>Baixando...</span>
+                                        </>
+                                      ) : (
+                                        <>
+                                          <Download className="w-4 h-4" />
+                                          <span>Download</span>
+                                        </>
+                                      )}
                                     </button>
                                   </div>
                                 </div>
