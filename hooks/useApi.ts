@@ -153,7 +153,7 @@ export function useAlunoDetalhes(alunoId: number | null, enabled: boolean = true
       setState(prev => ({ ...prev, loading: true, error: null }));
       
       try {
-        const response = await apiBackend.get<Aluno>(`/academy/alunos/${alunoId}/detalhes/`);
+        const response = await apiBackend.get<Aluno>(`/academy/aluno/${alunoId}/detalhes/`);
         
         setState({
           data: response,
