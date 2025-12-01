@@ -192,7 +192,7 @@ export function useAlunoDetalhes(alunoId: number | null, enabled: boolean = true
     refetch: () => {
       if (alunoId && enabled) {
         setState(prev => ({ ...prev, loading: true, error: null }));
-        apiBackend.get<Aluno>(`/academy/alunos/${alunoId}/detalhes/`)
+        apiBackend.get<Aluno>(`/academy/aluno/${alunoId}/detalhes/`)
           .then(response => {
             setState({
               data: response,
