@@ -19,6 +19,7 @@ import {
 import { Aluno, FiltrosAlunos, CursoProgresso, HistoricoAtividade } from '@/types/academy';
 import { useAlunoDetalhes } from '@/hooks/useApi';
 import { apiBackend } from '@/lib/api-backend';
+import { gerarPDFRelatorio } from '@/lib/utils';
 
 // --- Tipos para Filtros ---
 interface CursoParaFiltro {
@@ -121,6 +122,7 @@ const RenderManageStudents: FC = () => {
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [alunoSelecionadoId, setAlunoSelecionadoId] = useState<number | null>(null);
   const [abaModal, setAbaModal] = useState<string>('resumo');
+  const [exportandoRelatorio, setExportandoRelatorio] = useState<boolean>(false);
   
   // Estados para lista de alunos
   const [alunosLista, setAlunosLista] = useState<AlunoBasico[]>([]);
@@ -553,9 +555,34 @@ const RenderManageStudents: FC = () => {
                 </div>
                 
                 <div className="flex items-center justify-end p-4 border-t border-gray-700 mt-auto">
-                    <button className="bg-blue-600 hover:bg-blue-700 text-white font-medium px-4 py-2 rounded-lg flex items-center space-x-2 transition-colors"> 
-                      <Download className="w-4 h-4" /> 
-                      <span>Exportar Relatório</span> 
+                    <button 
+                      onClick={async () => {
+                        if (!alunoSelecionado) return;
+                        
+                        try {
+                          setExportandoRelatorio(true);
+                          await gerarPDFRelatorio(alunoSelecionado);
+                        } catch (error: any) {
+                          console.error('Erro ao exportar relatório:', error);
+                          alert('Erro ao exportar relatório. Tente novamente.');
+                        } finally {
+                          setExportandoRelatorio(false);
+                        }
+                      }}
+                      disabled={!alunoSelecionado || exportandoRelatorio}
+                      className="bg-blue-600 hover:bg-blue-700 text-white font-medium px-4 py-2 rounded-lg flex items-center space-x-2 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                    > 
+                      {exportandoRelatorio ? (
+                        <>
+                          <Loader2 className="w-4 h-4 animate-spin" />
+                          <span>Gerando PDF...</span>
+                        </>
+                      ) : (
+                        <>
+                          <Download className="w-4 h-4" /> 
+                          <span>Exportar Relatório</span>
+                        </>
+                      )}
                     </button>
                 </div>
             </div>
