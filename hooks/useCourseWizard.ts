@@ -1,7 +1,8 @@
 // hooks/useCourseWizard.ts
 import { useState, useEffect } from "react";
-import type { Curso, Modulo, PerguntaQuiz, materiais, OpcaoQuiz } from "@/types/academy";
+import type { Curso, Modulo, PerguntaQuiz, materiais } from "@/types/academy";
 
+// Mantendo suas interfaces originais
 export interface CourseFormData {
   titulo: string;
   descricao: string;
@@ -58,10 +59,15 @@ const initialFormData: CourseFormData = {
 };
 
 export function useCourseWizard(initialCourse?: Curso | null) {
+  // 🔥 Controle para evitar recarregar e sobrescrever dados locais
+  const [loadedCourseId, setLoadedCourseId] = useState<number | string | null>(null);
+
   const [step, setStep] = useState(1);
   const [formData, setFormData] = useState<CourseFormData>(initialFormData);
   const [modulos, setModulos] = useState<Modulo[]>([]);
   const [currentModuloName, setCurrentModuloName] = useState("");
+  
+  // Quiz states
   const [quizTitle, setQuizTitle] = useState("");
   const [quizId, setQuizId] = useState<number | null>(null);
   const [notaMinima, setNotaMinima] = useState<number>(70);
@@ -74,6 +80,7 @@ export function useCourseWizard(initialCourse?: Curso | null) {
     respostaCorretaIndex: null,
   });
   
+  // Material e Aula states
   const [materiaisGerais, setMateriaisGerais] = useState<materiais[]>([]);
   const [currentAula, setCurrentAula] = useState<CurrentAulaState>({
     titulo: "", video_id: "", duracao: "", moduloId: "",
@@ -85,56 +92,77 @@ export function useCourseWizard(initialCourse?: Curso | null) {
     titulo: "", tipo: "pdf", url: "", arquivoFile: undefined,
   });
 
+  // ------------------------------------------------------------------
+  // 🟦 EFEITO DE CARREGAMENTO SEGURO
+  // ------------------------------------------------------------------
   useEffect(() => {
-    if (initialCourse) {
-      const { modulos, quizzes, avaliacoesAlunos, materiais, ...restOfCursoData } = initialCourse;
-      setFormData({
-        ...restOfCursoData,
-        categoriaId: (restOfCursoData.categoria?.id),
-      } as CourseFormData);
-      setModulos(modulos || []);
+    // 1. Se não tem curso inicial (Modo Criação), não faz nada.
+    if (!initialCourse) return;
+
+    // 2. Extrair ID para verificação
+    const courseId = (initialCourse as any).id;
+
+    // 3. Se não tem ID, é inválido ou é apenas um template vazio, ignora.
+    if (!courseId) return;
+
+    // 4. 🔥 O PULO DO GATO: Se já carregamos este ID, PARE.
+    // Isso impede que re-renders ou atualizações do pai sobrescrevam seu trabalho local.
+    if (courseId === loadedCourseId) return;
+
+    // Marca como carregado para não entrar aqui de novo
+    setLoadedCourseId(courseId);
+
+    // --- POPULAR DADOS ---
+    const { modulos: initModulos, quizzes, avaliacoesAlunos, materiais, ...restOfCursoData } = initialCourse;
+    
+    setFormData({
+      ...initialFormData, // Garante defaults caso falte algo
+      ...restOfCursoData,
+      categoriaId: (restOfCursoData.categoria?.id || 0),
+    } as CourseFormData);
+
+    // Só define se vier array, senão mantém vazio (mas só roda essa vez)
+    setModulos(initModulos || []);
+    setMateriaisGerais(materiais || []);
       
-      // Configurar quiz com dados completos
-      if (quizzes) {
-        setQuizTitle(quizzes.titulo || "");
-        setPerguntas(quizzes.perguntas || []);
-        // Extrair quizId se disponível (pode estar em quizzes.id ou no objeto curso)
-        if (typeof quizzes === 'object' && 'id' in quizzes) {
-          const id = quizzes.id;
-          setQuizId(typeof id === 'string' ? parseInt(id) : (typeof id === 'number' ? id : null));
-        }
-        // Também verificar se quizId está no objeto curso diretamente
-        if ('quizId' in initialCourse && initialCourse.quizId !== undefined && initialCourse.quizId !== null) {
-          const courseQuizId = (initialCourse as any).quizId;
-          setQuizId(typeof courseQuizId === 'string' ? parseInt(courseQuizId) : (typeof courseQuizId === 'number' ? courseQuizId : null));
-        }
-        // Extrair nota_minima e tentativas_maximas se disponíveis
-        if ('nota_minima' in quizzes && quizzes.nota_minima !== undefined) {
-          const nota = quizzes.nota_minima;
-          setNotaMinima(typeof nota === 'string' ? parseFloat(nota) : (typeof nota === 'number' ? nota : 70));
-        } else {
-          setNotaMinima(70);
-        }
-        if ('tentativas_maximas' in quizzes && quizzes.tentativas_maximas !== undefined) {
-          const tentativas = quizzes.tentativas_maximas;
-          setTentativasMaximas(typeof tentativas === 'string' ? parseInt(tentativas) : (typeof tentativas === 'number' ? tentativas : 3));
-        } else {
-          setTentativasMaximas(3);
-        }
-      } else {
-        setQuizTitle("");
-        setPerguntas([]);
-        setQuizId(null);
-        setNotaMinima(70);
-        setTentativasMaximas(3);
+    // Configurar quiz
+    if (quizzes) {
+      setQuizTitle(quizzes.titulo || "");
+      setPerguntas(quizzes.perguntas || []);
+      
+      // Lógica de extração de ID do Quiz
+      if (typeof quizzes === 'object' && 'id' in quizzes) {
+        const id = quizzes.id;
+        setQuizId(typeof id === 'string' ? parseInt(id) : (typeof id === 'number' ? id : null));
       }
+      if ('quizId' in initialCourse && (initialCourse as any).quizId) {
+         const qId = (initialCourse as any).quizId;
+         setQuizId(typeof qId === 'string' ? parseInt(qId) : qId);
+      }
+
+      // Configs do quiz
+      const nota = (quizzes as any).nota_minima;
+      setNotaMinima(nota ? Number(nota) : 70);
       
-      setMateriaisGerais(materiais || []);
-      setStep(1);
+      const tentativas = (quizzes as any).tentativas_maximas;
+      setTentativasMaximas(tentativas ? Number(tentativas) : 3);
+    } else {
+      // Reset quiz local se não vier nada no initialCourse
+      setQuizTitle("");
+      setPerguntas([]);
+      setQuizId(null);
     }
-  }, [initialCourse]);
+    
+    setStep(1);
+
+  }, [initialCourse, loadedCourseId]); // Dependências controladas
+
+  // ------------------------------------------------------------------
+  // FUNÇÕES DE RESET E HANDLERS
+  // ------------------------------------------------------------------
 
   const resetWizard = () => {
+    setLoadedCourseId(null); // 🔥 Importante: Permite carregar um novo curso ou limpar
     setStep(1);
     setFormData(initialFormData);
     setModulos([]);
@@ -188,7 +216,7 @@ export function useCourseWizard(initialCourse?: Curso | null) {
       opcoes: currentPergunta.opcoes.map((opcao, index) => ({
         id: `opt-${Date.now()}-${index}`,
         texto: opcao.texto,
-        correta: index === currentPergunta.respostaCorretaIndex, // ✅ ADICIONAR
+        correta: index === currentPergunta.respostaCorretaIndex,
       })),
       respostaCorretaId: `opt-${Date.now()}-${currentPergunta.respostaCorretaIndex}`,
     };
@@ -216,7 +244,6 @@ export function useCourseWizard(initialCourse?: Curso | null) {
     const pergunta = perguntas.find(p => p.id === id);
     if (!pergunta) return;
     
-    // Encontrar índice da resposta correta
     const respostaCorretaIndex = pergunta.opcoes.findIndex(opt => opt.correta === true);
     
     setEditingPerguntaId(id);
@@ -403,13 +430,12 @@ export function useCourseWizard(initialCourse?: Curso | null) {
       return;
     }
     const newMaterial: materiais = {
-      // 👇 ADICIONE UM ID TEMPORÁRIO AQUI
-      id: Date.now(), // Usar um timestamp é uma forma simples de garantir um id único no front-end
+      id: Date.now(),
       titulo: currentMaterial.titulo,
       tipo: currentMaterial.tipo,
       url: currentMaterial.url,
       arquivoFile: currentMaterial.arquivoFile,
-      arquivo: currentMaterial.titulo, // Você pode querer o nome do arquivo aqui
+      arquivo: currentMaterial.titulo,
     };
   
     setMateriaisGerais(prev => [...prev, newMaterial]);
