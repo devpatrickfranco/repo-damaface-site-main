@@ -301,10 +301,36 @@ export function useCourseWizard(initialCourse?: Curso | null) {
   };
   
   const handleAddAula = () => {
+    console.log("🎬 Tentando adicionar aula:", currentAula);
+    console.log("📦 Módulos disponíveis:", modulos);
+    console.log("🔍 Tipos:", {
+      moduloIdType: typeof currentAula.moduloId,
+      moduloIdValue: currentAula.moduloId,
+      modulosIds: modulos.map(m => ({ id: m.id, tipo: typeof m.id }))
+    });
+    
     if (!currentAula.titulo.trim() || !currentAula.video_id.trim() || !currentAula.moduloId) {
       alert("Preencha todos os campos obrigatórios da aula e selecione um módulo.");
+      console.error("❌ Validação falhou:", {
+        titulo: currentAula.titulo,
+        video_id: currentAula.video_id,
+        moduloId: currentAula.moduloId
+      });
       return;
     }
+
+    const moduloEncontrado = modulos.find(m => String(m.id) === String(currentAula.moduloId));
+    console.log("🔍 Módulo selecionado:", moduloEncontrado);
+
+    if (!moduloEncontrado) {
+      alert("Módulo não encontrado! Verifique se o módulo ainda existe.");
+      console.error("❌ Módulo não encontrado. Comparação:", {
+        procurado: currentAula.moduloId,
+        disponiveis: modulos.map(m => m.id)
+      });
+      return;
+    }
+
     const newAula = {
       id: `aula-${Date.now()}`,
       titulo: currentAula.titulo,
@@ -313,11 +339,25 @@ export function useCourseWizard(initialCourse?: Curso | null) {
       duracao: currentAula.duracao || "0:00",
       concluida: false,
     };
-    setModulos(prev =>
-      prev.map(modulo =>
-        modulo.id === currentAula.moduloId ? { ...modulo, aulas: [...modulo.aulas, newAula] } : modulo
-      )
-    );
+
+    console.log("✅ Nova aula criada:", newAula);
+    setModulos(prev => {
+      const novosModulos = prev.map(modulo => {
+        // 🔥 CORREÇÃO: Comparar com conversão de tipo
+        if (String(modulo.id) === String(currentAula.moduloId)) {
+          const moduloAtualizado = { 
+            ...modulo, 
+            aulas: [...modulo.aulas, newAula] 
+          };
+          console.log("📝 Módulo atualizado:", moduloAtualizado);
+          return moduloAtualizado;
+        }
+        return modulo;
+      });
+      
+      console.log("🎯 Estado final dos módulos após adicionar aula:", novosModulos);
+      return novosModulos;
+    });
     setCurrentAula({
       titulo: "", video_id: "", duracao: "", moduloId: "",
     });
