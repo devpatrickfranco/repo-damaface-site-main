@@ -188,7 +188,6 @@ export default function RenderManageCourses() {
         return;
       }
   
-      // Cada pergunta precisa ter 1 resposta correta
       const invalidas = wizard.perguntas.filter(
         p => p.opcoes.filter(opt => opt.correta).length !== 1
       );
@@ -202,13 +201,27 @@ export default function RenderManageCourses() {
     setIsSubmitting(true);
   
     try {
+      // Função auxiliar local (Idealmente mover para utils.ts)
+      const isValidBackendId = (id: string | number | undefined): boolean => {
+        if (!id) return false;
+        if (typeof id === 'number') return true;
+        // Se for string numérica (ex: "5"), aceita. Se for "mod-123", rejeita.
+        if (typeof id === 'string') {
+             if (id.startsWith('mod-') || id.startsWith('aula-') || id.startsWith('p-') || id.startsWith('opt-')) return false;
+             return !isNaN(Number(id));
+        }
+        return false;
+      };
+
       // ======= FORMATAR MATERIAIS =======
       const materiaisFormatted: any[] = [];
       const materiaisArquivos: { index: number; file: File }[] = [];
   
       wizard.materiaisGerais.forEach((material, idx) => {
-        // Envia o ID se existir para atualizar em vez de recriar
-        const baseMaterial = material.id ? { id: material.id } : {};
+        // 🔥 CORREÇÃO CRÍTICA AQUI: Checar se ID é válido antes de enviar
+        const baseMaterial = (modalMode === "edit" && isValidBackendId(material.id)) 
+            ? { id: Number(material.id) } 
+            : {};
 
         if (material.tipo === "pdf" && material.arquivoFile) {
           materiaisArquivos.push({ index: idx, file: material.arquivoFile });
@@ -223,21 +236,7 @@ export default function RenderManageCourses() {
         }
       });
   
-      // ======= FORMATAR MÓDULOS (COM IDs PARA NÃO DELETAR PROGRESSO) =======
-      // Função auxiliar para verificar se um ID é válido (número do backend) ou temporário (string)
-      const isValidBackendId = (id: string | number | undefined): boolean => {
-        if (!id) return false;
-        // Se for número, é válido
-        if (typeof id === 'number') return true;
-        // Se for string que começa com "mod-", "aula-", "p-", "opt-" é temporário
-        if (typeof id === 'string' && (id.startsWith('mod-') || id.startsWith('aula-') || id.startsWith('p-') || id.startsWith('opt-'))) {
-          return false;
-        }
-        // Se for string numérica, converter e verificar
-        const numId = Number(id);
-        return !isNaN(numId) && numId > 0;
-      };
-
+      // ======= FORMATAR MÓDULOS =======
       const modulosFormatted = wizard.modulos.map((modulo, idxModulo) => {
         const moduloPayload: any = {
           titulo: modulo.titulo,
@@ -249,16 +248,16 @@ export default function RenderManageCourses() {
               duracao: aula.duracao,
               ordem: idxAula + 1,
             };
-            // Só adiciona ID se for válido (número do backend) e estiver editando
+            
             if (modalMode === "edit" && isValidBackendId(aula.id)) {
-              aulaPayload.id = typeof aula.id === 'string' ? Number(aula.id) : aula.id;
+              aulaPayload.id = Number(aula.id);
             }
             return aulaPayload;
           })
         };
-        // Só adiciona ID se for válido (número do backend) e estiver editando
+        
         if (modalMode === "edit" && isValidBackendId(modulo.id)) {
-          moduloPayload.id = typeof modulo.id === 'string' ? Number(modulo.id) : modulo.id;
+          moduloPayload.id = Number(modulo.id);
         }
         return moduloPayload;
       });
@@ -282,7 +281,7 @@ export default function RenderManageCourses() {
         payload.preco = wizard.formData.preco;
       }
   
-      // ======= 1) CRIAR OU EDITAR CURSO =======
+      // ======= 1) ENVIO DO CURSO =======
       const url = modalMode === "create"
         ? "/academy/cursos/"
         : `/academy/cursos/${selectedCourseSlug}/`;
@@ -290,17 +289,23 @@ export default function RenderManageCourses() {
       const method = modalMode === "create" ? "post" : "patch";
   
       let cursoResponse;
+      let responseData; // Para pegar o ID independente do wrapper do axios/fetch
   
-      // Se houver arquivos → enviar como FormData
+      // Se houver arquivos → Enviar como FormData
       if (wizard.formData.capaFile || materiaisArquivos.length > 0) {
         const formData = new FormData();
+        
         Object.keys(payload).forEach(key => {
-          formData.append(
-            key,
-            key === "materiais" || key === "modulos"
-              ? JSON.stringify(payload[key])
-              : String(payload[key])
-          );
+          const value = payload[key];
+          
+          if (key === "materiais" || key === "modulos") {
+            formData.append(key, JSON.stringify(value));
+          } else {
+            // Trata null/undefined para não virar string "null"
+            if (value !== null && value !== undefined) {
+                formData.append(key, String(value));
+            }
+          }
         });
   
         if (wizard.formData.capaFile) {
@@ -313,13 +318,16 @@ export default function RenderManageCourses() {
   
         cursoResponse = await apiBackend[method](url, formData);
       } else {
+        // Envio JSON simples
         cursoResponse = await apiBackend[method](url, payload);
       }
+      
+      // Ajuste: Dependendo do seu interceptor, o ID pode estar no root ou em .data
+      responseData = cursoResponse.data || cursoResponse; 
+      const cursoId = responseData.id; 
   
-      const cursoId = cursoResponse.id;
-  
-      // ======= 2) CRIAR/EDITAR QUIZ SE EXISTIR =======
-      if (wizard.perguntas.length > 0) {
+      // ======= 2) QUIZ =======
+      if (wizard.perguntas.length > 0 && cursoId) {
         const quizPayload = {
           curso_id: cursoId,
           titulo: wizard.quizTitle,
@@ -336,16 +344,14 @@ export default function RenderManageCourses() {
                   texto: o.texto,
                   correta: o.correta,
                 };
-                // Só adiciona ID se for válido (número do backend) e estiver editando
                 if (modalMode === "edit" && isValidBackendId(o.id)) {
-                  opcaoPayload.id = typeof o.id === 'string' ? Number(o.id) : o.id;
+                  opcaoPayload.id = Number(o.id);
                 }
                 return opcaoPayload;
               }),
             };
-            // Só adiciona ID se for válido (número do backend) e estiver editando
             if (modalMode === "edit" && isValidBackendId(p.id)) {
-              perguntaPayload.id = typeof p.id === 'string' ? Number(p.id) : p.id;
+              perguntaPayload.id = Number(p.id);
             }
             return perguntaPayload;
           }),
@@ -367,11 +373,11 @@ export default function RenderManageCourses() {
   
     } catch (err) {
       console.error(err);
-      alert("Erro ao salvar o curso.");
+      alert("Erro ao salvar o curso. Verifique o console.");
     } finally {
       setIsSubmitting(false);
     }
-  };
+  }
   
   // Garantir que os tipos sejam explícitos
   const filteredCursos = cursos.filter((curso: Curso) =>
