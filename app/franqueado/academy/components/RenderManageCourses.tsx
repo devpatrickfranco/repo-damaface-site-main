@@ -204,14 +204,15 @@ export default function RenderManageCourses() {
       // Função auxiliar local (Idealmente mover para utils.ts)
       const isValidBackendId = (id: string | number | undefined): boolean => {
         if (!id) return false;
-        if (typeof id === 'number') return true;
-        // Se for string numérica (ex: "5"), aceita. Se for "mod-123", rejeita.
-        if (typeof id === 'string') {
-             if (id.startsWith('mod-') || id.startsWith('aula-') || id.startsWith('p-') || id.startsWith('opt-')) return false;
-             return !isNaN(Number(id));
-        }
-        return false;
-      };
+    
+        const idNumber = Number(id);
+    
+        if (isNaN(idNumber)) return false;
+    
+        if (idNumber > 10000000000) return false; 
+    
+        return true;
+    };
 
       // ======= FORMATAR MATERIAIS =======
       const materiaisFormatted: any[] = [];
