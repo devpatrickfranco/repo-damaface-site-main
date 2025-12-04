@@ -826,7 +826,7 @@ const handleDownloadCertificado = async () => {
                 <h3 className="text-2xl font-semibold text-white mb-6">Comentários</h3>
 
                 {/* Formulário para adicionar comentário - só aparece se não tiver comentário */}
-                {user && !meuComentario && (
+                {user &&  (
                   <div className="flex gap-3 mb-6">
                     {imageUrl ? (
                       <Image
