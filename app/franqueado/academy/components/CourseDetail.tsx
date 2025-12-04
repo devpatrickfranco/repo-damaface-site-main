@@ -386,7 +386,7 @@ const handleDownloadCertificado = async () => {
                     <span className="text-white">{curso.titulo}</span>
                   </div>
                   <h1 className="text-4xl lg:text-5xl font-bold text-white mb-4 text-balance">{curso.titulo}</h1>
-                  <p className="text-xl text-gray-300 mb-6 text-pretty">{curso.descricao}</p>
+                  <p className="whitespace-pre-wrap text-xl text-gray-300 mb-6 text-pretty">{curso.descricao}</p>
                   
                   {/* Course Stats */}
                   <div className="flex flex-wrap gap-6 mb-8">
