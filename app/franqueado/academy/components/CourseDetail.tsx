@@ -160,8 +160,8 @@ const handleDownloadCertificado = async () => {
   const comentarios = curso.avaliacoes?.filter((av: any) => av.tipo === 'COMENTARIO') || [];
 
   // Verificar se o usuário já tem avaliação ou comentário
-  const minhaAvaliacao = avaliacoes.find((av: any) => av.aluno_id === user?.aluno_id);
-  const meuComentario = comentarios.find((com: any) => com.aluno_id === user?.aluno_id);
+  const minhaAvaliacao = avaliacoes.find((av: any) => av.autorId === user?.aluno_id);
+  const meuComentario = comentarios.find((com: any) => com.autorId === user?.aluno_id);
 
   const getProximaAula = () => {
     if (!curso.modulos || curso.modulos.length === 0) return null;
