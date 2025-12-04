@@ -738,11 +738,13 @@ const handleDownloadCertificado = async () => {
                   <div className="space-y-6">
                     {avaliacoes.map((avaliacao: AvaliacaoAluno) => (
                       <div key={avaliacao.id} className="flex gap-4">
-                        {avaliacao.avatar && avaliacao.avatar !== "" ? (
-                          <img
-                            src={avaliacao.avatar || "/placeholder.svg"}
+                        {imageUrl ? (
+                          <Image
+                            src={imageUrl || "/placeholder.svg"}
                             alt={avaliacao.aluno}
                             className="w-12 h-12 rounded-full object-cover"
+                            width={40}
+                            height={40}
                           />
                         ) : (
                           <Avatar />
@@ -860,10 +862,12 @@ const handleDownloadCertificado = async () => {
                 <div className="space-y-4">
                   {comentarios.map((coment: AvaliacaoAluno) => (
                     <div key={coment.id} className="flex items-start gap-3 bg-white/5 p-4 rounded-lg">
-                      {coment.avatar && coment.avatar !== "" ? (
-                        <img
-                          src={coment.avatar || "/placeholder.svg"}
+                      {imageUrl ? (
+                        <Image
+                          src={imageUrl || "/placeholder.svg"}
                           alt={coment.aluno}
+                          width={40}
+                          height={40}
                           className="w-10 h-10 rounded-full object-cover"
                         />
                       ) : (
