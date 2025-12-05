@@ -3,15 +3,15 @@
 import { useState } from "react";
 import { Plus, X, Save, ArrowLeft, ArrowRight, Loader2 } from "lucide-react";
 
-import { useCursos, useCategorias, useTrilhas } from "@/hooks/useApi";
+import { useCursos, useCategorias /*, useTrilhas */ } from "@/hooks/useApi";
 import { useCourseWizard } from '@/hooks/useCourseWizard';
 
 import { apiBackend } from "@/lib/api-backend";
-import type { Curso, Categoria, Trilha } from "@/types/academy";
+import type { Curso, Categoria /*, Trilha */ } from "@/types/academy";
 
 import Stats from "@/app/franqueado/academy/components/RenderManageCourses/Stats";
 import CategoryManage from "@/app/franqueado/academy/components/RenderManageCourses/CategoryManage";
-import TrilhaManage from "./RenderManageCourses/TrailManage";
+// import TrilhaManage from "./RenderManageCourses/TrailManage";
 import CourseView from "@/app/franqueado/academy/components/RenderManageCourses/CourseView";
 import Step1 from "./CreateCourseWizard/Step1";
 import Step2 from "./CreateCourseWizard/Step2";
@@ -32,20 +32,21 @@ export default function RenderManageCourses() {
     refetch: refetchCategorias
   } = useCategorias({ page_size: 100 });
 
-  const { 
-    data: trilhasData, 
-    loading: loadingTrilhas, 
-    error: errorTrilhas,
-    refetch: refetchTrilhas
-  } = useTrilhas({ page_size: 100 });
+  // TODO: Trilhas de Formação - Comentado temporariamente
+  // const { 
+  //   data: trilhasData, 
+  //   loading: loadingTrilhas, 
+  //   error: errorTrilhas,
+  //   refetch: refetchTrilhas
+  // } = useTrilhas({ page_size: 100 });
 
   // Ajuste para extrair os resultados dos dados retornados pelos hooks
   const cursos = cursosData || [];
   const categorias = categoriasData || [];
-  const trilhas = trilhasData || [];
+  // const trilhas = trilhasData || [];
 
-  const loading = loadingCursos || loadingCategorias || loadingTrilhas;
-  const error = errorCursos || errorCategorias || errorTrilhas;
+  const loading = loadingCursos || loadingCategorias; // || loadingTrilhas;
+  const error = errorCursos || errorCategorias; // || errorTrilhas;
 
   const [searchTerm, setSearchTerm] = useState("");
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
@@ -152,7 +153,7 @@ export default function RenderManageCourses() {
   const refetchAllData = () => {
     refetchCursos();
     refetchCategorias();
-    refetchTrilhas();
+    // refetchTrilhas();
   };
 
   const openCreateModal = () => {
@@ -443,7 +444,8 @@ export default function RenderManageCourses() {
 
         <CategoryManage categorias={categorias} refetchCategorias={refetchCategorias} />
         
-        <TrilhaManage trilhas={trilhas} refetchTrilhas={refetchTrilhas} />
+        {/* TODO: Trilhas de Formação - Comentado temporariamente */}
+        {/* <TrilhaManage trilhas={trilhas} refetchTrilhas={refetchTrilhas} /> */}
 
         <CourseView 
             cursos={filteredCursos} 

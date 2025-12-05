@@ -3,9 +3,9 @@ import DynamicIcon from '@/app/franqueado/academy/components/DynamicIcon';
 
 import { useState, useEffect } from 'react';
 import { apiBackend } from '@/lib/api-backend';
-import { useCategorias, useTrilhas, useCursos } from '@/hooks/useApi';
+import { useCategorias /*, useTrilhas */, useCursos } from '@/hooks/useApi';
 
-import type { Categoria, Trilha, Curso } from '@/types/academy'
+import type { Categoria /*, Trilha */, Curso } from '@/types/academy'
 
 import { 
   Clock, 
@@ -34,11 +34,12 @@ export default function RenderHome() {
     error: errorCategorias,
   } = useCategorias({ page_size: 6 });
 
-  const {
-    data: trilhas = [],
-    loading: loadingTrilhas,
-    error: errorTrilhas,
-  } = useTrilhas({ page_size: 6 });
+  // TODO: Trilhas de Formação - Comentado temporariamente
+  // const {
+  //   data: trilhas = [],
+  //   loading: loadingTrilhas,
+  //   error: errorTrilhas,
+  // } = useTrilhas({ page_size: 6 });
 
   const { 
     data: cursosDestaque = [],
@@ -46,8 +47,8 @@ export default function RenderHome() {
     error: errorCursos,
   } = useCursos({ destaque: true, page_size: 2 });
 
-  const loading = loadingCategorias || loadingTrilhas || loadingCursos;
-  const error = errorCategorias || errorTrilhas || errorCursos;
+  const loading = loadingCategorias /* || loadingTrilhas */ || loadingCursos;
+  const error = errorCategorias /* || errorTrilhas */ || errorCursos;
 
 // Estatísticas
 const calcularEstatisticas = (cursos: Curso[] = []) => {
@@ -108,7 +109,7 @@ const calcularEstatisticas = (cursos: Curso[] = []) => {
         <button 
           onClick={() => {
             if (errorCategorias) useCategorias({ page_size: 6 }).refetch();
-            if (errorTrilhas) useTrilhas({ page_size: 6 }).refetch();
+            // if (errorTrilhas) useTrilhas({ page_size: 6 }).refetch();
             if (errorCursos) useCursos({ destaque: true, page_size: 2 }).refetch();
           }}
           className="mt-4 px-4 py-2 bg-red-500 hover:bg-red-600 text-white rounded-lg transition-colors"
@@ -166,8 +167,9 @@ const calcularEstatisticas = (cursos: Curso[] = []) => {
         </div>
       )}
       
+      {/* TODO: Trilhas de Formação - Comentado temporariamente */}
       {/* Trilhas Section */}
-      {trilhas && trilhas.length > 0 && (
+      {/* {trilhas && trilhas.length > 0 && (
         <div>
           <div className="flex items-center justify-between mb-6">
             <h2 className="text-2xl font-bold text-white">Trilhas de Formação</h2>
@@ -200,7 +202,7 @@ const calcularEstatisticas = (cursos: Curso[] = []) => {
             ))}
           </div>
         </div>
-      )}
+      )} */}
       {/* Cursos em Destaq  ue Section */}
       {cursosDestaque && cursosDestaque.length > 0 && (
         
