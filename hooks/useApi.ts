@@ -58,8 +58,16 @@ export function useCursos(filters?: {
   destaque?: boolean;
 }) {
   const params = filters ? { ...filters } : {};
-  return useApi<any[]>(`/academy/cursos/`, [JSON.stringify(params)]);
-}
+
+  // Transforma objeto em string: "categoria=python&nivel=iniciante"
+  const queryString = new URLSearchParams(params as Record<string, string>).toString(); 
+  
+  // Monta a URL final com a interrogação
+  const endpoint = `/academy/cursos/${queryString ? `?${queryString}` : ''}`;
+  
+  // Passa a URL dinâmica
+  return useApi<any[]>(endpoint, [queryString]);
+  }
 
 export function useCurso(slug: string) {
   return useApi<any>(`/academy/cursos/${slug}/`, [slug]);
