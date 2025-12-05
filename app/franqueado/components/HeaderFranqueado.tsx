@@ -1,14 +1,13 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useAuth } from '@/context/AuthContext'
 import Image from 'next/image'
 import Logo from '@/public/LOGO-DAMAFACE-HORIZONTAL-BRANCO.png'
-import { useRouter } from 'next/navigation' // [MODIFICADO] Importa o useRouter
+import { useRouter } from 'next/navigation'
 
-// [MODIFICADO] Imports para SWR e sua API
 import useSWR from 'swr'
-import { apiBackend } from '@/lib/api-backend' // Verifique se este é o path correto
+import { apiBackend } from '@/lib/api-backend'
 
 import {
   Bell,
@@ -18,9 +17,10 @@ import {
   LogOut,
   Settings,
   HelpCircle,
+  Loader2,
 } from 'lucide-react'
 
-// --- [MODIFICADO] Tipos de dados ---
+// --- Tipos de dados ---
 interface Notification {
   id: number
   title: string
@@ -28,94 +28,145 @@ interface Notification {
   unread: boolean
   link: string | null
 }
-// Novo tipo para a resposta combinada da API
+
 interface NotificationResponse {
   results: Notification[]
   unread_count: number
-  // (inclui campos de paginação como 'count', 'next', 'previous')
+  count: number
+  next: string | null
+  previous: string | null
 }
 
-// --- Fetcher (Mantido) ---
-// O fetcher agora espera receber a resposta combinada
-const fetcher = (url: string) =>
-  apiBackend.get<NotificationResponse>(url)
+// --- Fetcher ---
+const fetcher = (url: string) => apiBackend.get<NotificationResponse>(url)
 
 const HeaderDashboard = () => {
-  // --- Estados (Mantido) ---
+  // --- Estados ---
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [profileDropdownOpen, setProfileDropdownOpen] = useState(false)
   const [notificationsOpen, setNotificationsOpen] = useState(false)
   const [isLoggingOut, setIsLoggingOut] = useState(false)
+  
+  // Estados para paginação
+  const [currentPage, setCurrentPage] = useState(1)
+  const [allNotifications, setAllNotifications] = useState<Notification[]>([])
+  const [isLoadingMore, setIsLoadingMore] = useState(false)
+  
   const { user, logout } = useAuth()
-  const router = useRouter() // [ADICIONADO] Hook do Next.js para navegação
+  const router = useRouter()
+  
+  // Refs para fechar dropdowns ao clicar fora
+  const notificationRef = useRef<HTMLDivElement>(null)
+  const profileRef = useRef<HTMLDivElement>(null)
 
-  // --- [MODIFICADO] Lógica de busca de dados com SWR ---
-  // Agora temos UM SÓ HOOK para buscar TUDO de notificações
+  // --- SWR para buscar notificações ---
+  const pageSize = 10 // Número de notificações por página
   const { data: notificationData, mutate: mutateNotifications } =
     useSWR<NotificationResponse>(
-      '/notificacoes/', // Endpoint único
+      `/notificacoes/?page=${currentPage}&page_size=${pageSize}`,
       fetcher,
       {
-        refreshInterval: 60000, // Atualiza a cada 60 segundos
-        revalidateOnFocus: true, // Revalida quando o usuário volta para a aba
+        refreshInterval: 60000,
+        revalidateOnFocus: true,
+        onSuccess: (data) => {
+          // Quando os dados chegam, atualiza a lista acumulada
+          if (currentPage === 1) {
+            setAllNotifications(data.results)
+          } else {
+            setAllNotifications((prev) => [...prev, ...data.results])
+          }
+          setIsLoadingMore(false)
+        },
       },
     )
 
-  // Extrai os dados do hook único
-  const notifications = notificationData?.results
   const unreadCount = notificationData?.unread_count || 0
-  // --- Fim da Lógica SWR ---
+  const hasMorePages = notificationData?.next !== null
 
-  // --- [MODIFICADO] Funções de Interação (Mutações Otimistas) ---
+  // --- Efeito para fechar dropdowns ao clicar fora ---
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (
+        notificationRef.current &&
+        !notificationRef.current.contains(event.target as Node)
+      ) {
+        setNotificationsOpen(false)
+      }
+      if (
+        profileRef.current &&
+        !profileRef.current.contains(event.target as Node)
+      ) {
+        setProfileDropdownOpen(false)
+      }
+    }
 
+    document.addEventListener('mousedown', handleClickOutside)
+    return () => document.removeEventListener('mousedown', handleClickOutside)
+  }, [])
+
+  // --- Função para carregar mais notificações ---
+  const handleLoadMore = () => {
+    if (!isLoadingMore && hasMorePages) {
+      setIsLoadingMore(true)
+      setCurrentPage((prev) => prev + 1)
+    }
+  }
+
+  // --- Reset ao abrir notificações ---
+  const handleToggleNotifications = () => {
+    if (!notificationsOpen) {
+      // Ao abrir, reseta para a primeira página
+      setCurrentPage(1)
+      setAllNotifications([])
+    }
+    setNotificationsOpen(!notificationsOpen)
+  }
+
+  // --- Funções de Interação ---
   const handleMarkAsRead = async (id: number) => {
-    // 1. Atualiza a UI local instantaneamente (Optimistic UI)
+    // Atualiza localmente
+    setAllNotifications((prev) =>
+      prev.map((n) => (n.id === id ? { ...n, unread: false } : n))
+    )
+
+    // Atualiza o contador global via mutate
     mutateNotifications(
       (currentData) => {
-        if (!currentData) return undefined // Segurança
-        
-        // Retorna a nova estrutura de dados completa
+        if (!currentData) return undefined
         return {
           ...currentData,
           unread_count: Math.max(0, currentData.unread_count - 1),
-          results: currentData.results.map((n) =>
-            n.id === id ? { ...n, unread: false } : n,
-          ),
         }
       },
-      false, // 'false' = não revalidar ainda
+      false,
     )
 
-    // 2. Tenta a chamada de API em segundo plano
     try {
       await apiBackend.post(`/notificacoes/${id}/marcar-como-lida/`)
-      // Opcional: Revalida para garantir sincronia (bom, mas não obrigatório)
       mutateNotifications()
     } catch (error) {
       console.error('Erro ao marcar como lida:', error)
-      // Se falhar, o SWR reverte os dados na próxima revalidação
     }
   }
 
   const handleMarkAllAsRead = async () => {
-    // 1. Atualiza a UI local instantaneamente (Optimistic UI)
+    // Atualiza todas as notificações localmente
+    setAllNotifications((prev) => prev.map((n) => ({ ...n, unread: false })))
+
     mutateNotifications(
       (currentData) => {
         if (!currentData) return undefined
         return {
           ...currentData,
           unread_count: 0,
-          results: currentData.results.map((n) => ({ ...n, unread: false })),
         }
       },
       false,
     )
-    setNotificationsOpen(false) // Fecha o dropdown
+    setNotificationsOpen(false)
 
-    // 2. Tenta a chamada de API em segundo plano
     try {
       await apiBackend.post('/notificacoes/marcar-todas-como-lidas/')
-      // Revalida para garantir
       mutateNotifications()
     } catch (error) {
       console.error('Erro ao marcar todas como lidas:', error)
@@ -126,25 +177,20 @@ const HeaderDashboard = () => {
     if (notification.unread) {
       handleMarkAsRead(notification.id)
     }
-    
+
     if (notification.link) {
-      router.push(notification.link) // Usa o router
+      router.push(notification.link)
     }
-    
+
     setNotificationsOpen(false)
   }
 
   const handleLogout = async () => {
-    setIsLoggingOut(true) // Define o estado para "saindo..."
+    setIsLoggingOut(true)
     try {
-      // Chama a função logout original do seu AuthContext
       await logout()
-      
-      // Se o logout for bem-sucedido, o usuário será redirecionado
-      // e o componente desmontado, então não precisamos redefinir o estado.
     } catch (error) {
       console.error('Erro ao fazer logout:', error)
-      // Se o logout falhar, redefina o botão para o estado normal
       setIsLoggingOut(false)
     }
   }
@@ -157,7 +203,7 @@ const HeaderDashboard = () => {
   return (
     <header className="fixed top-0 left-0 right-0 bg-gray-800 border-b border-gray-700 z-40 h-16">
       <div className="flex items-center justify-between h-full px-4 relative">
-        {/* Logo desktop canto esquerdo (Original - Mantido) */}
+        {/* Logo desktop */}
         <div className="absolute top-0 left-0 h-16 hidden md:flex items-center pl-4">
           <Image
             src={Logo}
@@ -167,9 +213,8 @@ const HeaderDashboard = () => {
           />
         </div>
 
-        {/* Seção esquerda (Original - Mantido) */}
+        {/* Seção esquerda */}
         <div className="flex items-center space-x-4">
-          {/* Botão menu mobile */}
           <button
             onClick={() => setSidebarOpen(!sidebarOpen)}
             className="md:hidden p-2 rounded-lg hover:bg-gray-700"
@@ -179,7 +224,7 @@ const HeaderDashboard = () => {
           </button>
         </div>
 
-        {/* Logo centralizada no mobile (Original - Mantido) */}
+        {/* Logo mobile centralizada */}
         <div className="absolute left-1/2 transform -translate-x-1/2 flex md:hidden items-center">
           <Image
             src={Logo}
@@ -192,85 +237,126 @@ const HeaderDashboard = () => {
         {/* Lado direito */}
         <div className="flex items-center space-x-4 ml-auto">
           {/* Notifications Dropdown */}
-          <div className="relative">
+          <div className="relative" ref={notificationRef}>
             <button
-              onClick={() => setNotificationsOpen(!notificationsOpen)}
-              className="relative p-2 rounded-lg hover:bg-gray-700"
-              aria-label={`Abrir notificações (${unreadCount} não lidas)`} // [ADICIONADO] Acessibilidade
+              onClick={handleToggleNotifications}
+              className="relative p-2 rounded-lg hover:bg-gray-700 transition-colors"
+              aria-label={`Abrir notificações (${unreadCount} não lidas)`}
             >
               <Bell className="w-5 h-5 text-gray-300" />
-              {/* [MODIFICADO] Lê do 'unreadCount' que vem do hook único */}
               {unreadCount > 0 && (
-                <span className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 text-white text-xs rounded-full flex items-center justify-center">
-                  {unreadCount}
+                <span className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 text-white text-xs rounded-full flex items-center justify-center font-semibold">
+                  {unreadCount > 99 ? '99+' : unreadCount}
                 </span>
               )}
             </button>
 
             {/* Notifications Dropdown */}
             {notificationsOpen && (
-              <div className="absolute right-0 top-12 w-80 bg-gray-800 rounded-lg shadow-lg border border-gray-700 py-2 z-50 animate-fade-in">
-                <div className="px-4 py-2 border-b border-gray-700 flex justify-between items-center">
+              <div className="absolute right-0 top-12 w-80 sm:w-96 bg-gray-800 rounded-lg shadow-xl border border-gray-700 z-50 overflow-hidden">
+                {/* Header */}
+                <div className="px-4 py-3 border-b border-gray-700 flex justify-between items-center bg-gray-750">
                   <h3 className="font-semibold text-white">Notificações</h3>
                   {unreadCount > 0 && (
                     <button
                       onClick={handleMarkAllAsRead}
-                      className="text-xs text-blue-400 hover:text-blue-300"
+                      className="text-xs text-blue-400 hover:text-blue-300 transition-colors"
                     >
                       Marcar todas como lidas
                     </button>
                   )}
                 </div>
-                
-                {/* [MODIFICADO] Lógica de renderização agora checa 'notifications' (que está dentro de 'notificationData') */}
-                {!notificationData ? ( // Checa 'notificationData' (a resposta inteira)
-                  <div className="px-4 py-3 text-center text-sm text-gray-400">
-                    Carregando...
-                  </div>
-                ) : notifications && notifications.length === 0 ? ( // Checa 'notifications' (a lista interna)
-                  <div className="px-4 py-3 text-center text-sm text-gray-400">
-                    Nenhuma notificação nova.
-                  </div>
-                ) : (
-                  notifications && notifications.map((notification) => ( // Checa 'notifications'
-                    <div
-                      key={notification.id}
-                      className="px-4 py-3 hover:bg-gray-700 cursor-pointer"
-                      onClick={() => handleNotificationClick(notification)}
-                    >
-                      {/* ... (Renderização da notificação - Sem mudanças) ... */}
-                      <div className="flex items-start space-x-3">
+
+                {/* Lista de notificações com scroll */}
+                <div className="max-h-[calc(100vh-200px)] sm:max-h-96 overflow-y-auto">
+                  {!notificationData && currentPage === 1 ? (
+                    <div className="px-4 py-8 text-center">
+                      <Loader2 className="w-6 h-6 text-gray-400 animate-spin mx-auto mb-2" />
+                      <p className="text-sm text-gray-400">Carregando...</p>
+                    </div>
+                  ) : allNotifications.length === 0 ? (
+                    <div className="px-4 py-8 text-center">
+                      <Bell className="w-12 h-12 text-gray-600 mx-auto mb-2" />
+                      <p className="text-sm text-gray-400">
+                        Nenhuma notificação nova.
+                      </p>
+                    </div>
+                  ) : (
+                    <>
+                      {allNotifications.map((notification, index) => (
                         <div
-                          className={`w-2 h-2 rounded-full mt-2 ${
-                            notification.unread
-                              ? 'bg-blue-500'
-                              : 'bg-gray-300'
-                          }`}
-                        />
-                        <div className="flex-1">
-                          <p className="text-sm font-medium text-white">
-                            {notification.title}
-                          </p>
-                          <p className="text-xs text-gray-400">
-                            {notification.time}
+                          key={`${notification.id}-${index}`}
+                          className="px-4 py-3 hover:bg-gray-700 cursor-pointer transition-colors border-b border-gray-700/50 last:border-b-0"
+                          onClick={() => handleNotificationClick(notification)}
+                        >
+                          <div className="flex items-start space-x-3">
+                            <div
+                              className={`w-2 h-2 rounded-full mt-2 flex-shrink-0 ${
+                                notification.unread
+                                  ? 'bg-blue-500'
+                                  : 'bg-gray-500'
+                              }`}
+                            />
+                            <div className="flex-1 min-w-0">
+                              <p
+                                className={`text-sm ${
+                                  notification.unread
+                                    ? 'font-semibold text-white'
+                                    : 'font-normal text-gray-300'
+                                }`}
+                              >
+                                {notification.title}
+                              </p>
+                              <p className="text-xs text-gray-400 mt-1">
+                                {notification.time}
+                              </p>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+
+                      {/* Botão "Carregar Mais" */}
+                      {hasMorePages && (
+                        <div className="px-4 py-3 border-t border-gray-700">
+                          <button
+                            onClick={handleLoadMore}
+                            disabled={isLoadingMore}
+                            className="w-full py-2 text-sm text-blue-400 hover:text-blue-300 disabled:text-gray-500 transition-colors flex items-center justify-center space-x-2"
+                          >
+                            {isLoadingMore ? (
+                              <>
+                                <Loader2 className="w-4 h-4 animate-spin" />
+                                <span>Carregando...</span>
+                              </>
+                            ) : (
+                              <span>Carregar mais notificações</span>
+                            )}
+                          </button>
+                        </div>
+                      )}
+
+                      {/* Indicador de fim */}
+                      {!hasMorePages && allNotifications.length > 5 && (
+                        <div className="px-4 py-3 text-center border-t border-gray-700">
+                          <p className="text-xs text-gray-500">
+                            Todas as notificações foram carregadas
                           </p>
                         </div>
-                      </div>
-                    </div>
-                  ))
-                )}
+                      )}
+                    </>
+                  )}
+                </div>
               </div>
             )}
           </div>
 
-          {/* Profile Dropdown (Original - Mantido) */}
-          <div className="relative">
+          {/* Profile Dropdown */}
+          <div className="relative" ref={profileRef}>
             <button
               onClick={() => setProfileDropdownOpen(!profileDropdownOpen)}
-              className="flex items-center space-x-2 p-2 rounded-lg hover:bg-gray-700"
-              aria-label="Abrir menu do perfil" // [ADICIONADO] Acessibilidade
+              className="flex items-center space-x-2 p-2 rounded-lg hover:bg-gray-700 transition-colors"
+              aria-label="Abrir menu do perfil"
             >
-              {/* --- Bloco de Imagem/Ícone (Original - Mantido) --- */}
               <div className="size-8 rounded-full flex items-center justify-center overflow-hidden bg-gray-700">
                 {imageUrl ? (
                   <Image
@@ -290,38 +376,42 @@ const HeaderDashboard = () => {
               <ChevronDown className="w-4 h-4 text-gray-300 hidden sm:block" />
             </button>
 
-            {/* Profile Dropdown Menu (Original - Mantido) */}
+            {/* Profile Dropdown Menu */}
             {profileDropdownOpen && (
-              <div className="absolute right-0 top-12 w-48 bg-gray-800 rounded-lg shadow-lg border border-gray-700 py-2 z-50 animate-fade-in">
+              <div className="absolute right-0 top-12 w-48 bg-gray-800 rounded-lg shadow-xl border border-gray-700 py-2 z-50">
                 <div className="px-4 py-2 border-b border-gray-700">
-                  <p className="font-semibold text-white">{user?.nome}</p>
-                  <p className="text-xs text-gray-400">{user?.email}</p>
+                  <p className="font-semibold text-white truncate">
+                    {user?.nome}
+                  </p>
+                  <p className="text-xs text-gray-400 truncate">
+                    {user?.email}
+                  </p>
                 </div>
                 <a
                   href="/franqueado/settings"
-                  className="w-full px-4 py-2 text-left hover:bg-gray-700 flex items-center space-x-2"
+                  className="w-full px-4 py-2 text-left hover:bg-gray-700 flex items-center space-x-2 transition-colors"
                 >
                   <Settings className="w-4 h-4 text-gray-400" />
                   <span className="text-sm text-gray-300">Configurações</span>
                 </a>
                 <a
                   href="/franqueado/ajuda"
-                  className="w-full px-4 py-2 text-left hover:bg-gray-700 flex items-center space-x-2"
+                  className="w-full px-4 py-2 text-left hover:bg-gray-700 flex items-center space-x-2 transition-colors"
                 >
                   <HelpCircle className="w-4 h-4 text-gray-400" />
                   <span className="text-sm text-gray-300">Ajuda</span>
                 </a>
                 <hr className="my-2 border-gray-700" />
                 <button
-                    onClick={handleLogout} 
-                    disabled={isLoggingOut}
-                    className="w-full px-4 py-2 text-left hover:bg-gray-700 flex items-center space-x-2 text-red-400 disabled:opacity-70 disabled:cursor-not-allowed" // <--- ADICIONADO (disabled styles)
-                  >
-                    <LogOut className="w-4 h-4" />
-                    <span className="text-sm">
-                      {isLoggingOut ? 'Saindo...' : 'Sair'} 
-                    </span>
-                  </button>
+                  onClick={handleLogout}
+                  disabled={isLoggingOut}
+                  className="w-full px-4 py-2 text-left hover:bg-gray-700 flex items-center space-x-2 text-red-400 disabled:opacity-70 disabled:cursor-not-allowed transition-colors"
+                >
+                  <LogOut className="w-4 h-4" />
+                  <span className="text-sm">
+                    {isLoggingOut ? 'Saindo...' : 'Sair'}
+                  </span>
+                </button>
               </div>
             )}
           </div>
