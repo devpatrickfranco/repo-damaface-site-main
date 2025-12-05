@@ -272,12 +272,13 @@ export default function RenderManageCourses() {
         categoria: wizard.formData.categoriaId,
         nivel: wizard.formData.nivel,
         duracao: wizard.formData.duracao,
-        publicado: true,
-        destaque: false,
+        publicado: wizard.formData.publicado ?? true,
+        destaque: wizard.formData.destaque ?? false,
+        certificado: wizard.formData.certificado ?? false,
         modulos: modulosFormatted,
         materiais: materiaisFormatted,
       };
-  
+
       if (wizard.formData.status === "Pago") {
         payload.preco = wizard.formData.preco;
       }
@@ -304,7 +305,12 @@ export default function RenderManageCourses() {
           } else {
             // Trata null/undefined para não virar string "null"
             if (value !== null && value !== undefined) {
+              // Para booleanos, converte para string "true"/"false" explicitamente
+              if (typeof value === "boolean") {
+                formData.append(key, value ? "true" : "false");
+              } else {
                 formData.append(key, String(value));
+              }
             }
           }
         });
