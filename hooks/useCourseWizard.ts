@@ -19,6 +19,8 @@ export interface CourseFormData {
   status: "Livre" | "Pago";
   preco?: number;
   publicado?: boolean;
+  destaque?: boolean;
+  certificado?: boolean;
 }
 
 export interface CurrentPerguntaState {
@@ -56,6 +58,8 @@ const initialFormData: CourseFormData = {
   status: "Livre",
   preco: undefined,
   publicado: true,
+  destaque: false,
+  certificado: false,
 };
 
 export function useCourseWizard(initialCourse?: Curso | null) {

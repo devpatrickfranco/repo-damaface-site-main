@@ -87,6 +87,7 @@ export interface Curso {
   preco?: number;
   progresso?: Progresso; // Adjusted to reflect the expected structure
   destaque?: boolean;
+  certificado?: boolean;
   modulos: Modulo[];
   avaliacoesAlunos: AvaliacaoAluno[];
   materiais?: materiais[];
