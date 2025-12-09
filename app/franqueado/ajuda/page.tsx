@@ -110,34 +110,50 @@ const AIHelpPage = () => {
       }
 
       const responseText = await response.text();
+      const contentType = response.headers.get('content-type') || '';
       console.log('📄 [WEBHOOK] Corpo da resposta (texto):', {
         raw: responseText,
         length: responseText.length,
+        contentType: contentType,
         timestamp: new Date().toISOString()
       });
 
-      let data;
-      try {
-        data = JSON.parse(responseText);
-        console.log('✅ [WEBHOOK] JSON parseado com sucesso:', {
-          data: data,
-          keys: Object.keys(data),
-          hasOutput: 'output' in data,
-          outputValue: data.output,
+      let messageContent: string;
+      
+      // Verifica se a resposta é JSON
+      if (contentType.includes('application/json')) {
+        try {
+          const data = JSON.parse(responseText);
+          console.log('✅ [WEBHOOK] JSON parseado com sucesso:', {
+            data: data,
+            keys: Object.keys(data),
+            hasOutput: 'output' in data,
+            outputValue: data.output,
+            timestamp: new Date().toISOString()
+          });
+          messageContent = data.output || data.message || responseText;
+        } catch (parseError) {
+          console.error('❌ [WEBHOOK] Erro ao fazer parse do JSON:', {
+            error: parseError,
+            responseText: responseText,
+            timestamp: new Date().toISOString()
+          });
+          // Se falhar o parse mas o content-type é JSON, usa o texto como fallback
+          messageContent = responseText.trim() || 'Desculpe, não consegui processar sua pergunta.';
+        }
+      } else {
+        // Resposta é texto HTML ou texto simples - usa diretamente
+        console.log('📝 [WEBHOOK] Resposta é texto (não JSON), usando diretamente:', {
+          contentType: contentType,
+          textLength: responseText.length,
           timestamp: new Date().toISOString()
         });
-      } catch (parseError) {
-        console.error('❌ [WEBHOOK] Erro ao fazer parse do JSON:', {
-          error: parseError,
-          responseText: responseText,
-          timestamp: new Date().toISOString()
-        });
-        throw new Error(`Resposta não é um JSON válido: ${parseError}`);
+        messageContent = responseText.trim() || 'Desculpe, não consegui processar sua pergunta.';
       }
 
       const assistantMessage: Message = {
         id: (Date.now() + 1).toString(),
-        content: data.output || 'Desculpe, não consegui processar sua pergunta.',
+        content: messageContent,
         role: 'assistant',
         timestamp: new Date()
       };
