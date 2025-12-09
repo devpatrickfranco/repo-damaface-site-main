@@ -76,47 +76,18 @@ const AIHelpPage = () => {
     setIsLoading(true);
 
     try {
-      const requestBody = { message: textToSend };
-      console.log('📤 [WEBHOOK] Enviando requisição:', {
-        url: 'https://n8n-n8n.i4khe5.easypanel.host/webhook/ajuda',
-        method: 'POST',
-        body: requestBody,
-        timestamp: new Date().toISOString()
-      });
-
       const response = await fetch('https://n8n-n8n.i4khe5.easypanel.host/webhook/ajuda', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(requestBody)
-      });
-
-      console.log('📥 [WEBHOOK] Resposta recebida:', {
-        status: response.status,
-        statusText: response.statusText,
-        ok: response.ok,
-        headers: Object.fromEntries(response.headers.entries()),
-        timestamp: new Date().toISOString()
+        body: JSON.stringify({ message: textToSend })
       });
 
       if (!response.ok) {
-        const errorText = await response.text();
-        console.error('❌ [WEBHOOK] Erro na resposta:', {
-          status: response.status,
-          statusText: response.statusText,
-          body: errorText,
-          timestamp: new Date().toISOString()
-        });
-        throw new Error(`Erro ao buscar resposta: ${response.status} ${response.statusText}`);
+        throw new Error('Erro ao buscar resposta');
       }
 
       const responseText = await response.text();
       const contentType = response.headers.get('content-type') || '';
-      console.log('📄 [WEBHOOK] Corpo da resposta (texto):', {
-        raw: responseText,
-        length: responseText.length,
-        contentType: contentType,
-        timestamp: new Date().toISOString()
-      });
 
       let messageContent: string;
       
@@ -124,30 +95,13 @@ const AIHelpPage = () => {
       if (contentType.includes('application/json')) {
         try {
           const data = JSON.parse(responseText);
-          console.log('✅ [WEBHOOK] JSON parseado com sucesso:', {
-            data: data,
-            keys: Object.keys(data),
-            hasOutput: 'output' in data,
-            outputValue: data.output,
-            timestamp: new Date().toISOString()
-          });
           messageContent = data.output || data.message || responseText;
         } catch (parseError) {
-          console.error('❌ [WEBHOOK] Erro ao fazer parse do JSON:', {
-            error: parseError,
-            responseText: responseText,
-            timestamp: new Date().toISOString()
-          });
           // Se falhar o parse mas o content-type é JSON, usa o texto como fallback
           messageContent = responseText.trim() || 'Desculpe, não consegui processar sua pergunta.';
         }
       } else {
         // Resposta é texto HTML ou texto simples - usa diretamente
-        console.log('📝 [WEBHOOK] Resposta é texto (não JSON), usando diretamente:', {
-          contentType: contentType,
-          textLength: responseText.length,
-          timestamp: new Date().toISOString()
-        });
         messageContent = responseText.trim() || 'Desculpe, não consegui processar sua pergunta.';
       }
 
@@ -158,19 +112,9 @@ const AIHelpPage = () => {
         timestamp: new Date()
       };
 
-      console.log('💬 [WEBHOOK] Mensagem do assistente criada:', {
-        message: assistantMessage,
-        timestamp: new Date().toISOString()
-      });
-
       setMessages(prev => [...prev, assistantMessage]);
     } catch (error) {
-      console.error('❌ [WEBHOOK] Erro completo ao enviar mensagem:', {
-        error: error,
-        errorMessage: error instanceof Error ? error.message : String(error),
-        errorStack: error instanceof Error ? error.stack : undefined,
-        timestamp: new Date().toISOString()
-      });
+      console.error('Erro ao enviar mensagem:', error);
       setMessages(prev => [
         ...prev,
         {
