@@ -114,7 +114,7 @@ export default function Dashboard() {
     <>
           <div className="p-6 space-y-6">
 
-            <div className="-mx-6 -mt-6 w-[calc(100%+3rem)] mb-2">
+            <div className="-mx-10 -mt-10  w-[calc(100%+5rem)] mb-2">
               <Banner />
             </div>
 
