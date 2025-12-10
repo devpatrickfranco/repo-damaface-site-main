@@ -1,7 +1,6 @@
 "use client"
 
-import type React from "react"
-import { useState, useRef, useMemo } from "react"
+import React, { useState, useRef, useMemo } from "react"
 import {
   Folder,
   type File,
@@ -132,6 +131,8 @@ export default function MarketingPage() {
   const [searchQuery, setSearchQuery] = useState("")
   const [showMoveModal, setShowMoveModal] = useState(false)
   const [moveTargetId, setMoveTargetId] = useState<string | null>(null)
+  const [moveBrowseFolderId, setMoveBrowseFolderId] = useState<string | null>(null)
+  const [moveSearch, setMoveSearch] = useState("")
   const fileInputRef = useRef<HTMLInputElement>(null)
   const folderInputRef = useRef<HTMLInputElement>(null)
 
@@ -198,6 +199,33 @@ export default function MarketingPage() {
         .sort((a, b) => a.label.localeCompare(b.label)),
     [files]
   )
+
+  // Pastas dentro da navegação atual do modal de mover
+  const moveChildren = useMemo(
+    () => files.filter((f) => f.type === "folder" && f.parentId === moveBrowseFolderId),
+    [files, moveBrowseFolderId]
+  )
+
+  // Breadcrumb para a navegação do modal de mover
+  const moveBreadcrumb = useMemo(() => {
+    const path: FileItem[] = []
+    let currentId = moveBrowseFolderId
+    while (currentId) {
+      const folder = files.find((f) => f.id === currentId && f.type === "folder")
+      if (!folder) break
+      path.unshift(folder)
+      currentId = folder.parentId
+    }
+    return path
+  }, [files, moveBrowseFolderId])
+
+  // Busca global por pastas pelo nome
+  const moveSearchResults = useMemo(() => {
+    if (!moveSearch.trim()) return []
+    return files.filter(
+      (f) => f.type === "folder" && f.name.toLowerCase().includes(moveSearch.toLowerCase())
+    )
+  }, [files, moveSearch])
 
   // Navegar para uma pasta
   const navigateToFolder = (folderId: string) => {
@@ -699,7 +727,7 @@ export default function MarketingPage() {
         {showMoveModal && selectedFileId && (
           <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
             <div className="bg-gray-800 border border-gray-700 rounded-2xl w-full max-w-lg shadow-2xl">
-              <div className="p-6 space-y-4">
+              <div className="p-6 space-y-5">
                 <div>
                   <h3 className="text-xl font-semibold">Mover arquivo</h3>
                   <p className="text-sm text-gray-400 mt-1">
@@ -710,36 +738,144 @@ export default function MarketingPage() {
                   </p>
                 </div>
 
-                <div className="space-y-2 max-h-72 overflow-y-auto pr-1">
-                  <button
-                    onClick={() => setMoveTargetId(null)}
-                    className={`w-full flex items-center gap-2 px-3 py-2 rounded-lg border transition-colors ${
-                      moveTargetId === null
-                        ? "border-brand-pink text-white bg-brand-pink/10"
-                        : "border-gray-700 text-gray-300 hover:border-gray-600 hover:text-white"
-                    }`}
-                  >
-                    <Home size={16} />
-                    <span>Meus Arquivos (raiz)</span>
-                  </button>
+                {/* Busca e navegação */}
+                <div className="space-y-3">
+                  <div className="relative">
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500" size={16} />
+                    <input
+                      type="text"
+                      value={moveSearch}
+                      onChange={(e) => setMoveSearch(e.target.value)}
+                      placeholder="Buscar pasta pelo nome..."
+                      className="w-full pl-10 pr-10 py-2.5 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-brand-pink focus:border-transparent"
+                    />
+                    {moveSearch && (
+                      <button
+                        onClick={() => setMoveSearch("")}
+                        className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-white"
+                      >
+                        <X size={16} />
+                      </button>
+                    )}
+                  </div>
 
-                  {folderOptions.length === 0 && (
-                    <p className="text-sm text-gray-500 px-1">Nenhuma pasta disponível.</p>
-                  )}
-
-                  {folderOptions.map((folder) => (
+                  {/* Breadcrumb de navegação */}
+                  <div className="flex items-center gap-1 text-xs text-gray-400">
                     <button
-                      key={folder.id}
-                      onClick={() => setMoveTargetId(folder.id)}
-                      className={`w-full text-left px-3 py-2 rounded-lg border transition-colors ${
-                        moveTargetId === folder.id
+                      onClick={() => setMoveBrowseFolderId(null)}
+                      className={`flex items-center gap-1 px-2 py-1 rounded-md transition-colors ${
+                        moveBrowseFolderId === null ? "bg-gray-700 text-white" : "hover:bg-gray-700"
+                      }`}
+                    >
+                      <Home size={14} />
+                      <span>Meus Arquivos</span>
+                    </button>
+                    {moveBreadcrumb.map((folder) => (
+                      <React.Fragment key={folder.id}>
+                        <ChevronRight size={14} className="text-gray-600" />
+                        <button
+                          onClick={() => setMoveBrowseFolderId(folder.id)}
+                          className={`px-2 py-1 rounded-md transition-colors ${
+                            moveBrowseFolderId === folder.id ? "bg-gray-700 text-white" : "hover:bg-gray-700"
+                          }`}
+                        >
+                          {folder.name}
+                        </button>
+                      </React.Fragment>
+                    ))}
+                  </div>
+
+                  {/* Botão selecionar pasta atual */}
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={() => setMoveTargetId(moveBrowseFolderId)}
+                      className={`flex-1 flex items-center gap-2 px-3 py-2 rounded-lg border transition-colors ${
+                        moveTargetId === moveBrowseFolderId
                           ? "border-brand-pink text-white bg-brand-pink/10"
                           : "border-gray-700 text-gray-300 hover:border-gray-600 hover:text-white"
                       }`}
                     >
-                      <span className="text-sm">{folder.label}</span>
+                      <Folder size={16} />
+                      <span>{moveBrowseFolderId ? "Selecionar esta pasta" : "Selecionar raiz"}</span>
                     </button>
-                  ))}
+                  </div>
+
+                  <div className="max-h-72 overflow-y-auto space-y-3 pr-1">
+                    {/* Resultados da busca global */}
+                    {moveSearch.trim() && (
+                      <div>
+                        <p className="text-xs uppercase tracking-wide text-gray-500 mb-2">Resultados da busca</p>
+                        {moveSearchResults.length === 0 && (
+                          <p className="text-sm text-gray-500 px-1">Nenhuma pasta encontrada.</p>
+                        )}
+                        {moveSearchResults.map((folder) => (
+                          <div
+                            key={`search-${folder.id}`}
+                            className="flex items-center justify-between gap-2 px-3 py-2 rounded-lg border border-gray-700 hover:border-gray-600 hover:bg-gray-750 cursor-pointer transition-colors"
+                          >
+                            <button
+                              onClick={() => {
+                                setMoveBrowseFolderId(folder.id)
+                                setMoveSearch("")
+                              }}
+                              className="flex items-center gap-2 text-gray-200 hover:text-white truncate"
+                              title={getFolderFullPath(folder.id)}
+                            >
+                              <Folder size={16} className="text-brand-pink" />
+                              <span className="text-sm truncate">{getFolderFullPath(folder.id)}</span>
+                            </button>
+                            <button
+                              onClick={() => setMoveTargetId(folder.id)}
+                              className={`px-2.5 py-1.5 rounded-md text-xs border transition-colors ${
+                                moveTargetId === folder.id
+                                  ? "border-brand-pink text-white bg-brand-pink/10"
+                                  : "border-gray-600 text-gray-200 hover:border-brand-pink/60"
+                              }`}
+                            >
+                              Selecionar
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+
+                    {/* Pastas na pasta atual */}
+                    <div>
+                      <p className="text-xs uppercase tracking-wide text-gray-500 mb-2">
+                        Pastas em {moveBrowseFolderId ? getFolderFullPath(moveBrowseFolderId) : "Meus Arquivos"}
+                      </p>
+                      {moveChildren.length === 0 && (
+                        <p className="text-sm text-gray-500 px-1">Nenhuma pasta aqui.</p>
+                      )}
+                      {moveChildren
+                        .filter((folder) => folder.name.toLowerCase().includes(moveSearch.toLowerCase()))
+                        .map((folder) => (
+                          <div
+                            key={`child-${folder.id}`}
+                            className="flex items-center justify-between gap-2 px-3 py-2 rounded-lg border border-gray-700 hover:border-gray-600 hover:bg-gray-750 cursor-pointer transition-colors"
+                          >
+                            <button
+                              onClick={() => setMoveBrowseFolderId(folder.id)}
+                              className="flex items-center gap-2 text-gray-200 hover:text-white truncate"
+                            >
+                              <ChevronRight size={14} className="text-gray-500" />
+                              <Folder size={16} className="text-brand-pink" />
+                              <span className="text-sm truncate">{folder.name}</span>
+                            </button>
+                            <button
+                              onClick={() => setMoveTargetId(folder.id)}
+                              className={`px-2.5 py-1.5 rounded-md text-xs border transition-colors ${
+                                moveTargetId === folder.id
+                                  ? "border-brand-pink text-white bg-brand-pink/10"
+                                  : "border-gray-600 text-gray-200 hover:border-brand-pink/60"
+                              }`}
+                            >
+                              Selecionar
+                            </button>
+                          </div>
+                        ))}
+                    </div>
+                  </div>
                 </div>
 
                 <div className="flex justify-end gap-3 pt-2">
@@ -747,6 +883,8 @@ export default function MarketingPage() {
                     onClick={() => {
                       setShowMoveModal(false)
                       setMoveTargetId(null)
+                      setMoveBrowseFolderId(null)
+                      setMoveSearch("")
                     }}
                     className="px-5 py-2.5 bg-gray-700 hover:bg-gray-600 rounded-full transition-colors font-medium"
                   >
@@ -794,6 +932,8 @@ export default function MarketingPage() {
                     const file = files.find((f) => f.id === selectedFileId)
                     if (file?.type === "file") {
                       setMoveTargetId(file.parentId ?? null)
+                      setMoveBrowseFolderId(file.parentId ?? null)
+                      setMoveSearch("")
                       setShowMoveModal(true)
                     }
                   }}
