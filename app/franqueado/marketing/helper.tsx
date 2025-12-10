@@ -1,6 +1,7 @@
 import type React from "react"
 import { FileText, ImageIcon, Video, Music, Archive, FileSpreadsheet, FileCode } from "lucide-react"
 import type { FileItem } from "@/types/marketing"
+import JSZip from "jszip"
 
 export const formatFileSize = (bytes: number): string => {
   if (bytes === 0) return "0 Bytes"
@@ -68,4 +69,68 @@ export const getFolderFullPath = (files: FileItem[], folderId: string): string =
   }
 
   return segments.join(" / ") || "Meus Arquivos"
+}
+
+export const downloadFilesAsZip = async (files: FileItem[], selectedIds: Set<string>) => {
+  const zip = new JSZip()
+  const selectedItems = files.filter((f) => selectedIds.has(f.id))
+  
+  // Função recursiva para adicionar pastas e subpastas ao zip
+  const addFolderToZip = (folderId: string, currentPath: string) => {
+    // Encontrar todos os filhos desta pasta
+    const children = files.filter((f) => f.parentId === folderId)
+    
+    children.forEach((child) => {
+      if (child.type === "file" && child.file) {
+        // Se for arquivo, adiciona ao zip no caminho atual
+        zip.file(`${currentPath}${child.name}`, child.file)
+      } else if (child.type === "folder") {
+        // Se for pasta, cria o caminho e chama recursivamente
+        // O JSZip cria pastas automaticamente baseado no caminho do arquivo, 
+        // mas se a pasta estiver vazia, precisamos criar explicitamente se quisermos que ela apareça
+        const newPath = `${currentPath}${child.name}/`
+        zip.folder(newPath)
+        addFolderToZip(child.id, newPath)
+      }
+    })
+  }
+
+  // Processar itens selecionados na raiz da seleção
+  selectedItems.forEach((item) => {
+    if (item.type === "file" && item.file) {
+      zip.file(item.name, item.file)
+    } else if (item.type === "folder") {
+      const folderPath = `${item.name}/`
+      zip.folder(folderPath)
+      addFolderToZip(item.id, folderPath)
+    }
+  })
+
+  // Gerar o blob e disparar o download
+  try {
+    const content = await zip.generateAsync({ type: "blob" })
+    
+    // Criar nome do arquivo
+    let zipName = "download.zip"
+    if (selectedItems.length === 1) {
+      zipName = `${selectedItems[0].name}.zip`
+    } else if (selectedItems.length > 1) {
+      zipName = `arquivos_marketing_${new Date().toISOString().slice(0, 10)}.zip`
+    }
+
+    // Criar link temporário para download
+    const url = window.URL.createObjectURL(content)
+    const a = document.createElement("a")
+    a.href = url
+    a.download = zipName
+    document.body.appendChild(a)
+    a.click()
+    
+    // Limpeza
+    window.URL.revokeObjectURL(url)
+    document.body.removeChild(a)
+  } catch (error) {
+    console.error("Erro ao gerar ZIP:", error)
+    alert("Erro ao criar arquivo ZIP. Verifique o console.")
+  }
 }

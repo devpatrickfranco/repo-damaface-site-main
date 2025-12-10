@@ -2,7 +2,7 @@
 
 import { useState, useMemo, useCallback } from "react"
 import type { FileItem, FileType } from "@/types/marketing"
-import { getFolderFullPath } from "./helper"
+import { getFolderFullPath, downloadFilesAsZip } from "./helper"
 
 const initialFiles: FileItem[] = [
   {
@@ -275,6 +275,18 @@ export function useFileManager() {
     }
   }, [isSelectionMode, clearSelection])
 
+  const handleDownload = useCallback(async () => {
+    if (selectedIds.size === 0) return
+
+    // Verifica se há pelo menos um arquivo real ou pasta para baixar
+    // Note: Em um cenário real, você precisa garantir que 'item.file' exista para arquivos
+    await downloadFilesAsZip(files, selectedIds)
+    
+    // Opcional: Limpar seleção após download
+    // setSelectedIds(new Set())
+    // setIsSelectionMode(false)
+  }, [files, selectedIds])
+
   return {
     files,
     currentFolderId,
@@ -294,5 +306,8 @@ export function useFileManager() {
     toggleSelectionMode,
     deleteItemsByIds,
     setCurrentFolderId,
+    handleDownload
   }
 }
+
+

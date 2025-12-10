@@ -265,9 +265,3 @@ export async function gerarPDFRelatorio(aluno: Aluno): Promise<void> {
   const fileName = `relatorio-${aluno.usuario.nome.replace(/\s+/g, '-').toLowerCase()}-${new Date().toISOString().split('T')[0]}.pdf`;
   doc.save(fileName);
 }
-
-
-/**
- * Helper fuction de marketing - mock data
- * @returns {FileItem[]} - Array of mock data
- */
