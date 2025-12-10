@@ -23,6 +23,7 @@ import {
   Grid3X3,
   List,
   X,
+  CheckSquare,
 } from "lucide-react"
 
 // Tipos para o sistema de arquivos
@@ -126,6 +127,7 @@ export default function MarketingPage() {
   const [currentFolderId, setCurrentFolderId] = useState<string | null>(null)
   const [selectedFileId, setSelectedFileId] = useState<string | null>(null)
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set())
+  const [isSelectionMode, setIsSelectionMode] = useState(false)
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid")
   const [showCreateFolderModal, setShowCreateFolderModal] = useState(false)
   const [newFolderName, setNewFolderName] = useState("")
@@ -199,13 +201,13 @@ export default function MarketingPage() {
           label: getFolderFullPath(folder.id),
         }))
         .sort((a, b) => a.label.localeCompare(b.label)),
-    [files]
+    [files],
   )
 
   // Pastas dentro da navegação atual do modal de mover
   const moveChildren = useMemo(
     () => files.filter((f) => f.type === "folder" && f.parentId === moveBrowseFolderId),
-    [files, moveBrowseFolderId]
+    [files, moveBrowseFolderId],
   )
 
   // Breadcrumb para a navegação do modal de mover
@@ -224,9 +226,7 @@ export default function MarketingPage() {
   // Busca global por pastas pelo nome
   const moveSearchResults = useMemo(() => {
     if (!moveSearch.trim()) return []
-    return files.filter(
-      (f) => f.type === "folder" && f.name.toLowerCase().includes(moveSearch.toLowerCase())
-    )
+    return files.filter((f) => f.type === "folder" && f.name.toLowerCase().includes(moveSearch.toLowerCase()))
   }, [files, moveSearch])
 
   // Navegar para uma pasta
@@ -235,6 +235,7 @@ export default function MarketingPage() {
     setSelectedFileId(null)
     setSelectedIds(new Set())
     setSearchQuery("")
+    setIsSelectionMode(false)
   }
 
   // Criar nova pasta
@@ -394,7 +395,7 @@ export default function MarketingPage() {
                 readBatch()
               } else {
                 const results = await Promise.all(
-                  entries.map((child) => traverseEntry(child, path ? `${path}/${entry.name}` : entry.name))
+                  entries.map((child) => traverseEntry(child, path ? `${path}/${entry.name}` : entry.name)),
                 )
                 resolve(results.flat())
               }
@@ -427,7 +428,10 @@ export default function MarketingPage() {
     e.stopPropagation()
     setIsDragging(false)
 
-    if (e.dataTransfer?.items && Array.from(e.dataTransfer.items).some((it) => typeof (it as any).webkitGetAsEntry === "function")) {
+    if (
+      e.dataTransfer?.items &&
+      Array.from(e.dataTransfer.items).some((it) => typeof (it as any).webkitGetAsEntry === "function")
+    ) {
       const files = await getFilesFromDataTransferItems(e.dataTransfer.items)
       if (files.length) {
         processUpload(files)
@@ -460,6 +464,7 @@ export default function MarketingPage() {
 
     setSelectedFileId(null)
     setSelectedIds(new Set())
+    setIsSelectionMode(false)
   }
 
   // Deletar arquivo/pasta (e seu conteúdo) em uma única operação
@@ -492,7 +497,7 @@ export default function MarketingPage() {
     }
 
     setFiles((prev) =>
-      prev.map((f) => (f.id === selectedFileId ? { ...f, parentId: destination, modifiedAt: new Date() } : f))
+      prev.map((f) => (f.id === selectedFileId ? { ...f, parentId: destination, modifiedAt: new Date() } : f)),
     )
 
     setShowMoveModal(false)
@@ -501,9 +506,19 @@ export default function MarketingPage() {
     setMoveSearch("")
     setSelectedFileId(null)
     setSelectedIds(new Set())
+    setIsSelectionMode(false)
   }
 
   const toggleSelect = (id: string, isFile: boolean) => {
+    if (!isSelectionMode) {
+      // Fora do modo de seleção, apenas seleciona o arquivo para mostrar na hotbar
+      if (isFile) {
+        setSelectedFileId(id)
+        setSelectedIds(new Set([id]))
+      }
+      return
+    }
+
     setSelectedIds((prev) => {
       const next = new Set(prev)
       if (next.has(id)) {
@@ -524,6 +539,17 @@ export default function MarketingPage() {
   const clearSelection = () => {
     setSelectedIds(new Set())
     setSelectedFileId(null)
+    setIsSelectionMode(false)
+  }
+
+  const toggleSelectionMode = () => {
+    if (isSelectionMode) {
+      clearSelection()
+    } else {
+      setIsSelectionMode(true)
+      setSelectedIds(new Set())
+      setSelectedFileId(null)
+    }
   }
 
   const handleBulkDelete = () => {
@@ -549,9 +575,25 @@ export default function MarketingPage() {
     })
   }
 
+  const handleItemClick = (id: string, isFile: boolean) => {
+    if (isSelectionMode) {
+      toggleSelect(id, isFile)
+    } else if (isFile) {
+      // Seleciona apenas este arquivo para mostrar na hotbar
+      setSelectedFileId(id)
+      setSelectedIds(new Set([id]))
+    }
+  }
+
+  const handleFolderDoubleClick = (folderId: string) => {
+    if (!isSelectionMode) {
+      navigateToFolder(folderId)
+    }
+  }
+
   const folderPath = getFolderPath()
 
-    return (
+  return (
     <div
       className="min-h-screen bg-gray-900 text-white"
       onDragOver={handleDragOver}
@@ -564,42 +606,6 @@ export default function MarketingPage() {
             <p className="text-lg font-medium text-white">Solte para enviar</p>
             <p className="text-sm text-gray-300 mt-1">Arquivos ou pastas serão enviados para a pasta atual</p>
           </div>
-
-          {/* Ações de seleção múltipla */}
-          {selectedIds.size > 0 && (
-            <div className="flex flex-wrap items-center gap-3 p-3 mt-4 rounded-xl bg-gray-800 border border-gray-700">
-              <span className="text-sm text-gray-300">
-                {selectedIds.size} item{selectedIds.size > 1 ? "s" : ""} selecionado{selectedIds.size > 1 ? "s" : ""}
-              </span>
-              <div className="flex items-center gap-2">
-                <button
-                  onClick={handleBulkDownload}
-                  className="flex items-center gap-2 px-3 py-2 bg-gray-700 hover:bg-gray-600 rounded-lg text-sm transition-colors"
-                >
-                  <Download size={16} />
-                  <span>Download</span>
-                </button>
-                <button
-                  onClick={() => {
-                    if (confirm("Excluir os itens selecionados?")) {
-                      handleBulkDelete()
-                    }
-                  }}
-                  className="flex items-center gap-2 px-3 py-2 bg-red-700 hover:bg-red-600 rounded-lg text-sm transition-colors"
-                >
-                  <Trash2 size={16} />
-                  <span>Excluir</span>
-                </button>
-                <button
-                  onClick={clearSelection}
-                  className="flex items-center gap-2 px-3 py-2 bg-gray-700 hover:bg-gray-600 rounded-lg text-sm transition-colors"
-                >
-                  <X size={16} />
-                  <span>Limpar</span>
-                </button>
-              </div>
-            </div>
-          )}
         </div>
       )}
       <div className="max-w-7xl mx-auto p-6">
@@ -667,6 +673,18 @@ export default function MarketingPage() {
               <span>Nova Pasta</span>
             </button>
 
+            <button
+              onClick={toggleSelectionMode}
+              className={`flex items-center gap-2 px-4 py-2.5 rounded-full transition-colors font-medium text-sm border ${
+                isSelectionMode
+                  ? "bg-brand-pink text-white border-brand-pink"
+                  : "bg-gray-700 hover:bg-gray-600 border-gray-600"
+              }`}
+            >
+              <CheckSquare size={18} />
+              <span>{isSelectionMode ? "Cancelar seleção" : "Selecionar"}</span>
+            </button>
+
             <div className="flex-1" />
 
             <div className="flex items-center bg-gray-800 rounded-full p-1 border border-gray-700">
@@ -700,6 +718,7 @@ export default function MarketingPage() {
               setSelectedFileId(null)
               setSelectedIds(new Set())
               setSearchQuery("")
+              setIsSelectionMode(false)
             }}
             className="flex items-center gap-1.5 px-2 py-1 rounded-md hover:bg-gray-800 text-gray-300 hover:text-white transition-colors"
           >
@@ -749,47 +768,51 @@ export default function MarketingPage() {
                     {folders.map((item) => (
                       <div
                         key={item.id}
-                        onDoubleClick={() => navigateToFolder(item.id)}
-                        onClick={() => toggleSelect(item.id, false)}
+                        onDoubleClick={() => handleFolderDoubleClick(item.id)}
+                        onClick={() => handleItemClick(item.id, false)}
                         className={`group relative bg-gray-800/50 hover:bg-gray-800 border border-gray-700/50 hover:border-gray-600 rounded-xl p-4 cursor-pointer transition-all duration-200 ${
                           selectedIds.has(item.id) ? "ring-2 ring-brand-pink bg-gray-800" : ""
                         }`}
                       >
-                        <input
-                          type="checkbox"
-                          checked={selectedIds.has(item.id)}
-                          onChange={() => toggleSelect(item.id, false)}
-                          className="absolute top-2 left-2 h-4 w-4 rounded border-gray-500 bg-gray-800 text-brand-pink focus:ring-brand-pink"
-                          onClick={(e) => e.stopPropagation()}
-                        />
-                        {/* Ações rápidas para pasta */}
-                        <div className="absolute top-2 right-2 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                          <button
-                            onClick={(e) => {
-                              e.stopPropagation()
-                              const newName = prompt("Novo nome da pasta:", item.name)
-                              if (newName && newName.trim()) {
-                                handleRename(item.id, newName.trim())
-                              }
-                            }}
-                            className="p-2 bg-gray-700 hover:bg-gray-600 rounded-md transition-colors"
-                            title="Renomear pasta"
-                          >
-                            <Edit size={16} />
-                          </button>
-                          <button
-                            onClick={(e) => {
-                              e.stopPropagation()
-                              if (confirm("Excluir esta pasta e todo o conteúdo dentro dela?")) {
-                                handleDelete(item.id)
-                              }
-                            }}
-                            className="p-2 bg-red-700/80 hover:bg-red-600 rounded-md transition-colors"
-                            title="Excluir pasta"
-                          >
-                            <Trash2 size={16} />
-                          </button>
-                        </div>
+                        {isSelectionMode && (
+                          <input
+                            type="checkbox"
+                            checked={selectedIds.has(item.id)}
+                            onChange={() => toggleSelect(item.id, false)}
+                            className="absolute top-2 left-2 h-4 w-4 rounded border-gray-500 bg-gray-800 text-brand-pink focus:ring-brand-pink"
+                            onClick={(e) => e.stopPropagation()}
+                          />
+                        )}
+                        {/* Ações rápidas para pasta - só aparecem fora do modo de seleção */}
+                        {!isSelectionMode && (
+                          <div className="absolute top-2 right-2 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation()
+                                const newName = prompt("Novo nome da pasta:", item.name)
+                                if (newName && newName.trim()) {
+                                  handleRename(item.id, newName.trim())
+                                }
+                              }}
+                              className="p-2 bg-gray-700 hover:bg-gray-600 rounded-md transition-colors"
+                              title="Renomear pasta"
+                            >
+                              <Edit size={16} />
+                            </button>
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation()
+                                if (confirm("Excluir esta pasta e todo o conteúdo dentro dela?")) {
+                                  handleDelete(item.id)
+                                }
+                              }}
+                              className="p-2 bg-red-700/80 hover:bg-red-600 rounded-md transition-colors"
+                              title="Excluir pasta"
+                            >
+                              <Trash2 size={16} />
+                            </button>
+                          </div>
+                        )}
 
                         <div className="flex flex-col items-center text-center">
                           <div className="mb-3 p-3 rounded-xl bg-gray-700/50 group-hover:bg-gray-700 transition-colors">
@@ -811,19 +834,21 @@ export default function MarketingPage() {
                     {folders.map((item) => (
                       <div
                         key={item.id}
-                        onDoubleClick={() => navigateToFolder(item.id)}
-                        onClick={() => toggleSelect(item.id, false)}
+                        onDoubleClick={() => handleFolderDoubleClick(item.id)}
+                        onClick={() => handleItemClick(item.id, false)}
                         className={`group relative flex items-center gap-4 px-4 py-3 rounded-lg cursor-pointer transition-all duration-200 hover:bg-gray-800 ${
                           selectedIds.has(item.id) ? "bg-gray-800 ring-1 ring-brand-pink" : ""
                         }`}
                       >
-                        <input
-                          type="checkbox"
-                          checked={selectedIds.has(item.id)}
-                          onChange={() => toggleSelect(item.id, false)}
-                          className="h-4 w-4 rounded border-gray-500 bg-gray-800 text-brand-pink focus:ring-brand-pink"
-                          onClick={(e) => e.stopPropagation()}
-                        />
+                        {isSelectionMode && (
+                          <input
+                            type="checkbox"
+                            checked={selectedIds.has(item.id)}
+                            onChange={() => toggleSelect(item.id, false)}
+                            className="h-4 w-4 rounded border-gray-500 bg-gray-800 text-brand-pink focus:ring-brand-pink"
+                            onClick={(e) => e.stopPropagation()}
+                          />
+                        )}
                         <Folder
                           size={24}
                           className="text-brand-pink flex-shrink-0"
@@ -837,34 +862,36 @@ export default function MarketingPage() {
                         </div>
                         <p className="text-sm text-gray-500">{item.modifiedAt.toLocaleDateString("pt-BR")}</p>
 
-                        {/* Ações rápidas para pasta (lista) */}
-                        <div className="flex items-center gap-1 ml-2">
-                          <button
-                            onClick={(e) => {
-                              e.stopPropagation()
-                              const newName = prompt("Novo nome da pasta:", item.name)
-                              if (newName && newName.trim()) {
-                                handleRename(item.id, newName.trim())
-                              }
-                            }}
-                            className="p-2 bg-gray-700 hover:bg-gray-600 rounded-md transition-colors"
-                            title="Renomear pasta"
-                          >
-                            <Edit size={16} />
-                          </button>
-                          <button
-                            onClick={(e) => {
-                              e.stopPropagation()
-                              if (confirm("Excluir esta pasta e todo o conteúdo dentro dela?")) {
-                                handleDelete(item.id)
-                              }
-                            }}
-                            className="p-2 bg-red-700/80 hover:bg-red-600 rounded-md transition-colors"
-                            title="Excluir pasta"
-                          >
-                            <Trash2 size={16} />
-                          </button>
-                        </div>
+                        {/* Ações rápidas para pasta (lista) - só aparecem fora do modo de seleção */}
+                        {!isSelectionMode && (
+                          <div className="flex items-center gap-1 ml-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation()
+                                const newName = prompt("Novo nome da pasta:", item.name)
+                                if (newName && newName.trim()) {
+                                  handleRename(item.id, newName.trim())
+                                }
+                              }}
+                              className="p-2 bg-gray-700 hover:bg-gray-600 rounded-md transition-colors"
+                              title="Renomear pasta"
+                            >
+                              <Edit size={16} />
+                            </button>
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation()
+                                if (confirm("Excluir esta pasta e todo o conteúdo dentro dela?")) {
+                                  handleDelete(item.id)
+                                }
+                              }}
+                              className="p-2 bg-red-700/80 hover:bg-red-600 rounded-md transition-colors"
+                              title="Excluir pasta"
+                            >
+                              <Trash2 size={16} />
+                            </button>
+                          </div>
+                        )}
                       </div>
                     ))}
                   </div>
@@ -881,18 +908,20 @@ export default function MarketingPage() {
                     {fileItems.map((item) => (
                       <div
                         key={item.id}
-                        onClick={() => toggleSelect(item.id, true)}
+                        onClick={() => handleItemClick(item.id, true)}
                         className={`group relative bg-gray-800/50 hover:bg-gray-800 border border-gray-700/50 hover:border-gray-600 rounded-xl p-4 cursor-pointer transition-all duration-200 ${
                           selectedIds.has(item.id) ? "ring-2 ring-brand-pink bg-gray-800" : ""
                         }`}
                       >
-                        <input
-                          type="checkbox"
-                          checked={selectedIds.has(item.id)}
-                          onChange={() => toggleSelect(item.id, true)}
-                          className="absolute top-2 left-2 h-4 w-4 rounded border-gray-500 bg-gray-800 text-brand-pink focus:ring-brand-pink"
-                          onClick={(e) => e.stopPropagation()}
-                        />
+                        {isSelectionMode && (
+                          <input
+                            type="checkbox"
+                            checked={selectedIds.has(item.id)}
+                            onChange={() => toggleSelect(item.id, true)}
+                            className="absolute top-2 left-2 h-4 w-4 rounded border-gray-500 bg-gray-800 text-brand-pink focus:ring-brand-pink"
+                            onClick={(e) => e.stopPropagation()}
+                          />
+                        )}
                         <div className="flex flex-col items-center text-center">
                           <div className="mb-3 p-3 rounded-xl bg-gray-700/50 group-hover:bg-gray-700 transition-colors">
                             {getFileIcon(item.mimeType, item.name, 40)}
@@ -913,18 +942,20 @@ export default function MarketingPage() {
                     {fileItems.map((item) => (
                       <div
                         key={item.id}
-                        onClick={() => toggleSelect(item.id, true)}
+                        onClick={() => handleItemClick(item.id, true)}
                         className={`group flex items-center gap-4 px-4 py-3 rounded-lg cursor-pointer transition-all duration-200 hover:bg-gray-800 ${
                           selectedIds.has(item.id) ? "bg-gray-800 ring-1 ring-brand-pink" : ""
                         }`}
                       >
-                        <input
-                          type="checkbox"
-                          checked={selectedIds.has(item.id)}
-                          onChange={() => toggleSelect(item.id, true)}
-                          className="h-4 w-4 rounded border-gray-500 bg-gray-800 text-brand-pink focus:ring-brand-pink"
-                          onClick={(e) => e.stopPropagation()}
-                        />
+                        {isSelectionMode && (
+                          <input
+                            type="checkbox"
+                            checked={selectedIds.has(item.id)}
+                            onChange={() => toggleSelect(item.id, true)}
+                            className="h-4 w-4 rounded border-gray-500 bg-gray-800 text-brand-pink focus:ring-brand-pink"
+                            onClick={(e) => e.stopPropagation()}
+                          />
+                        )}
                         <div className="flex-shrink-0">{getFileIcon(item.mimeType, item.name, 24)}</div>
                         <div className="flex-1 min-w-0">
                           <p className="font-medium text-gray-200 group-hover:text-white truncate" title={item.name}>
@@ -1109,9 +1140,7 @@ export default function MarketingPage() {
                       <p className="text-xs uppercase tracking-wide text-gray-500 mb-2">
                         Pastas em {moveBrowseFolderId ? getFolderFullPath(moveBrowseFolderId) : "Meus Arquivos"}
                       </p>
-                      {moveChildren.length === 0 && (
-                        <p className="text-sm text-gray-500 px-1">Nenhuma pasta aqui.</p>
-                      )}
+                      {moveChildren.length === 0 && <p className="text-sm text-gray-500 px-1">Nenhuma pasta aqui.</p>}
                       {moveChildren
                         .filter((folder) => folder.name.toLowerCase().includes(moveSearch.toLowerCase()))
                         .map((folder) => (
@@ -1167,65 +1196,78 @@ export default function MarketingPage() {
           </div>
         )}
 
-        {/* Menu de contexto para arquivo selecionado */}
-        {selectedFileId && files.find((f) => f.id === selectedFileId)?.type === "file" && (
+        {selectedIds.size > 0 && (
           <div className="fixed bottom-6 left-1/2 transform -translate-x-1/2 bg-gray-800 border border-gray-700 rounded-2xl px-6 py-4 shadow-2xl z-40">
             <div className="flex items-center gap-6">
-              <span className="text-sm text-gray-300 max-w-[200px] truncate">
-                {files.find((f) => f.id === selectedFileId)?.name}
-              </span>
+              {/* Mostra quantidade de itens selecionados */}
+              <div className="flex items-center gap-3">
+                <div className="flex items-center justify-center w-10 h-10 rounded-full bg-brand-pink/20 text-brand-pink font-bold text-lg">
+                  {selectedIds.size}
+                </div>
+                <span className="text-sm text-gray-300">
+                  {selectedIds.size === 1 ? "item selecionado" : "itens selecionados"}
+                </span>
+              </div>
+
+              <div className="w-px h-8 bg-gray-700" />
+
               <div className="flex items-center gap-1">
+                {/* Download - só mostra se tiver arquivos selecionados */}
                 <button
-                  onClick={() => {
-                    const file = files.find((f) => f.id === selectedFileId)
-                    if (file?.file) {
-                      const url = URL.createObjectURL(file.file)
-                      const a = document.createElement("a")
-                      a.href = url
-                      a.download = file.name
-                      a.click()
-                      URL.revokeObjectURL(url)
-                    }
-                  }}
+                  onClick={handleBulkDownload}
                   className="p-2.5 hover:bg-gray-700 rounded-full transition-colors text-gray-300 hover:text-white"
                   title="Download"
                 >
                   <Download size={20} />
                 </button>
-                <button
-                  onClick={() => {
-                    const file = files.find((f) => f.id === selectedFileId)
-                    if (file?.type === "file") {
-                      setMoveTargetId(file.parentId ?? null)
-                      setMoveBrowseFolderId(file.parentId ?? null)
-                      setMoveSearch("")
-                      setShowMoveModal(true)
-                    }
-                  }}
-                  className="p-2.5 hover:bg-gray-700 rounded-full transition-colors text-gray-300 hover:text-white"
-                  title="Mover para..."
-                >
-                  <MoveRight size={20} />
-                </button>
-                <button
-                  onClick={() => {
-                    const file = files.find((f) => f.id === selectedFileId)
-                    if (file) {
-                      const newName = prompt("Novo nome:", file.name)
-                      if (newName && newName.trim()) {
-                        handleRename(selectedFileId, newName.trim())
+
+                {/* Mover - só funciona com 1 arquivo selecionado */}
+                {selectedIds.size === 1 &&
+                  selectedFileId &&
+                  files.find((f) => f.id === selectedFileId)?.type === "file" && (
+                    <button
+                      onClick={() => {
+                        const file = files.find((f) => f.id === selectedFileId)
+                        if (file?.type === "file") {
+                          setMoveTargetId(file.parentId ?? null)
+                          setMoveBrowseFolderId(file.parentId ?? null)
+                          setMoveSearch("")
+                          setShowMoveModal(true)
+                        }
+                      }}
+                      className="p-2.5 hover:bg-gray-700 rounded-full transition-colors text-gray-300 hover:text-white"
+                      title="Mover para..."
+                    >
+                      <MoveRight size={20} />
+                    </button>
+                  )}
+
+                {/* Renomear - só funciona com 1 item selecionado */}
+                {selectedIds.size === 1 && (
+                  <button
+                    onClick={() => {
+                      const id = Array.from(selectedIds)[0]
+                      const file = files.find((f) => f.id === id)
+                      if (file) {
+                        const newName = prompt("Novo nome:", file.name)
+                        if (newName && newName.trim()) {
+                          handleRename(id, newName.trim())
+                        }
                       }
-                    }
-                  }}
-                  className="p-2.5 hover:bg-gray-700 rounded-full transition-colors text-gray-300 hover:text-white"
-                  title="Renomear"
-                >
-                  <Edit size={20} />
-                </button>
+                    }}
+                    className="p-2.5 hover:bg-gray-700 rounded-full transition-colors text-gray-300 hover:text-white"
+                    title="Renomear"
+                  >
+                    <Edit size={20} />
+                  </button>
+                )}
+
+                {/* Excluir */}
                 <button
                   onClick={() => {
-                    if (confirm("Tem certeza que deseja excluir este item?")) {
-                      handleDelete(selectedFileId)
+                    const count = selectedIds.size
+                    if (confirm(`Tem certeza que deseja excluir ${count} ${count === 1 ? "item" : "itens"}?`)) {
+                      handleBulkDelete()
                     }
                   }}
                   className="p-2.5 hover:bg-red-600/20 rounded-full transition-colors text-gray-300 hover:text-red-400"
@@ -1233,10 +1275,12 @@ export default function MarketingPage() {
                 >
                   <Trash2 size={20} />
                 </button>
+
+                {/* Fechar / Limpar seleção */}
                 <button
-                  onClick={() => setSelectedFileId(null)}
+                  onClick={clearSelection}
                   className="p-2.5 hover:bg-gray-700 rounded-full transition-colors text-gray-300 hover:text-white"
-                  title="Fechar"
+                  title="Limpar seleção"
                 >
                   <X size={20} />
                 </button>
