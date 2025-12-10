@@ -133,6 +133,7 @@ export default function MarketingPage() {
   const [moveTargetId, setMoveTargetId] = useState<string | null>(null)
   const [moveBrowseFolderId, setMoveBrowseFolderId] = useState<string | null>(null)
   const [moveSearch, setMoveSearch] = useState("")
+  const [isDragging, setIsDragging] = useState(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
   const folderInputRef = useRef<HTMLInputElement>(null)
 
@@ -251,43 +252,32 @@ export default function MarketingPage() {
     setShowCreateFolderModal(false)
   }
 
-  // Upload de arquivos
-  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const uploadedFiles = e.target.files
-    if (!uploadedFiles) return
-
-    const newFiles: FileItem[] = Array.from(uploadedFiles).map((file) => ({
+  // Adiciona arquivos simples no diretório atual
+  const addFlatFiles = (fileList: FileList, parent: string | null) => {
+    const newFiles: FileItem[] = Array.from(fileList).map((file) => ({
       id: Date.now().toString() + Math.random().toString(36).substr(2, 9),
       name: file.name,
       type: "file" as FileType,
       size: file.size,
       modifiedAt: new Date(),
-      parentId: currentFolderId,
+      parentId: parent,
       mimeType: file.type,
       file: file,
     }))
-
     setFiles((prev) => [...prev, ...newFiles])
-
-    if (fileInputRef.current) {
-      fileInputRef.current.value = ""
-    }
   }
 
-  // Upload de pastas
-  const handleFolderUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const uploadedFiles = e.target.files
-    if (!uploadedFiles) return
-
+  // Adiciona arquivos preservando subpastas via webkitRelativePath (upload de pastas ou drag folder)
+  const addFilesWithPaths = (fileList: FileList, parent: string | null) => {
     const folderMap = new Map<string, FileItem>()
-    const basePath = currentFolderId || "root"
+    const basePath = parent || "root"
 
-    Array.from(uploadedFiles).forEach((file) => {
+    Array.from(fileList).forEach((file) => {
       const pathParts = (file.webkitRelativePath || file.name).split("/")
       const fileName = pathParts.pop() || file.name
 
       let currentPath = ""
-      let parentId = currentFolderId
+      let parentId = parent
 
       pathParts.forEach((part, index) => {
         currentPath = currentPath ? `${currentPath}/${part}` : part
@@ -324,9 +314,114 @@ export default function MarketingPage() {
     })
 
     setFiles((prev) => [...prev, ...Array.from(folderMap.values())])
+  }
 
+  // Decide entre upload simples ou com estrutura de pastas
+  const processUpload = (fileList: FileList) => {
+    if (!fileList || fileList.length === 0) return
+
+    const hasPath = Array.from(fileList).some((f) => f.webkitRelativePath && f.webkitRelativePath.includes("/"))
+    if (hasPath) {
+      addFilesWithPaths(fileList, currentFolderId)
+    } else {
+      addFlatFiles(fileList, currentFolderId)
+    }
+  }
+
+  // Upload via input de arquivos
+  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const uploadedFiles = e.target.files
+    if (!uploadedFiles) return
+    processUpload(uploadedFiles)
+    if (fileInputRef.current) {
+      fileInputRef.current.value = ""
+    }
+  }
+
+  // Upload via input de pastas
+  const handleFolderUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const uploadedFiles = e.target.files
+    if (!uploadedFiles) return
+    processUpload(uploadedFiles)
     if (folderInputRef.current) {
       folderInputRef.current.value = ""
+    }
+  }
+
+  // Drag & drop (arquivos ou pastas)
+  const handleDragOver = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault()
+    e.stopPropagation()
+    setIsDragging(true)
+  }
+
+  const handleDragLeave = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault()
+    e.stopPropagation()
+    setIsDragging(false)
+  }
+
+  // Lê entradas (pastas) via FileSystem API quando disponível
+  const getFilesFromDataTransferItems = async (items: DataTransferItemList): Promise<File[]> => {
+    const traverseEntry = (entry: any, path: string): Promise<File[]> => {
+      return new Promise((resolve) => {
+        if (entry.isFile) {
+          entry.file((file: File) => {
+            ;(file as any).webkitRelativePath = path ? `${path}/${file.name}` : file.name
+            resolve([file])
+          })
+        } else if (entry.isDirectory) {
+          const reader = entry.createReader()
+          const entries: any[] = []
+          const readBatch = () => {
+            reader.readEntries(async (batch: any[]) => {
+              if (batch.length) {
+                entries.push(...batch)
+                readBatch()
+              } else {
+                const results = await Promise.all(
+                  entries.map((child) => traverseEntry(child, path ? `${path}/${entry.name}` : entry.name))
+                )
+                resolve(results.flat())
+              }
+            })
+          }
+          readBatch()
+        } else {
+          resolve([])
+        }
+      })
+    }
+
+    const promises: Promise<File[]>[] = []
+    Array.from(items).forEach((item) => {
+      const entry = typeof (item as any).webkitGetAsEntry === "function" ? (item as any).webkitGetAsEntry() : null
+      if (entry) {
+        promises.push(traverseEntry(entry, ""))
+      } else if (item.kind === "file") {
+        const file = item.getAsFile()
+        if (file) promises.push(Promise.resolve([file]))
+      }
+    })
+
+    const files = await Promise.all(promises)
+    return files.flat()
+  }
+
+  const handleDrop = async (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault()
+    e.stopPropagation()
+    setIsDragging(false)
+
+    if (e.dataTransfer?.items && Array.from(e.dataTransfer.items).some((it) => typeof (it as any).webkitGetAsEntry === "function")) {
+      const files = await getFilesFromDataTransferItems(e.dataTransfer.items)
+      if (files.length) {
+        const dt = new DataTransfer()
+        files.forEach((f) => dt.items.add(f))
+        processUpload(dt.files)
+      }
+    } else if (e.dataTransfer?.files?.length) {
+      processUpload(e.dataTransfer.files)
     }
   }
 
@@ -365,19 +460,48 @@ export default function MarketingPage() {
   const handleMoveSelectedFile = () => {
     if (!selectedFileId) return
 
+    const file = files.find((f) => f.id === selectedFileId)
+    if (!file) return
+
+    const destination = moveTargetId ?? null
+
+    // Validação: já está na pasta escolhida
+    if (file.parentId === destination) {
+      setShowMoveModal(false)
+      setMoveTargetId(null)
+      setMoveBrowseFolderId(null)
+      setMoveSearch("")
+      return
+    }
+
     setFiles((prev) =>
-      prev.map((f) => (f.id === selectedFileId ? { ...f, parentId: moveTargetId ?? null, modifiedAt: new Date() } : f))
+      prev.map((f) => (f.id === selectedFileId ? { ...f, parentId: destination, modifiedAt: new Date() } : f))
     )
 
     setShowMoveModal(false)
     setMoveTargetId(null)
+    setMoveBrowseFolderId(null)
+    setMoveSearch("")
     setSelectedFileId(null)
   }
 
   const folderPath = getFolderPath()
 
-    return (
-    <div className="min-h-screen bg-gray-900 text-white">
+  return (
+    <div
+      className="min-h-screen bg-gray-900 text-white"
+      onDragOver={handleDragOver}
+      onDragLeave={handleDragLeave}
+      onDrop={handleDrop}
+    >
+      {isDragging && (
+        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center pointer-events-none">
+          <div className="border-2 border-dashed border-brand-pink/60 rounded-3xl px-8 py-6 bg-gray-900/80 text-center shadow-2xl">
+            <p className="text-lg font-medium text-white">Solte para enviar</p>
+            <p className="text-sm text-gray-300 mt-1">Arquivos ou pastas serão enviados para a pasta atual</p>
+          </div>
+        </div>
+      )}
       <div className="max-w-7xl mx-auto p-6">
         {/* Header com barra de pesquisa estilo Google Drive */}
         <div className="mb-8">
