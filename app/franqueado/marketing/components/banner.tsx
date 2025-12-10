@@ -1,40 +1,52 @@
 "use client"
 
-import { Sparkles, TrendingUp } from "lucide-react"
+import Image from "next/image"
 
 export function Banner() {
   return (
-    <div className="relative w-full h-48 md:h-56 bg-gradient-to-r from-gray-800 via-gray-800 to-gray-900 rounded-3xl overflow-hidden shadow-2xl border border-gray-700/50 mb-8 group">
-      {/* Background Decorativo (Brilhos e Formas) */}
-      <div className="absolute top-0 right-0 -mt-10 -mr-10 w-64 h-64 bg-brand-pink/20 rounded-full blur-3xl group-hover:bg-brand-pink/30 transition-all duration-700" />
-      <div className="absolute bottom-0 left-20 w-40 h-40 bg-purple-500/10 rounded-full blur-2xl" />
+    // Container principal do banner com bordas arredondadas e sombra
+    <div className="relative w-full rounded-3xl overflow-hidden shadow-2xl border border-gray-800 mb-8 group">
       
-      {/* Grid Pattern sutil */}
-      <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-20 brightness-100 contrast-150 mix-blend-overlay"></div>
-
-      {/* Conteúdo */}
-      <div className="relative z-10 h-full flex flex-col justify-center px-8 md:px-12">
-        <div className="flex items-center gap-2 text-brand-pink mb-2 font-medium tracking-wide text-sm uppercase">
-          <Sparkles size={16} />
-          <span>Marketing Hub</span>
-        </div>
+      {/* Container interno que define a ALTURA do banner.
+         h-48 (192px) no mobile
+         sm:h-72 (288px) em tablets pequenos
+         md:h-[400px] em desktops
+      */}
+      <div className="relative h-64 sm:h-80 md:h-[400px] w-full bg-gray-900">
         
-        <h1 className="text-3xl md:text-4xl font-bold text-white mb-2 max-w-2xl">
-          Gerencie seus <span className="text-transparent bg-clip-text bg-gradient-to-r from-brand-pink to-purple-400">ativos digitais</span>
-        </h1>
-        
-        <p className="text-gray-400 max-w-xl text-sm md:text-base">
-          Organize campanhas, vídeos e imagens em um único lugar seguro e acessível para todo o time.
-        </p>
+        {/* --- IMAGEM DESKTOP (hidden no mobile, block no md em diante) --- */}
+        {/* Lembre-se de colocar sua imagem real na pasta /public e atualizar o src abaixo */}
+        <Image
+          src="/Capa-Natal-desktop.png" 
+          alt="Banner Marketing Desktop"
+          fill // Ocupa 100% do container pai
+          sizes="100vw"
+          // "object-cover" garante que a imagem cubra a área sem distorcer, cortando se necessário
+          className="hidden md:block object-cover transition-transform duration-700 group-hover:scale-105"
+          priority // Carrega com prioridade por estar no topo da página
+        />
 
-        {/* Opcional: Mini Stats ou Botão CTA */}
-        <div className="absolute bottom-6 right-8 hidden md:flex items-center gap-4">
-           <div className="flex items-center gap-2 px-4 py-2 bg-gray-900/50 backdrop-blur-md rounded-full border border-gray-700/50 text-xs text-gray-300">
-              <TrendingUp size={14} className="text-green-400" />
-              <span>Espaço livre: 85%</span>
-           </div>
-        </div>
+        {/* --- IMAGEM MOBILE (block no mobile, hidden no md em diante) --- */}
+        {/* Lembre-se de colocar sua imagem real na pasta /public e atualizar o src abaixo */}
+        <Image
+          src="/Capa-Natal-mobile.png"
+          alt="Banner Marketing Mobile"
+          fill // Ocupa 100% do container pai
+          sizes="100vw"
+          // A classe oposta: block no mobile, hidden no desktop
+          className="block md:hidden object-cover object-center transition-transform duration-700 group-hover:scale-105"
+          priority
+        />
+        
+        {/* (Opcional) Overlay escuro para garantir que o texto fique legível se você colocar texto em cima */}
+        <div className="absolute inset-0 bg-gradient-to-t from-gray-900/60 to-transparent pointer-events-none" />
       </div>
+
+      {/* (Opcional) Se quiser colocar texto sobre a imagem */}
+      {/* <div className="absolute bottom-0 left-0 p-8 z-20">
+        <h1 className="text-3xl font-bold text-white drop-shadow-lg">Central de Marketing</h1>
+      </div> 
+      */}
     </div>
   )
 }
