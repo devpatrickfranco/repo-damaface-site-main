@@ -36,7 +36,8 @@ export default function FileManagerPage() {
     toggleSelectionMode,
     deleteItemsByIds,
     setCurrentFolderId,
-    handleDownload, // <--- 1. NOVO: Pegando a função do hook
+    handleDownload,
+    handleDownloadItem
   } = useFileManager()
 
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid")
@@ -230,6 +231,7 @@ export default function FileManagerPage() {
             onToggleSelect={toggleSelect}
             onRename={handleRename}
             onDelete={handleDelete}
+            onDownload={handleDownloadItem} 
           />
         ) : (
           <FileList
@@ -242,6 +244,7 @@ export default function FileManagerPage() {
             onToggleSelect={toggleSelect}
             onRename={handleRename}
             onDelete={handleDelete}
+            onDownload={handleDownloadItem}
           />
         )}
 

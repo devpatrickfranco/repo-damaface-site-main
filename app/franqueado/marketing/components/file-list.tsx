@@ -14,6 +14,7 @@ interface FileListProps {
   onToggleSelect: (id: string, isFile: boolean) => void
   onRename: (id: string, newName: string) => void
   onDelete: (id: string) => void
+  onDownload: (id: string) => void
 }
 
 export function FileList({
@@ -26,6 +27,7 @@ export function FileList({
   onToggleSelect,
   onRename,
   onDelete,
+  onDownload
 }: FileListProps) {
   return (
     <div className="space-y-8">

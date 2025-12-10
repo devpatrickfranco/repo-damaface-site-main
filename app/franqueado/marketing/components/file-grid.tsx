@@ -1,6 +1,6 @@
 "use client"
 
-import { Folder, Edit, Trash2 } from "lucide-react"
+import { Folder, Edit, Trash2, Download } from "lucide-react"
 import type { FileItem } from "@/types/marketing"
 import { formatFileSize, getFileIcon } from "../helper"
 
@@ -14,6 +14,7 @@ interface FileGridProps {
   onToggleSelect: (id: string, isFile: boolean) => void
   onRename: (id: string, newName: string) => void
   onDelete: (id: string) => void
+  onDownload: (id: string) => void
 }
 
 export function FileGrid({
@@ -26,6 +27,7 @@ export function FileGrid({
   onToggleSelect,
   onRename,
   onDelete,
+  onDownload
 }: FileGridProps) {
   return (
     <div className="space-y-8">
@@ -77,6 +79,16 @@ export function FileGrid({
                       title="Excluir pasta"
                     >
                       <Trash2 size={16} />
+                    </button>
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation()
+                        onDownload(item.id)
+                      }}
+                      className="p-2 bg-gray-700 hover:bg-gray-600 rounded-md transition-colors text-gray-300 hover:text-white"
+                      title="Baixar pasta"
+                    >
+                      <Download size={16} />
                     </button>
                   </div>
                 )}

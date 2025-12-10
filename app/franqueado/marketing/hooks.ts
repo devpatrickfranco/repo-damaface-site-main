@@ -276,16 +276,16 @@ export function useFileManager() {
   }, [isSelectionMode, clearSelection])
 
   const handleDownload = useCallback(async () => {
-    if (selectedIds.size === 0) return
-
-    // Verifica se há pelo menos um arquivo real ou pasta para baixar
-    // Note: Em um cenário real, você precisa garantir que 'item.file' exista para arquivos
-    await downloadFilesAsZip(files, selectedIds)
+    if (selectedIds.size === 0) 
+      return
     
-    // Opcional: Limpar seleção após download
-    // setSelectedIds(new Set())
-    // setIsSelectionMode(false)
+    await downloadFilesAsZip(files, selectedIds)
   }, [files, selectedIds])
+
+  const handleDownloadItem = useCallback(async (id: string) => {
+    // Cria um Set temporário apenas com esse ID para reaproveitar a lógica
+    await downloadFilesAsZip(files, new Set([id]))
+  }, [files])
 
   return {
     files,
@@ -306,7 +306,8 @@ export function useFileManager() {
     toggleSelectionMode,
     deleteItemsByIds,
     setCurrentFolderId,
-    handleDownload
+    handleDownload,
+    handleDownloadItem
   }
 }
 
