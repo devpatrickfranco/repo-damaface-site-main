@@ -1,138 +1,156 @@
-'use client'
+"use client"
 
-import React, { useState, useRef } from 'react'
-import { 
-  Folder, 
-  File, 
-  Upload, 
-  FolderPlus, 
-  ChevronRight, 
+import type React from "react"
+import { useState, useRef, useMemo } from "react"
+import {
+  Folder,
+  type File,
+  Upload,
+  FolderPlus,
+  ChevronRight,
   Home,
-  MoreVertical,
   Download,
   Trash2,
   Edit,
-  Image as ImageIcon,
+  ImageIcon,
   FileText,
   Video,
   Music,
   Archive,
   FileSpreadsheet,
-  FileCode
-} from 'lucide-react'
-import { Card, CardContent } from '@/components/ui/card'
+  FileCode,
+  Search,
+  Grid3X3,
+  List,
+  X,
+} from "lucide-react"
 
 // Tipos para o sistema de arquivos
-type FileType = 'file' | 'folder'
+type FileType = "file" | "folder"
 
 interface FileItem {
   id: string
   name: string
   type: FileType
-  size?: number // em bytes
+  size?: number
   modifiedAt: Date
   parentId: string | null
   mimeType?: string
-  file?: File // Para arquivos recém-uploadados
+  file?: File
 }
 
 // Função auxiliar para formatar tamanho de arquivo
 const formatFileSize = (bytes: number): string => {
-  if (bytes === 0) return '0 Bytes'
+  if (bytes === 0) return "0 Bytes"
   const k = 1024
-  const sizes = ['Bytes', 'KB', 'MB', 'GB']
+  const sizes = ["Bytes", "KB", "MB", "GB"]
   const i = Math.floor(Math.log(bytes) / Math.log(k))
-  return Math.round(bytes / Math.pow(k, i) * 100) / 100 + ' ' + sizes[i]
+  return Math.round((bytes / Math.pow(k, i)) * 100) / 100 + " " + sizes[i]
 }
 
 // Função para obter ícone baseado no tipo de arquivo
-const getFileIcon = (mimeType?: string, name?: string): React.ReactElement => {
-  if (!mimeType && !name) return <FileText className="text-blue-400" size={24} />
-  
-  const extension = name?.split('.').pop()?.toLowerCase() || ''
-  const type = mimeType?.split('/')[0] || ''
+const getFileIcon = (mimeType?: string, name?: string, size = 24): React.ReactElement => {
+  if (!mimeType && !name) return <FileText className="text-blue-400" size={size} />
 
-  if (type === 'image' || ['jpg', 'jpeg', 'png', 'gif', 'webp', 'svg'].includes(extension)) {
-    return <ImageIcon className="text-green-400" size={24} />
+  const extension = name?.split(".").pop()?.toLowerCase() || ""
+  const type = mimeType?.split("/")[0] || ""
+
+  if (type === "image" || ["jpg", "jpeg", "png", "gif", "webp", "svg"].includes(extension)) {
+    return <ImageIcon className="text-green-400" size={size} />
   }
-  if (type === 'video' || ['mp4', 'avi', 'mov', 'wmv', 'flv'].includes(extension)) {
-    return <Video className="text-purple-400" size={24} />
+  if (type === "video" || ["mp4", "avi", "mov", "wmv", "flv"].includes(extension)) {
+    return <Video className="text-purple-400" size={size} />
   }
-  if (type === 'audio' || ['mp3', 'wav', 'ogg', 'flac'].includes(extension)) {
-    return <Music className="text-pink-400" size={24} />
+  if (type === "audio" || ["mp3", "wav", "ogg", "flac"].includes(extension)) {
+    return <Music className="text-pink-400" size={size} />
   }
-  if (['zip', 'rar', '7z', 'tar', 'gz'].includes(extension)) {
-    return <Archive className="text-yellow-400" size={24} />
+  if (["zip", "rar", "7z", "tar", "gz"].includes(extension)) {
+    return <Archive className="text-amber-400" size={size} />
   }
-  if (['xls', 'xlsx', 'csv'].includes(extension)) {
-    return <FileSpreadsheet className="text-green-500" size={24} />
+  if (["xls", "xlsx", "csv"].includes(extension)) {
+    return <FileSpreadsheet className="text-green-500" size={size} />
   }
-  if (['js', 'ts', 'jsx', 'tsx', 'html', 'css', 'json', 'xml'].includes(extension)) {
-    return <FileCode className="text-orange-400" size={24} />
+  if (["js", "ts", "jsx", "tsx", "html", "css", "json", "xml"].includes(extension)) {
+    return <FileCode className="text-orange-400" size={size} />
   }
-  if (['pdf'].includes(extension)) {
-    return <FileText className="text-red-400" size={24} />
+  if (["pdf"].includes(extension)) {
+    return <FileText className="text-red-400" size={size} />
   }
-  
-  return <FileText className="text-blue-400" size={24} />
+
+  return <FileText className="text-blue-400" size={size} />
 }
 
 export default function MarketingPage() {
   const [files, setFiles] = useState<FileItem[]>([
-    // Dados mockados iniciais
     {
-      id: '1',
-      name: 'Documentos',
-      type: 'folder',
-      modifiedAt: new Date('2024-01-15'),
-      parentId: null
+      id: "1",
+      name: "Documentos",
+      type: "folder",
+      modifiedAt: new Date("2024-01-15"),
+      parentId: null,
     },
     {
-      id: '2',
-      name: 'Imagens',
-      type: 'folder',
-      modifiedAt: new Date('2024-01-20'),
-      parentId: null
+      id: "2",
+      name: "Imagens",
+      type: "folder",
+      modifiedAt: new Date("2024-01-20"),
+      parentId: null,
     },
     {
-      id: '3',
-      name: 'relatorio.pdf',
-      type: 'file',
+      id: "3",
+      name: "relatorio.pdf",
+      type: "file",
       size: 2456789,
-      modifiedAt: new Date('2024-01-18'),
+      modifiedAt: new Date("2024-01-18"),
       parentId: null,
-      mimeType: 'application/pdf'
+      mimeType: "application/pdf",
     },
     {
-      id: '4',
-      name: 'apresentacao.pptx',
-      type: 'file',
+      id: "4",
+      name: "apresentacao.pptx",
+      type: "file",
       size: 5678901,
-      modifiedAt: new Date('2024-01-19'),
+      modifiedAt: new Date("2024-01-19"),
       parentId: null,
-      mimeType: 'application/vnd.openxmlformats-officedocument.presentationml.presentation'
+      mimeType: "application/vnd.openxmlformats-officedocument.presentationml.presentation",
     },
     {
-      id: '5',
-      name: 'Subpasta',
-      type: 'folder',
-      modifiedAt: new Date('2024-01-21'),
-      parentId: '1' // Dentro de "Documentos"
-    }
+      id: "5",
+      name: "Subpasta",
+      type: "folder",
+      modifiedAt: new Date("2024-01-21"),
+      parentId: "1",
+    },
   ])
 
   const [currentFolderId, setCurrentFolderId] = useState<string | null>(null)
   const [selectedFileId, setSelectedFileId] = useState<string | null>(null)
-  const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid')
+  const [viewMode, setViewMode] = useState<"grid" | "list">("grid")
   const [showCreateFolderModal, setShowCreateFolderModal] = useState(false)
-  const [newFolderName, setNewFolderName] = useState('')
+  const [newFolderName, setNewFolderName] = useState("")
+  const [searchQuery, setSearchQuery] = useState("")
   const fileInputRef = useRef<HTMLInputElement>(null)
   const folderInputRef = useRef<HTMLInputElement>(null)
 
   // Obter arquivos da pasta atual
   const getCurrentFolderFiles = (): FileItem[] => {
-    return files.filter(file => file.parentId === currentFolderId)
+    return files.filter((file) => file.parentId === currentFolderId)
   }
+
+  // Filtrar arquivos por pesquisa
+  const filteredFiles = useMemo(() => {
+    const currentFiles = getCurrentFolderFiles()
+    if (!searchQuery.trim()) return currentFiles
+
+    return currentFiles.filter((file) => file.name.toLowerCase().includes(searchQuery.toLowerCase()))
+  }, [files, currentFolderId, searchQuery])
+
+  // Separar pastas e arquivos
+  const { folders, fileItems } = useMemo(() => {
+    const folders = filteredFiles.filter((f) => f.type === "folder")
+    const fileItems = filteredFiles.filter((f) => f.type === "file")
+    return { folders, fileItems }
+  }, [filteredFiles])
 
   // Obter caminho da pasta atual (breadcrumb)
   const getFolderPath = (): FileItem[] => {
@@ -140,7 +158,7 @@ export default function MarketingPage() {
     let currentId = currentFolderId
 
     while (currentId) {
-      const folder = files.find(f => f.id === currentId && f.type === 'folder')
+      const folder = files.find((f) => f.id === currentId && f.type === "folder")
       if (folder) {
         path.unshift(folder)
         currentId = folder.parentId
@@ -156,17 +174,7 @@ export default function MarketingPage() {
   const navigateToFolder = (folderId: string) => {
     setCurrentFolderId(folderId)
     setSelectedFileId(null)
-  }
-
-  // Voltar para pasta anterior
-  const navigateBack = () => {
-    const currentFolder = files.find(f => f.id === currentFolderId)
-    if (currentFolder?.parentId !== undefined) {
-      setCurrentFolderId(currentFolder.parentId)
-      setSelectedFileId(null)
-    } else {
-      setCurrentFolderId(null) // Voltar para raiz
-    }
+    setSearchQuery("")
   }
 
   // Criar nova pasta
@@ -176,13 +184,13 @@ export default function MarketingPage() {
     const newFolder: FileItem = {
       id: Date.now().toString(),
       name: newFolderName.trim(),
-      type: 'folder',
+      type: "folder",
       modifiedAt: new Date(),
-      parentId: currentFolderId
+      parentId: currentFolderId,
     }
 
-    setFiles(prev => [...prev, newFolder])
-    setNewFolderName('')
+    setFiles((prev) => [...prev, newFolder])
+    setNewFolderName("")
     setShowCreateFolderModal(false)
   }
 
@@ -191,41 +199,37 @@ export default function MarketingPage() {
     const uploadedFiles = e.target.files
     if (!uploadedFiles) return
 
-    const newFiles: FileItem[] = Array.from(uploadedFiles).map(file => ({
+    const newFiles: FileItem[] = Array.from(uploadedFiles).map((file) => ({
       id: Date.now().toString() + Math.random().toString(36).substr(2, 9),
       name: file.name,
-      type: 'file' as FileType,
+      type: "file" as FileType,
       size: file.size,
       modifiedAt: new Date(),
       parentId: currentFolderId,
       mimeType: file.type,
-      file: file
+      file: file,
     }))
 
-    setFiles(prev => [...prev, ...newFiles])
-    
-    // Limpar input
+    setFiles((prev) => [...prev, ...newFiles])
+
     if (fileInputRef.current) {
-      fileInputRef.current.value = ''
+      fileInputRef.current.value = ""
     }
   }
 
-  // Upload de pastas (usando webkitdirectory)
+  // Upload de pastas
   const handleFolderUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const uploadedFiles = e.target.files
     if (!uploadedFiles) return
 
     const folderMap = new Map<string, FileItem>()
-    const basePath = currentFolderId || 'root'
+    const basePath = currentFolderId || "root"
 
-    // Criar estrutura de pastas
-    Array.from(uploadedFiles).forEach(file => {
-      const pathParts = (file.webkitRelativePath || file.name).split('/')
+    Array.from(uploadedFiles).forEach((file) => {
+      const pathParts = (file.webkitRelativePath || file.name).split("/")
       const fileName = pathParts.pop() || file.name
-      const folderPath = pathParts.join('/')
 
-      // Criar pastas necessárias
-      let currentPath = ''
+      let currentPath = ""
       let parentId = currentFolderId
 
       pathParts.forEach((part, index) => {
@@ -237,9 +241,9 @@ export default function MarketingPage() {
           const folder: FileItem = {
             id: folderId,
             name: part,
-            type: 'folder',
+            type: "folder",
             modifiedAt: new Date(),
-            parentId: parentId
+            parentId: parentId,
           }
           folderMap.set(folderKey, folder)
           parentId = folderId
@@ -248,37 +252,33 @@ export default function MarketingPage() {
         }
       })
 
-      // Adicionar arquivo
       const fileItem: FileItem = {
         id: Date.now().toString() + Math.random().toString(36).substr(2, 9),
         name: fileName,
-        type: 'file',
+        type: "file",
         size: file.size,
         modifiedAt: new Date(),
         parentId: parentId,
         mimeType: file.type,
-        file: file
+        file: file,
       }
 
       folderMap.set(`file_${fileItem.id}`, fileItem)
     })
 
-    // Adicionar todos os itens ao estado
-    setFiles(prev => [...prev, ...Array.from(folderMap.values())])
+    setFiles((prev) => [...prev, ...Array.from(folderMap.values())])
 
-    // Limpar input
     if (folderInputRef.current) {
-      folderInputRef.current.value = ''
+      folderInputRef.current.value = ""
     }
   }
 
   // Deletar arquivo/pasta
   const handleDelete = (id: string) => {
     const deleteRecursive = (itemId: string) => {
-      setFiles(prev => prev.filter(f => f.id !== itemId))
-      // Deletar filhos recursivamente
-      const children = files.filter(f => f.parentId === itemId)
-      children.forEach(child => deleteRecursive(child.id))
+      setFiles((prev) => prev.filter((f) => f.id !== itemId))
+      const children = files.filter((f) => f.parentId === itemId)
+      children.forEach((child) => deleteRecursive(child.id))
     }
 
     deleteRecursive(id)
@@ -287,45 +287,58 @@ export default function MarketingPage() {
 
   // Renomear arquivo/pasta
   const handleRename = (id: string, newName: string) => {
-    setFiles(prev => prev.map(f => 
-      f.id === id ? { ...f, name: newName } : f
-    ))
+    setFiles((prev) => prev.map((f) => (f.id === id ? { ...f, name: newName } : f)))
     setSelectedFileId(null)
   }
 
-  const currentFiles = getCurrentFolderFiles()
   const folderPath = getFolderPath()
 
   return (
     <div className="min-h-screen bg-gray-900 text-white">
       <div className="max-w-7xl mx-auto p-6">
-        {/* Header */}
-        <div className="mb-6">
-          <h1 className="text-3xl font-bold mb-2">Marketing - Gerenciador de Arquivos</h1>
-          <p className="text-gray-400">Gerencie seus arquivos e pastas de marketing</p>
-        </div>
+        {/* Header com barra de pesquisa estilo Google Drive */}
+        <div className="mb-8">
+          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6">
+            <div>
+              <h1 className="text-2xl font-semibold mb-1">Meus Arquivos</h1>
+              <p className="text-gray-400 text-sm">Gerencie seus arquivos e pastas de marketing</p>
+            </div>
 
-        {/* Toolbar */}
-        <div className="bg-gray-800 rounded-lg p-4 mb-6 flex flex-wrap items-center gap-4">
-          <div className="flex items-center gap-2 flex-1">
+            {/* Barra de Pesquisa */}
+            <div className="relative w-full md:w-96">
+              <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
+              <input
+                type="text"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder="Pesquisar arquivos..."
+                className="w-full pl-12 pr-10 py-3 bg-gray-800 border border-gray-700 rounded-full text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:border-transparent transition-all"
+              />
+              {searchQuery && (
+                <button
+                  onClick={() => setSearchQuery("")}
+                  className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-white transition-colors"
+                >
+                  <X size={18} />
+                </button>
+              )}
+            </div>
+          </div>
+
+          {/* Toolbar */}
+          <div className="flex flex-wrap items-center gap-3">
             <button
               onClick={() => fileInputRef.current?.click()}
-              className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 rounded-lg transition-colors"
+              className="flex items-center gap-2 px-4 py-2.5 bg-brand-pink hover:bg-brand-pink/90 rounded-full transition-colors font-medium text-sm"
             >
               <Upload size={18} />
               <span>Upload Arquivo</span>
             </button>
-            <input
-              ref={fileInputRef}
-              type="file"
-              multiple
-              onChange={handleFileUpload}
-              className="hidden"
-            />
+            <input ref={fileInputRef} type="file" multiple onChange={handleFileUpload} className="hidden" />
 
             <button
               onClick={() => folderInputRef.current?.click()}
-              className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 rounded-lg transition-colors"
+              className="flex items-center gap-2 px-4 py-2.5 bg-gray-700 hover:bg-gray-600 rounded-full transition-colors font-medium text-sm border border-gray-600"
             >
               <Upload size={18} />
               <span>Upload Pasta</span>
@@ -333,7 +346,7 @@ export default function MarketingPage() {
             <input
               ref={folderInputRef}
               type="file"
-              {...({ webkitdirectory: '' } as any)}
+              {...({ webkitdirectory: "" } as any)}
               multiple
               onChange={handleFolderUpload}
               className="hidden"
@@ -341,51 +354,56 @@ export default function MarketingPage() {
 
             <button
               onClick={() => setShowCreateFolderModal(true)}
-              className="flex items-center gap-2 px-4 py-2 bg-green-600 hover:bg-green-700 rounded-lg transition-colors"
+              className="flex items-center gap-2 px-4 py-2.5 bg-gray-700 hover:bg-gray-600 rounded-full transition-colors font-medium text-sm border border-gray-600"
             >
               <FolderPlus size={18} />
               <span>Nova Pasta</span>
             </button>
-          </div>
 
-          <div className="flex items-center gap-2">
-            <button
-              onClick={() => setViewMode('grid')}
-              className={`px-3 py-2 rounded-lg transition-colors ${
-                viewMode === 'grid' ? 'bg-gray-700' : 'bg-gray-700/50 hover:bg-gray-700'
-              }`}
-            >
-              Grid
-            </button>
-            <button
-              onClick={() => setViewMode('list')}
-              className={`px-3 py-2 rounded-lg transition-colors ${
-                viewMode === 'list' ? 'bg-gray-700' : 'bg-gray-700/50 hover:bg-gray-700'
-              }`}
-            >
-              Lista
-            </button>
+            <div className="flex-1" />
+
+            <div className="flex items-center bg-gray-800 rounded-full p-1 border border-gray-700">
+              <button
+                onClick={() => setViewMode("grid")}
+                className={`p-2 rounded-full transition-colors ${
+                  viewMode === "grid" ? "bg-gray-700 text-brand-pink" : "text-gray-400 hover:text-white"
+                }`}
+                title="Visualização em grade"
+              >
+                <Grid3X3 size={18} />
+              </button>
+              <button
+                onClick={() => setViewMode("list")}
+                className={`p-2 rounded-full transition-colors ${
+                  viewMode === "list" ? "bg-gray-700 text-brand-pink" : "text-gray-400 hover:text-white"
+                }`}
+                title="Visualização em lista"
+              >
+                <List size={18} />
+              </button>
+            </div>
           </div>
         </div>
 
         {/* Breadcrumb */}
-        <div className="mb-4 flex items-center gap-2 text-sm text-gray-400">
+        <div className="mb-6 flex items-center gap-1.5 text-sm">
           <button
             onClick={() => {
               setCurrentFolderId(null)
               setSelectedFileId(null)
+              setSearchQuery("")
             }}
-            className="flex items-center gap-1 hover:text-white transition-colors"
+            className="flex items-center gap-1.5 px-2 py-1 rounded-md hover:bg-gray-800 text-gray-300 hover:text-white transition-colors"
           >
             <Home size={16} />
-            <span>Principal</span>
+            <span>Meus Arquivos</span>
           </button>
-          {folderPath.map((folder, index) => (
-            <div key={folder.id} className="flex items-center gap-2">
-              <ChevronRight size={16} />
+          {folderPath.map((folder) => (
+            <div key={folder.id} className="flex items-center gap-1.5">
+              <ChevronRight size={16} className="text-gray-500" />
               <button
                 onClick={() => navigateToFolder(folder.id)}
-                className="hover:text-white transition-colors"
+                className="px-2 py-1 rounded-md hover:bg-gray-800 text-gray-300 hover:text-white transition-colors"
               >
                 {folder.name}
               </button>
@@ -394,186 +412,233 @@ export default function MarketingPage() {
         </div>
 
         {/* Conteúdo */}
-        {currentFiles.length === 0 ? (
-          <Card className="bg-gray-800 border-gray-700">
-            <CardContent className="p-12 text-center">
-              <Folder size={64} className="mx-auto mb-4 text-gray-600" />
-              <p className="text-gray-400 text-lg">Esta pasta está vazia</p>
-              <p className="text-gray-500 text-sm mt-2">
-                Faça upload de arquivos ou crie uma nova pasta para começar
-              </p>
-            </CardContent>
-          </Card>
+        {filteredFiles.length === 0 ? (
+          <div className="flex flex-col items-center justify-center py-20">
+            {searchQuery ? (
+              <>
+                <Search size={64} className="text-gray-600 mb-4" />
+                <p className="text-gray-400 text-lg">Nenhum resultado encontrado</p>
+                <p className="text-gray-500 text-sm mt-2">Tente buscar por outro termo</p>
+              </>
+            ) : (
+              <>
+                <Folder size={64} className="text-brand-pink/50 mb-4" />
+                <p className="text-gray-400 text-lg">Esta pasta está vazia</p>
+                <p className="text-gray-500 text-sm mt-2">
+                  Faça upload de arquivos ou crie uma nova pasta para começar
+                </p>
+              </>
+            )}
+          </div>
         ) : (
-          <div
-            className={
-              viewMode === 'grid'
-                ? 'grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4'
-                : 'space-y-2'
-            }
-          >
-            {currentFiles.map((item) => (
-              <Card
-                key={item.id}
-                className={`bg-gray-800 border-gray-700 cursor-pointer transition-all hover:bg-gray-750 hover:border-gray-600 ${
-                  selectedFileId === item.id ? 'ring-2 ring-blue-500' : ''
-                } ${viewMode === 'list' ? 'flex items-center gap-4 p-3' : 'p-4'}`}
-                onClick={() => {
-                  if (item.type === 'folder') {
-                    navigateToFolder(item.id)
-                  } else {
-                    setSelectedFileId(item.id === selectedFileId ? null : item.id)
-                  }
-                }}
-                onDoubleClick={() => {
-                  if (item.type === 'folder') {
-                    navigateToFolder(item.id)
-                  }
-                }}
-              >
-                <CardContent className={viewMode === 'list' ? 'flex-1 flex items-center gap-4 p-0' : 'p-0'}>
-                  <div className={viewMode === 'list' ? 'flex items-center gap-4 flex-1' : 'text-center'}>
-                    <div className="flex-shrink-0">
-                      {item.type === 'folder' ? (
-                        <Folder size={viewMode === 'list' ? 32 : 48} className="text-yellow-400 mx-auto" />
-                      ) : (
-                        <div className="mx-auto">
-                          {getFileIcon(item.mimeType, item.name)}
+          <div className="space-y-8">
+            {/* Seção de Pastas */}
+            {folders.length > 0 && (
+              <div>
+                <h2 className="text-sm font-medium text-gray-400 mb-4 uppercase tracking-wide">Pastas</h2>
+                {viewMode === "grid" ? (
+                  <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
+                    {folders.map((item) => (
+                      <div
+                        key={item.id}
+                        onClick={() => navigateToFolder(item.id)}
+                        className={`group relative bg-gray-800/50 hover:bg-gray-800 border border-gray-700/50 hover:border-gray-600 rounded-xl p-4 cursor-pointer transition-all duration-200 ${
+                          selectedFileId === item.id ? "ring-2 ring-brand-pink bg-gray-800" : ""
+                        }`}
+                      >
+                        <div className="flex flex-col items-center text-center">
+                          <div className="mb-3 p-3 rounded-xl bg-gray-700/50 group-hover:bg-gray-700 transition-colors">
+                            <Folder size={40} className="text-brand-pink" fill="currentColor" fillOpacity={0.2} />
+                          </div>
+                          <p className="font-medium text-sm truncate w-full text-gray-200 group-hover:text-white">
+                            {item.name}
+                          </p>
+                          <p className="text-xs text-gray-500 mt-1">{item.modifiedAt.toLocaleDateString("pt-BR")}</p>
                         </div>
-                      )}
-                    </div>
-                    <div className={viewMode === 'list' ? 'flex-1 min-w-0' : 'mt-2'}>
-                      <p className={`font-medium truncate ${viewMode === 'list' ? 'text-base' : 'text-sm'}`}>
-                        {item.name}
-                      </p>
-                      {viewMode === 'list' && (
-                        <div className="flex items-center gap-4 mt-1 text-sm text-gray-400">
-                          {item.type === 'file' && item.size && (
-                            <span>{formatFileSize(item.size)}</span>
-                          )}
-                          <span>
-                            {item.modifiedAt.toLocaleDateString('pt-BR', {
-                              day: '2-digit',
-                              month: '2-digit',
-                              year: 'numeric'
-                            })}
-                          </span>
-                        </div>
-                      )}
-                      {viewMode === 'grid' && item.type === 'file' && item.size && (
-                        <p className="text-xs text-gray-400 mt-1">
-                          {formatFileSize(item.size)}
-                        </p>
-                      )}
-                    </div>
+                      </div>
+                    ))}
                   </div>
-                </CardContent>
-              </Card>
-            ))}
+                ) : (
+                  <div className="space-y-1">
+                    {folders.map((item) => (
+                      <div
+                        key={item.id}
+                        onClick={() => navigateToFolder(item.id)}
+                        className={`group flex items-center gap-4 px-4 py-3 rounded-lg cursor-pointer transition-all duration-200 hover:bg-gray-800 ${
+                          selectedFileId === item.id ? "bg-gray-800 ring-1 ring-brand-pink" : ""
+                        }`}
+                      >
+                        <Folder
+                          size={24}
+                          className="text-brand-pink flex-shrink-0"
+                          fill="currentColor"
+                          fillOpacity={0.2}
+                        />
+                        <div className="flex-1 min-w-0">
+                          <p className="font-medium text-gray-200 group-hover:text-white truncate">{item.name}</p>
+                        </div>
+                        <p className="text-sm text-gray-500">{item.modifiedAt.toLocaleDateString("pt-BR")}</p>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Seção de Arquivos */}
+            {fileItems.length > 0 && (
+              <div>
+                <h2 className="text-sm font-medium text-gray-400 mb-4 uppercase tracking-wide">Arquivos</h2>
+                {viewMode === "grid" ? (
+                  <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
+                    {fileItems.map((item) => (
+                      <div
+                        key={item.id}
+                        onClick={() => setSelectedFileId(item.id === selectedFileId ? null : item.id)}
+                        className={`group relative bg-gray-800/50 hover:bg-gray-800 border border-gray-700/50 hover:border-gray-600 rounded-xl p-4 cursor-pointer transition-all duration-200 ${
+                          selectedFileId === item.id ? "ring-2 ring-brand-pink bg-gray-800" : ""
+                        }`}
+                      >
+                        <div className="flex flex-col items-center text-center">
+                          <div className="mb-3 p-3 rounded-xl bg-gray-700/50 group-hover:bg-gray-700 transition-colors">
+                            {getFileIcon(item.mimeType, item.name, 40)}
+                          </div>
+                          <p className="font-medium text-sm truncate w-full text-gray-200 group-hover:text-white">
+                            {item.name}
+                          </p>
+                          {item.size && <p className="text-xs text-gray-500 mt-1">{formatFileSize(item.size)}</p>}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="space-y-1">
+                    {fileItems.map((item) => (
+                      <div
+                        key={item.id}
+                        onClick={() => setSelectedFileId(item.id === selectedFileId ? null : item.id)}
+                        className={`group flex items-center gap-4 px-4 py-3 rounded-lg cursor-pointer transition-all duration-200 hover:bg-gray-800 ${
+                          selectedFileId === item.id ? "bg-gray-800 ring-1 ring-brand-pink" : ""
+                        }`}
+                      >
+                        <div className="flex-shrink-0">{getFileIcon(item.mimeType, item.name, 24)}</div>
+                        <div className="flex-1 min-w-0">
+                          <p className="font-medium text-gray-200 group-hover:text-white truncate">{item.name}</p>
+                        </div>
+                        {item.size && (
+                          <p className="text-sm text-gray-500 hidden sm:block">{formatFileSize(item.size)}</p>
+                        )}
+                        <p className="text-sm text-gray-500">{item.modifiedAt.toLocaleDateString("pt-BR")}</p>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
           </div>
         )}
 
         {/* Modal de criação de pasta */}
         {showCreateFolderModal && (
-          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-            <Card className="bg-gray-800 border-gray-700 w-full max-w-md">
-              <CardContent className="p-6">
-                <h3 className="text-xl font-bold mb-4">Criar Nova Pasta</h3>
+          <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+            <div className="bg-gray-800 border border-gray-700 rounded-2xl w-full max-w-md shadow-2xl">
+              <div className="p-6">
+                <h3 className="text-xl font-semibold mb-4">Criar Nova Pasta</h3>
                 <input
                   type="text"
                   value={newFolderName}
                   onChange={(e) => setNewFolderName(e.target.value)}
                   onKeyDown={(e) => {
-                    if (e.key === 'Enter') {
+                    if (e.key === "Enter") {
                       handleCreateFolder()
-                    } else if (e.key === 'Escape') {
+                    } else if (e.key === "Escape") {
                       setShowCreateFolderModal(false)
-                      setNewFolderName('')
+                      setNewFolderName("")
                     }
                   }}
                   placeholder="Nome da pasta"
-                  className="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 mb-4"
+                  className="w-full px-4 py-3 bg-gray-700 border border-gray-600 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-brand-pink focus:border-transparent mb-6"
                   autoFocus
                 />
-                <div className="flex justify-end gap-2">
+                <div className="flex justify-end gap-3">
                   <button
                     onClick={() => {
                       setShowCreateFolderModal(false)
-                      setNewFolderName('')
+                      setNewFolderName("")
                     }}
-                    className="px-4 py-2 bg-gray-700 hover:bg-gray-600 rounded-lg transition-colors"
+                    className="px-5 py-2.5 bg-gray-700 hover:bg-gray-600 rounded-full transition-colors font-medium"
                   >
                     Cancelar
                   </button>
                   <button
                     onClick={handleCreateFolder}
-                    className="px-4 py-2 bg-blue-600 hover:bg-blue-700 rounded-lg transition-colors"
+                    className="px-5 py-2.5 bg-brand-pink hover:bg-brand-pink/90 rounded-full transition-colors font-medium"
                   >
                     Criar
                   </button>
                 </div>
-              </CardContent>
-            </Card>
+              </div>
+            </div>
           </div>
         )}
 
         {/* Menu de contexto para arquivo selecionado */}
-        {selectedFileId && (
-          <div className="fixed bottom-6 left-1/2 transform -translate-x-1/2 bg-gray-800 border border-gray-700 rounded-lg p-4 shadow-xl z-40">
-            <div className="flex items-center gap-4">
-              <span className="text-sm text-gray-300">
-                {files.find(f => f.id === selectedFileId)?.name}
+        {selectedFileId && files.find((f) => f.id === selectedFileId)?.type === "file" && (
+          <div className="fixed bottom-6 left-1/2 transform -translate-x-1/2 bg-gray-800 border border-gray-700 rounded-2xl px-6 py-4 shadow-2xl z-40">
+            <div className="flex items-center gap-6">
+              <span className="text-sm text-gray-300 max-w-[200px] truncate">
+                {files.find((f) => f.id === selectedFileId)?.name}
               </span>
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-1">
                 <button
                   onClick={() => {
-                    const file = files.find(f => f.id === selectedFileId)
+                    const file = files.find((f) => f.id === selectedFileId)
                     if (file?.file) {
                       const url = URL.createObjectURL(file.file)
-                      const a = document.createElement('a')
+                      const a = document.createElement("a")
                       a.href = url
                       a.download = file.name
                       a.click()
                       URL.revokeObjectURL(url)
                     }
                   }}
-                  className="p-2 hover:bg-gray-700 rounded-lg transition-colors"
+                  className="p-2.5 hover:bg-gray-700 rounded-full transition-colors text-gray-300 hover:text-white"
                   title="Download"
                 >
-                  <Download size={18} />
+                  <Download size={20} />
                 </button>
                 <button
                   onClick={() => {
-                    const file = files.find(f => f.id === selectedFileId)
+                    const file = files.find((f) => f.id === selectedFileId)
                     if (file) {
-                      const newName = prompt('Novo nome:', file.name)
+                      const newName = prompt("Novo nome:", file.name)
                       if (newName && newName.trim()) {
                         handleRename(selectedFileId, newName.trim())
                       }
                     }
                   }}
-                  className="p-2 hover:bg-gray-700 rounded-lg transition-colors"
+                  className="p-2.5 hover:bg-gray-700 rounded-full transition-colors text-gray-300 hover:text-white"
                   title="Renomear"
                 >
-                  <Edit size={18} />
+                  <Edit size={20} />
                 </button>
                 <button
                   onClick={() => {
-                    if (confirm('Tem certeza que deseja excluir este item?')) {
+                    if (confirm("Tem certeza que deseja excluir este item?")) {
                       handleDelete(selectedFileId)
                     }
                   }}
-                  className="p-2 hover:bg-red-600 rounded-lg transition-colors"
+                  className="p-2.5 hover:bg-red-600/20 rounded-full transition-colors text-gray-300 hover:text-red-400"
                   title="Excluir"
                 >
-                  <Trash2 size={18} />
+                  <Trash2 size={20} />
                 </button>
                 <button
                   onClick={() => setSelectedFileId(null)}
-                  className="p-2 hover:bg-gray-700 rounded-lg transition-colors"
+                  className="p-2.5 hover:bg-gray-700 rounded-full transition-colors text-gray-300 hover:text-white"
                   title="Fechar"
                 >
-                  <MoreVertical size={18} />
+                  <X size={20} />
                 </button>
               </div>
             </div>
