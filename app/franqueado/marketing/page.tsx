@@ -19,6 +19,7 @@ import {
   Archive,
   FileSpreadsheet,
   FileCode,
+  MoveRight,
   Search,
   Grid3X3,
   List,
@@ -129,6 +130,8 @@ export default function MarketingPage() {
   const [showCreateFolderModal, setShowCreateFolderModal] = useState(false)
   const [newFolderName, setNewFolderName] = useState("")
   const [searchQuery, setSearchQuery] = useState("")
+  const [showMoveModal, setShowMoveModal] = useState(false)
+  const [moveTargetId, setMoveTargetId] = useState<string | null>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
   const folderInputRef = useRef<HTMLInputElement>(null)
 
@@ -169,6 +172,32 @@ export default function MarketingPage() {
 
     return path
   }
+
+  // Caminho completo de uma pasta para exibir no seletor de destino
+  const getFolderFullPath = (folderId: string): string => {
+    const segments: string[] = []
+    let current = files.find((f) => f.id === folderId && f.type === "folder")
+
+    while (current) {
+      segments.unshift(current.name)
+      current = current.parentId ? files.find((f) => f.id === current?.parentId && f.type === "folder") : undefined
+    }
+
+    return segments.join(" / ") || "Meus Arquivos"
+  }
+
+  // Lista de pastas disponíveis para mover arquivos
+  const folderOptions = useMemo(
+    () =>
+      files
+        .filter((f) => f.type === "folder")
+        .map((folder) => ({
+          id: folder.id,
+          label: getFolderFullPath(folder.id),
+        }))
+        .sort((a, b) => a.label.localeCompare(b.label)),
+    [files]
+  )
 
   // Navegar para uma pasta
   const navigateToFolder = (folderId: string) => {
@@ -273,15 +302,28 @@ export default function MarketingPage() {
     }
   }
 
-  // Deletar arquivo/pasta
+  // Coleta filhos recursivamente para exclusão
+  const collectDescendants = (itemId: string, allItems: FileItem[], acc: Set<string>) => {
+    allItems
+      .filter((f) => f.parentId === itemId)
+      .forEach((child) => {
+        acc.add(child.id)
+        collectDescendants(child.id, allItems, acc)
+      })
+  }
+
+  // Deletar arquivo/pasta (e seu conteúdo) em uma única operação
   const handleDelete = (id: string) => {
-    const deleteRecursive = (itemId: string) => {
-      setFiles((prev) => prev.filter((f) => f.id !== itemId))
-      const children = files.filter((f) => f.parentId === itemId)
-      children.forEach((child) => deleteRecursive(child.id))
+    const idsToDelete = new Set<string>([id])
+    collectDescendants(id, files, idsToDelete)
+
+    setFiles((prev) => prev.filter((f) => !idsToDelete.has(f.id)))
+
+    // Se a pasta atual for removida, volta para a raiz
+    if (currentFolderId && idsToDelete.has(currentFolderId)) {
+      setCurrentFolderId(null)
     }
 
-    deleteRecursive(id)
     setSelectedFileId(null)
   }
 
@@ -291,9 +333,22 @@ export default function MarketingPage() {
     setSelectedFileId(null)
   }
 
+  // Mover arquivo selecionado para outra pasta (ou raiz)
+  const handleMoveSelectedFile = () => {
+    if (!selectedFileId) return
+
+    setFiles((prev) =>
+      prev.map((f) => (f.id === selectedFileId ? { ...f, parentId: moveTargetId ?? null, modifiedAt: new Date() } : f))
+    )
+
+    setShowMoveModal(false)
+    setMoveTargetId(null)
+    setSelectedFileId(null)
+  }
+
   const folderPath = getFolderPath()
 
-  return (
+    return (
     <div className="min-h-screen bg-gray-900 text-white">
       <div className="max-w-7xl mx-auto p-6">
         {/* Header com barra de pesquisa estilo Google Drive */}
@@ -446,6 +501,35 @@ export default function MarketingPage() {
                           selectedFileId === item.id ? "ring-2 ring-brand-pink bg-gray-800" : ""
                         }`}
                       >
+                        {/* Ações rápidas para pasta */}
+                        <div className="absolute top-2 right-2 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation()
+                              const newName = prompt("Novo nome da pasta:", item.name)
+                              if (newName && newName.trim()) {
+                                handleRename(item.id, newName.trim())
+                              }
+                            }}
+                            className="p-2 bg-gray-700 hover:bg-gray-600 rounded-md transition-colors"
+                            title="Renomear pasta"
+                          >
+                            <Edit size={16} />
+                          </button>
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation()
+                              if (confirm("Excluir esta pasta e todo o conteúdo dentro dela?")) {
+                                handleDelete(item.id)
+                              }
+                            }}
+                            className="p-2 bg-red-700/80 hover:bg-red-600 rounded-md transition-colors"
+                            title="Excluir pasta"
+                          >
+                            <Trash2 size={16} />
+                          </button>
+                        </div>
+
                         <div className="flex flex-col items-center text-center">
                           <div className="mb-3 p-3 rounded-xl bg-gray-700/50 group-hover:bg-gray-700 transition-colors">
                             <Folder size={40} className="text-brand-pink" fill="currentColor" fillOpacity={0.2} />
@@ -464,7 +548,7 @@ export default function MarketingPage() {
                       <div
                         key={item.id}
                         onClick={() => navigateToFolder(item.id)}
-                        className={`group flex items-center gap-4 px-4 py-3 rounded-lg cursor-pointer transition-all duration-200 hover:bg-gray-800 ${
+                        className={`group relative flex items-center gap-4 px-4 py-3 rounded-lg cursor-pointer transition-all duration-200 hover:bg-gray-800 ${
                           selectedFileId === item.id ? "bg-gray-800 ring-1 ring-brand-pink" : ""
                         }`}
                       >
@@ -478,6 +562,35 @@ export default function MarketingPage() {
                           <p className="font-medium text-gray-200 group-hover:text-white truncate">{item.name}</p>
                         </div>
                         <p className="text-sm text-gray-500">{item.modifiedAt.toLocaleDateString("pt-BR")}</p>
+
+                        {/* Ações rápidas para pasta (lista) */}
+                        <div className="flex items-center gap-1 ml-2">
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation()
+                              const newName = prompt("Novo nome da pasta:", item.name)
+                              if (newName && newName.trim()) {
+                                handleRename(item.id, newName.trim())
+                              }
+                            }}
+                            className="p-2 bg-gray-700 hover:bg-gray-600 rounded-md transition-colors"
+                            title="Renomear pasta"
+                          >
+                            <Edit size={16} />
+                          </button>
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation()
+                              if (confirm("Excluir esta pasta e todo o conteúdo dentro dela?")) {
+                                handleDelete(item.id)
+                              }
+                            }}
+                            className="p-2 bg-red-700/80 hover:bg-red-600 rounded-md transition-colors"
+                            title="Excluir pasta"
+                          >
+                            <Trash2 size={16} />
+                          </button>
+                        </div>
                       </div>
                     ))}
                   </div>
@@ -582,6 +695,75 @@ export default function MarketingPage() {
           </div>
         )}
 
+        {/* Modal de mover arquivo */}
+        {showMoveModal && selectedFileId && (
+          <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+            <div className="bg-gray-800 border border-gray-700 rounded-2xl w-full max-w-lg shadow-2xl">
+              <div className="p-6 space-y-4">
+                <div>
+                  <h3 className="text-xl font-semibold">Mover arquivo</h3>
+                  <p className="text-sm text-gray-400 mt-1">
+                    Selecione o destino para o arquivo{" "}
+                    <span className="text-gray-200 font-medium">
+                      {files.find((f) => f.id === selectedFileId)?.name}
+                    </span>
+                  </p>
+                </div>
+
+                <div className="space-y-2 max-h-72 overflow-y-auto pr-1">
+                  <button
+                    onClick={() => setMoveTargetId(null)}
+                    className={`w-full flex items-center gap-2 px-3 py-2 rounded-lg border transition-colors ${
+                      moveTargetId === null
+                        ? "border-brand-pink text-white bg-brand-pink/10"
+                        : "border-gray-700 text-gray-300 hover:border-gray-600 hover:text-white"
+                    }`}
+                  >
+                    <Home size={16} />
+                    <span>Meus Arquivos (raiz)</span>
+                  </button>
+
+                  {folderOptions.length === 0 && (
+                    <p className="text-sm text-gray-500 px-1">Nenhuma pasta disponível.</p>
+                  )}
+
+                  {folderOptions.map((folder) => (
+                    <button
+                      key={folder.id}
+                      onClick={() => setMoveTargetId(folder.id)}
+                      className={`w-full text-left px-3 py-2 rounded-lg border transition-colors ${
+                        moveTargetId === folder.id
+                          ? "border-brand-pink text-white bg-brand-pink/10"
+                          : "border-gray-700 text-gray-300 hover:border-gray-600 hover:text-white"
+                      }`}
+                    >
+                      <span className="text-sm">{folder.label}</span>
+                    </button>
+                  ))}
+                </div>
+
+                <div className="flex justify-end gap-3 pt-2">
+                  <button
+                    onClick={() => {
+                      setShowMoveModal(false)
+                      setMoveTargetId(null)
+                    }}
+                    className="px-5 py-2.5 bg-gray-700 hover:bg-gray-600 rounded-full transition-colors font-medium"
+                  >
+                    Cancelar
+                  </button>
+                  <button
+                    onClick={handleMoveSelectedFile}
+                    className="px-5 py-2.5 bg-brand-pink hover:bg-brand-pink/90 rounded-full transition-colors font-medium"
+                  >
+                    Mover
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* Menu de contexto para arquivo selecionado */}
         {selectedFileId && files.find((f) => f.id === selectedFileId)?.type === "file" && (
           <div className="fixed bottom-6 left-1/2 transform -translate-x-1/2 bg-gray-800 border border-gray-700 rounded-2xl px-6 py-4 shadow-2xl z-40">
@@ -606,6 +788,19 @@ export default function MarketingPage() {
                   title="Download"
                 >
                   <Download size={20} />
+                </button>
+                <button
+                  onClick={() => {
+                    const file = files.find((f) => f.id === selectedFileId)
+                    if (file?.type === "file") {
+                      setMoveTargetId(file.parentId ?? null)
+                      setShowMoveModal(true)
+                    }
+                  }}
+                  className="p-2.5 hover:bg-gray-700 rounded-full transition-colors text-gray-300 hover:text-white"
+                  title="Mover para..."
+                >
+                  <MoveRight size={20} />
                 </button>
                 <button
                   onClick={() => {
