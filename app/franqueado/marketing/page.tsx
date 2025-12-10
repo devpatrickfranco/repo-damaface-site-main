@@ -14,7 +14,6 @@ import { SelectionBar } from "./components/selection-bar"
 import { CreateFolderModal } from "./components/create-folder-modal"
 import { MoveModal } from "./components/move-modal"
 import { DragOverlay } from "./components/drag-overlay"
-import { Banner } from './components/banner'
 
 type UploadItem = { file: File; relativePath?: string }
 
@@ -186,8 +185,6 @@ export default function FileManagerPage() {
 
       <div className="max-w-7xl mx-auto p-6">
         
-        {/* Banner */}
-        <Banner />
 
         {/* Header */}
         <div className="mb-8">

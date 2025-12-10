@@ -9,6 +9,7 @@ import CardDashboard from "./components/CardDashboard"
 import CommuniqueDashboard from "./components/CommuniqueDashboard"
 import ChartDashboard from "./components/ChartDashboard"
 import RecentActivaitesDashboard from "./components/RecentActivaitesDashboard"
+import Banner from "../components/Banner"
 
 // Tipos para tipagem dos dados da API
 interface DashboardStats {
@@ -112,6 +113,11 @@ export default function Dashboard() {
   return (
     <>
           <div className="p-6 space-y-6">
+
+            <div className="-mx-6 -mt-6 w-[calc(100%+3rem)] mb-2">
+              <Banner />
+            </div>
+
             {/* Banner de Boas-vindas */}
             <div className="bg-gradient-to-br from-brand-pink/10 to-brand-pink/5 border border-brand-pink/20 rounded-lg p-6">
               <h1 className="text-2xl md:text-3xl font-bold text-white mb-2">
