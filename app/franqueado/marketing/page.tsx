@@ -252,9 +252,11 @@ export default function MarketingPage() {
     setShowCreateFolderModal(false)
   }
 
+  type UploadItem = { file: File; relativePath?: string }
+
   // Adiciona arquivos simples no diretório atual
-  const addFlatFiles = (fileList: FileList, parent: string | null) => {
-    const newFiles: FileItem[] = Array.from(fileList).map((file) => ({
+  const addFlatFiles = (items: UploadItem[], parent: string | null) => {
+    const newFiles: FileItem[] = items.map(({ file }) => ({
       id: Date.now().toString() + Math.random().toString(36).substr(2, 9),
       name: file.name,
       type: "file" as FileType,
@@ -267,13 +269,13 @@ export default function MarketingPage() {
     setFiles((prev) => [...prev, ...newFiles])
   }
 
-  // Adiciona arquivos preservando subpastas via webkitRelativePath (upload de pastas ou drag folder)
-  const addFilesWithPaths = (fileList: FileList, parent: string | null) => {
+  // Adiciona arquivos preservando subpastas via relativePath (webkitRelativePath ou path calculado)
+  const addFilesWithPaths = (items: UploadItem[], parent: string | null) => {
     const folderMap = new Map<string, FileItem>()
     const basePath = parent || "root"
 
-    Array.from(fileList).forEach((file) => {
-      const pathParts = (file.webkitRelativePath || file.name).split("/")
+    items.forEach(({ file, relativePath }) => {
+      const pathParts = (relativePath || file.webkitRelativePath || file.name).split("/")
       const fileName = pathParts.pop() || file.name
 
       let currentPath = ""
@@ -316,15 +318,25 @@ export default function MarketingPage() {
     setFiles((prev) => [...prev, ...Array.from(folderMap.values())])
   }
 
-  // Decide entre upload simples ou com estrutura de pastas
-  const processUpload = (fileList: FileList) => {
-    if (!fileList || fileList.length === 0) return
+  // Normaliza input (FileList ou UploadItem[]) para UploadItem[]
+  const normalizeUploadItems = (input: FileList | UploadItem[]): UploadItem[] => {
+    if (Array.isArray(input)) return input
+    return Array.from(input).map((file) => ({
+      file,
+      relativePath: file.webkitRelativePath || undefined,
+    }))
+  }
 
-    const hasPath = Array.from(fileList).some((f) => f.webkitRelativePath && f.webkitRelativePath.includes("/"))
+  // Decide entre upload simples ou com estrutura de pastas
+  const processUpload = (input: FileList | UploadItem[]) => {
+    const items = normalizeUploadItems(input)
+    if (!items.length) return
+
+    const hasPath = items.some((i) => i.relativePath && i.relativePath.includes("/"))
     if (hasPath) {
-      addFilesWithPaths(fileList, currentFolderId)
+      addFilesWithPaths(items, currentFolderId)
     } else {
-      addFlatFiles(fileList, currentFolderId)
+      addFlatFiles(items, currentFolderId)
     }
   }
 
@@ -362,13 +374,13 @@ export default function MarketingPage() {
   }
 
   // Lê entradas (pastas) via FileSystem API quando disponível
-  const getFilesFromDataTransferItems = async (items: DataTransferItemList): Promise<File[]> => {
-    const traverseEntry = (entry: any, path: string): Promise<File[]> => {
+  const getFilesFromDataTransferItems = async (items: DataTransferItemList): Promise<UploadItem[]> => {
+    const traverseEntry = (entry: any, path: string): Promise<UploadItem[]> => {
       return new Promise((resolve) => {
         if (entry.isFile) {
           entry.file((file: File) => {
-            ;(file as any).webkitRelativePath = path ? `${path}/${file.name}` : file.name
-            resolve([file])
+            const relativePath = path ? `${path}/${file.name}` : file.name
+            resolve([{ file, relativePath }])
           })
         } else if (entry.isDirectory) {
           const reader = entry.createReader()
@@ -393,14 +405,14 @@ export default function MarketingPage() {
       })
     }
 
-    const promises: Promise<File[]>[] = []
+    const promises: Promise<UploadItem[]>[] = []
     Array.from(items).forEach((item) => {
       const entry = typeof (item as any).webkitGetAsEntry === "function" ? (item as any).webkitGetAsEntry() : null
       if (entry) {
         promises.push(traverseEntry(entry, ""))
       } else if (item.kind === "file") {
         const file = item.getAsFile()
-        if (file) promises.push(Promise.resolve([file]))
+        if (file) promises.push(Promise.resolve([{ file, relativePath: file.name }]))
       }
     })
 
@@ -416,9 +428,7 @@ export default function MarketingPage() {
     if (e.dataTransfer?.items && Array.from(e.dataTransfer.items).some((it) => typeof (it as any).webkitGetAsEntry === "function")) {
       const files = await getFilesFromDataTransferItems(e.dataTransfer.items)
       if (files.length) {
-        const dt = new DataTransfer()
-        files.forEach((f) => dt.items.add(f))
-        processUpload(dt.files)
+        processUpload(files)
       }
     } else if (e.dataTransfer?.files?.length) {
       processUpload(e.dataTransfer.files)
@@ -487,7 +497,7 @@ export default function MarketingPage() {
 
   const folderPath = getFolderPath()
 
-  return (
+    return (
     <div
       className="min-h-screen bg-gray-900 text-white"
       onDragOver={handleDragOver}
