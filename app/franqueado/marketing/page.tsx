@@ -125,6 +125,7 @@ export default function MarketingPage() {
 
   const [currentFolderId, setCurrentFolderId] = useState<string | null>(null)
   const [selectedFileId, setSelectedFileId] = useState<string | null>(null)
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set())
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid")
   const [showCreateFolderModal, setShowCreateFolderModal] = useState(false)
   const [newFolderName, setNewFolderName] = useState("")
@@ -232,6 +233,7 @@ export default function MarketingPage() {
   const navigateToFolder = (folderId: string) => {
     setCurrentFolderId(folderId)
     setSelectedFileId(null)
+    setSelectedIds(new Set())
     setSearchQuery("")
   }
 
@@ -445,19 +447,24 @@ export default function MarketingPage() {
       })
   }
 
-  // Deletar arquivo/pasta (e seu conteúdo) em uma única operação
-  const handleDelete = (id: string) => {
-    const idsToDelete = new Set<string>([id])
-    collectDescendants(id, files, idsToDelete)
+  // Exclui múltiplos itens em uma única operação
+  const deleteItemsByIds = (ids: Set<string>) => {
+    const idsToDelete = new Set<string>(ids)
+    ids.forEach((id) => collectDescendants(id, files, idsToDelete))
 
     setFiles((prev) => prev.filter((f) => !idsToDelete.has(f.id)))
 
-    // Se a pasta atual for removida, volta para a raiz
     if (currentFolderId && idsToDelete.has(currentFolderId)) {
       setCurrentFolderId(null)
     }
 
     setSelectedFileId(null)
+    setSelectedIds(new Set())
+  }
+
+  // Deletar arquivo/pasta (e seu conteúdo) em uma única operação
+  const handleDelete = (id: string) => {
+    deleteItemsByIds(new Set([id]))
   }
 
   // Renomear arquivo/pasta
@@ -493,6 +500,53 @@ export default function MarketingPage() {
     setMoveBrowseFolderId(null)
     setMoveSearch("")
     setSelectedFileId(null)
+    setSelectedIds(new Set())
+  }
+
+  const toggleSelect = (id: string, isFile: boolean) => {
+    setSelectedIds((prev) => {
+      const next = new Set(prev)
+      if (next.has(id)) {
+        next.delete(id)
+        if (selectedFileId === id) {
+          setSelectedFileId(null)
+        }
+      } else {
+        next.add(id)
+        if (isFile) {
+          setSelectedFileId(id)
+        }
+      }
+      return next
+    })
+  }
+
+  const clearSelection = () => {
+    setSelectedIds(new Set())
+    setSelectedFileId(null)
+  }
+
+  const handleBulkDelete = () => {
+    if (selectedIds.size === 0) return
+    deleteItemsByIds(new Set(selectedIds))
+  }
+
+  const handleBulkDownload = () => {
+    const selectedFiles = files.filter((f) => selectedIds.has(f.id) && f.type === "file" && f.file)
+    if (selectedFiles.length === 0) {
+      alert("Selecione pelo menos um arquivo com conteúdo para baixar.")
+      return
+    }
+
+    selectedFiles.forEach((file) => {
+      if (!file.file) return
+      const url = URL.createObjectURL(file.file)
+      const a = document.createElement("a")
+      a.href = url
+      a.download = file.name
+      a.click()
+      setTimeout(() => URL.revokeObjectURL(url), 500)
+    })
   }
 
   const folderPath = getFolderPath()
@@ -510,6 +564,42 @@ export default function MarketingPage() {
             <p className="text-lg font-medium text-white">Solte para enviar</p>
             <p className="text-sm text-gray-300 mt-1">Arquivos ou pastas serão enviados para a pasta atual</p>
           </div>
+
+          {/* Ações de seleção múltipla */}
+          {selectedIds.size > 0 && (
+            <div className="flex flex-wrap items-center gap-3 p-3 mt-4 rounded-xl bg-gray-800 border border-gray-700">
+              <span className="text-sm text-gray-300">
+                {selectedIds.size} item{selectedIds.size > 1 ? "s" : ""} selecionado{selectedIds.size > 1 ? "s" : ""}
+              </span>
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={handleBulkDownload}
+                  className="flex items-center gap-2 px-3 py-2 bg-gray-700 hover:bg-gray-600 rounded-lg text-sm transition-colors"
+                >
+                  <Download size={16} />
+                  <span>Download</span>
+                </button>
+                <button
+                  onClick={() => {
+                    if (confirm("Excluir os itens selecionados?")) {
+                      handleBulkDelete()
+                    }
+                  }}
+                  className="flex items-center gap-2 px-3 py-2 bg-red-700 hover:bg-red-600 rounded-lg text-sm transition-colors"
+                >
+                  <Trash2 size={16} />
+                  <span>Excluir</span>
+                </button>
+                <button
+                  onClick={clearSelection}
+                  className="flex items-center gap-2 px-3 py-2 bg-gray-700 hover:bg-gray-600 rounded-lg text-sm transition-colors"
+                >
+                  <X size={16} />
+                  <span>Limpar</span>
+                </button>
+              </div>
+            </div>
+          )}
         </div>
       )}
       <div className="max-w-7xl mx-auto p-6">
@@ -608,6 +698,7 @@ export default function MarketingPage() {
             onClick={() => {
               setCurrentFolderId(null)
               setSelectedFileId(null)
+              setSelectedIds(new Set())
               setSearchQuery("")
             }}
             className="flex items-center gap-1.5 px-2 py-1 rounded-md hover:bg-gray-800 text-gray-300 hover:text-white transition-colors"
@@ -658,11 +749,19 @@ export default function MarketingPage() {
                     {folders.map((item) => (
                       <div
                         key={item.id}
-                        onClick={() => navigateToFolder(item.id)}
+                        onDoubleClick={() => navigateToFolder(item.id)}
+                        onClick={() => toggleSelect(item.id, false)}
                         className={`group relative bg-gray-800/50 hover:bg-gray-800 border border-gray-700/50 hover:border-gray-600 rounded-xl p-4 cursor-pointer transition-all duration-200 ${
-                          selectedFileId === item.id ? "ring-2 ring-brand-pink bg-gray-800" : ""
+                          selectedIds.has(item.id) ? "ring-2 ring-brand-pink bg-gray-800" : ""
                         }`}
                       >
+                        <input
+                          type="checkbox"
+                          checked={selectedIds.has(item.id)}
+                          onChange={() => toggleSelect(item.id, false)}
+                          className="absolute top-2 left-2 h-4 w-4 rounded border-gray-500 bg-gray-800 text-brand-pink focus:ring-brand-pink"
+                          onClick={(e) => e.stopPropagation()}
+                        />
                         {/* Ações rápidas para pasta */}
                         <div className="absolute top-2 right-2 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                           <button
@@ -696,7 +795,10 @@ export default function MarketingPage() {
                           <div className="mb-3 p-3 rounded-xl bg-gray-700/50 group-hover:bg-gray-700 transition-colors">
                             <Folder size={40} className="text-brand-pink" fill="currentColor" fillOpacity={0.2} />
                           </div>
-                          <p className="font-medium text-sm truncate w-full text-gray-200 group-hover:text-white">
+                          <p
+                            className="font-medium text-sm truncate w-full text-gray-200 group-hover:text-white"
+                            title={item.name}
+                          >
                             {item.name}
                           </p>
                           <p className="text-xs text-gray-500 mt-1">{item.modifiedAt.toLocaleDateString("pt-BR")}</p>
@@ -709,11 +811,19 @@ export default function MarketingPage() {
                     {folders.map((item) => (
                       <div
                         key={item.id}
-                        onClick={() => navigateToFolder(item.id)}
+                        onDoubleClick={() => navigateToFolder(item.id)}
+                        onClick={() => toggleSelect(item.id, false)}
                         className={`group relative flex items-center gap-4 px-4 py-3 rounded-lg cursor-pointer transition-all duration-200 hover:bg-gray-800 ${
-                          selectedFileId === item.id ? "bg-gray-800 ring-1 ring-brand-pink" : ""
+                          selectedIds.has(item.id) ? "bg-gray-800 ring-1 ring-brand-pink" : ""
                         }`}
                       >
+                        <input
+                          type="checkbox"
+                          checked={selectedIds.has(item.id)}
+                          onChange={() => toggleSelect(item.id, false)}
+                          className="h-4 w-4 rounded border-gray-500 bg-gray-800 text-brand-pink focus:ring-brand-pink"
+                          onClick={(e) => e.stopPropagation()}
+                        />
                         <Folder
                           size={24}
                           className="text-brand-pink flex-shrink-0"
@@ -721,7 +831,9 @@ export default function MarketingPage() {
                           fillOpacity={0.2}
                         />
                         <div className="flex-1 min-w-0">
-                          <p className="font-medium text-gray-200 group-hover:text-white truncate">{item.name}</p>
+                          <p className="font-medium text-gray-200 group-hover:text-white truncate" title={item.name}>
+                            {item.name}
+                          </p>
                         </div>
                         <p className="text-sm text-gray-500">{item.modifiedAt.toLocaleDateString("pt-BR")}</p>
 
@@ -769,16 +881,26 @@ export default function MarketingPage() {
                     {fileItems.map((item) => (
                       <div
                         key={item.id}
-                        onClick={() => setSelectedFileId(item.id === selectedFileId ? null : item.id)}
+                        onClick={() => toggleSelect(item.id, true)}
                         className={`group relative bg-gray-800/50 hover:bg-gray-800 border border-gray-700/50 hover:border-gray-600 rounded-xl p-4 cursor-pointer transition-all duration-200 ${
-                          selectedFileId === item.id ? "ring-2 ring-brand-pink bg-gray-800" : ""
+                          selectedIds.has(item.id) ? "ring-2 ring-brand-pink bg-gray-800" : ""
                         }`}
                       >
+                        <input
+                          type="checkbox"
+                          checked={selectedIds.has(item.id)}
+                          onChange={() => toggleSelect(item.id, true)}
+                          className="absolute top-2 left-2 h-4 w-4 rounded border-gray-500 bg-gray-800 text-brand-pink focus:ring-brand-pink"
+                          onClick={(e) => e.stopPropagation()}
+                        />
                         <div className="flex flex-col items-center text-center">
                           <div className="mb-3 p-3 rounded-xl bg-gray-700/50 group-hover:bg-gray-700 transition-colors">
                             {getFileIcon(item.mimeType, item.name, 40)}
                           </div>
-                          <p className="font-medium text-sm truncate w-full text-gray-200 group-hover:text-white">
+                          <p
+                            className="font-medium text-sm truncate w-full text-gray-200 group-hover:text-white"
+                            title={item.name}
+                          >
                             {item.name}
                           </p>
                           {item.size && <p className="text-xs text-gray-500 mt-1">{formatFileSize(item.size)}</p>}
@@ -791,14 +913,23 @@ export default function MarketingPage() {
                     {fileItems.map((item) => (
                       <div
                         key={item.id}
-                        onClick={() => setSelectedFileId(item.id === selectedFileId ? null : item.id)}
+                        onClick={() => toggleSelect(item.id, true)}
                         className={`group flex items-center gap-4 px-4 py-3 rounded-lg cursor-pointer transition-all duration-200 hover:bg-gray-800 ${
-                          selectedFileId === item.id ? "bg-gray-800 ring-1 ring-brand-pink" : ""
+                          selectedIds.has(item.id) ? "bg-gray-800 ring-1 ring-brand-pink" : ""
                         }`}
                       >
+                        <input
+                          type="checkbox"
+                          checked={selectedIds.has(item.id)}
+                          onChange={() => toggleSelect(item.id, true)}
+                          className="h-4 w-4 rounded border-gray-500 bg-gray-800 text-brand-pink focus:ring-brand-pink"
+                          onClick={(e) => e.stopPropagation()}
+                        />
                         <div className="flex-shrink-0">{getFileIcon(item.mimeType, item.name, 24)}</div>
                         <div className="flex-1 min-w-0">
-                          <p className="font-medium text-gray-200 group-hover:text-white truncate">{item.name}</p>
+                          <p className="font-medium text-gray-200 group-hover:text-white truncate" title={item.name}>
+                            {item.name}
+                          </p>
                         </div>
                         {item.size && (
                           <p className="text-sm text-gray-500 hidden sm:block">{formatFileSize(item.size)}</p>
