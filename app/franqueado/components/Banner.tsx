@@ -10,7 +10,7 @@ export default function Banner() {
         src="/Capa-Natal-desktop.png" 
         alt="Banner Desktop"
         fill
-        className="hidden md:block object-cover object-top"
+        className="hidden md:block object-cover object-center"
         priority
         sizes="100vw"
       />
