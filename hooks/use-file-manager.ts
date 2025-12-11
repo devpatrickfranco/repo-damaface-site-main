@@ -115,7 +115,7 @@ export function useFileManager() {
         // Opcional: Se quiser garantir o nome exato
         // formData.append("nome", file.name)
 
-        return apiBackend.post("/drive/", formData)
+        return apiBackend.post("/marketing/drive/", formData)
       })
 
       await Promise.all(promises)
@@ -134,8 +134,8 @@ export function useFileManager() {
 
     try {
       const endpoint = item.type === "folder" 
-        ? `/folders/${id}/` 
-        : `/drive/${id}/`
+        ? `/marketing/folders/${id}/` 
+        : `/marketing/drive/${id}/`
       
       await apiBackend.patch(endpoint, { nome: newName })
       await fetchContent()
@@ -151,8 +151,8 @@ export function useFileManager() {
         if (!item) return Promise.resolve()
         
         const endpoint = item.type === "folder" 
-          ? `/folders/${id}/` 
-          : `/drive/${id}/`
+          ? `/marketing/folders/${id}/` 
+          : `/marketing/drive/${id}/`
         
         return apiBackend.delete(endpoint)
       })
@@ -180,7 +180,7 @@ export function useFileManager() {
     }
 
     try {
-      await apiBackend.post(`/drive/${itemId}/mover/`, {
+      await apiBackend.post(`/marketing/drive/${itemId}/mover/`, {
         target_folder_id: targetFolderId ? parseInt(targetFolderId) : null
       })
       await fetchContent()
@@ -205,7 +205,7 @@ export function useFileManager() {
         window.open(item.url, '_blank')
       } else {
         // Fallback via Blob
-        const blob = await getBlob(`/drive/${id}/`) 
+        const blob = await getBlob(`/marketing/drive/${id}/`) 
         const url = window.URL.createObjectURL(blob)
         const link = document.createElement('a')
         link.href = url
