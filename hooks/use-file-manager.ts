@@ -26,8 +26,8 @@ export function useFileManager() {
     try {
       // Decide qual endpoint chamar (Raiz ou Pasta Específica)
       const url = currentFolderId
-        ? `/folders/${currentFolderId}/conteudo/`
-        : `/folders/root_content/`
+        ? `/marketing/folders/${currentFolderId}/conteudo/`
+        : `/marketing/folders/root_content/`
 
       const data = await apiBackend.get<APIContentResponse>(url)
 
