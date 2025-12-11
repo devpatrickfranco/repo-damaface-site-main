@@ -107,8 +107,10 @@ export function useFileManager() {
       const promises = fileList.map(item => {
         const file = 'file' in item ? item.file : item
         const formData = new FormData()
-        formData.append("arquivo", file as File)
         
+        formData.append("arquivo", file as File)
+        formData.append("nome", file.name)
+
         if (currentFolderId) {
           formData.append("folder", currentFolderId)
         }
