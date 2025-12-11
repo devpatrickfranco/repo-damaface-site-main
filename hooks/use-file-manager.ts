@@ -87,7 +87,7 @@ export function useFileManager() {
   const createFolder = useCallback(async (name: string) => {
     if (!name.trim()) return
     try {
-      await apiBackend.post("/folders/", {
+      await apiBackend.post("/marketing/folders/", {
         nome: name.trim(),
         pasta_pai: currentFolderId ? parseInt(currentFolderId) : null
       })
