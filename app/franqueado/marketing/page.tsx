@@ -2,7 +2,7 @@
 
 import type React from "react"
 import { useState, useMemo, useCallback } from "react"
-import { useFileManager } from "./hooks"
+import { useFileManager } from "@/hooks/use-file-manager"
 import { getFolderPath } from "./helper"
 import { SearchBar } from "./components/search-bar"
 import { Toolbar } from "./components/toolbar"
