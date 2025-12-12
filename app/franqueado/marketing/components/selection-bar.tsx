@@ -51,7 +51,7 @@ export function SelectionBar({
             <Download size={20} />
           </button>
 
-          {selectedIds.size === 1 && selectedFile?.type === "file" && (
+          {selectedIds.size >= 1 && (
             <button
               onClick={onMove}
               className="p-2.5 hover:bg-gray-700 rounded-full transition-colors text-gray-300 hover:text-white"

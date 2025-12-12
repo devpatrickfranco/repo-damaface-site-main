@@ -1,5 +1,3 @@
-"use client"
-
 import React, { useState, useMemo } from "react"
 import { Search, X, Home, ChevronRight, Folder } from "lucide-react"
 import type { FileItem } from "@/types/marketing"
@@ -9,16 +7,21 @@ interface MoveModalProps {
   isOpen: boolean
   files: FileItem[]
   selectedFileId: string | null
+  selectedIds?: Set<string>
   onMove: (destinationId: string | null) => void
   onClose: () => void
 }
 
-export function MoveModal({ isOpen, files, selectedFileId, onMove, onClose }: MoveModalProps) {
+export function MoveModal({ isOpen, files, selectedFileId, selectedIds, onMove, onClose }: MoveModalProps) {
   const [moveTargetId, setMoveTargetId] = useState<string | null>(null)
   const [moveBrowseFolderId, setMoveBrowseFolderId] = useState<string | null>(null)
   const [moveSearch, setMoveSearch] = useState("")
 
-  const selectedFile = selectedFileId ? files.find((f) => f.id === selectedFileId) : null
+  const count = selectedIds ? selectedIds.size : (selectedFileId ? 1 : 0)
+
+  // Se for apenas 1 arquivo via selectedIds, pegamos ele para mostrar o nome
+  const singleFileId = selectedFileId || (selectedIds?.size === 1 ? Array.from(selectedIds)[0] : null)
+  const selectedFile = singleFileId ? files.find((f) => f.id === singleFileId) : null
 
   const moveChildren = useMemo(
     () => files.filter((f) => f.type === "folder" && f.parentId === moveBrowseFolderId),
@@ -50,32 +53,35 @@ export function MoveModal({ isOpen, files, selectedFileId, onMove, onClose }: Mo
   }
 
   const handleMove = () => {
-    if (!selectedFileId) return
+    if (count === 0) return
 
-    const file = files.find((f) => f.id === selectedFileId)
-    if (!file) return
-
-    const destination = moveTargetId ?? null
-
-    if (file.parentId === destination) {
-      handleClose()
-      return
+    // Valida se não estamos movendo para a mesma pasta pai (apenas para single file para simplificar, batch o server valida)
+    if (selectedFile) {
+      const destination = moveTargetId ?? null
+      if (selectedFile.parentId === destination) {
+        handleClose()
+        return
+      }
     }
 
-    onMove(destination)
+    onMove(moveTargetId ?? null)
     handleClose()
   }
 
-  if (!isOpen || !selectedFileId) return null
+  if (!isOpen || count === 0) return null
 
   return (
     <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
       <div className="bg-gray-800 border border-gray-700 rounded-2xl w-full max-w-lg shadow-2xl">
         <div className="p-6 space-y-5">
           <div>
-            <h3 className="text-xl font-semibold">Mover arquivo</h3>
+            <h3 className="text-xl font-semibold">Mover {count > 1 ? "arquivos" : "arquivo"}</h3>
             <p className="text-sm text-gray-400 mt-1">
-              Selecione o destino para o arquivo <span className="text-gray-200 font-medium">{selectedFile?.name}</span>
+              {count > 1 ? (
+                <>Selecione o destino para os <span className="text-gray-200 font-medium">{count} itens selecionados</span></>
+              ) : (
+                <>Selecione o destino para o arquivo <span className="text-gray-200 font-medium">{selectedFile?.name}</span></>
+              )}
             </p>
           </div>
 
@@ -102,9 +108,8 @@ export function MoveModal({ isOpen, files, selectedFileId, onMove, onClose }: Mo
             <div className="flex items-center gap-1 text-xs text-gray-400">
               <button
                 onClick={() => setMoveBrowseFolderId(null)}
-                className={`flex items-center gap-1 px-2 py-1 rounded-md transition-colors ${
-                  moveBrowseFolderId === null ? "bg-gray-700 text-white" : "hover:bg-gray-700"
-                }`}
+                className={`flex items-center gap-1 px-2 py-1 rounded-md transition-colors ${moveBrowseFolderId === null ? "bg-gray-700 text-white" : "hover:bg-gray-700"
+                  }`}
               >
                 <Home size={14} />
                 <span>Meus Arquivos</span>
@@ -114,9 +119,8 @@ export function MoveModal({ isOpen, files, selectedFileId, onMove, onClose }: Mo
                   <ChevronRight size={14} className="text-gray-600" />
                   <button
                     onClick={() => setMoveBrowseFolderId(folder.id)}
-                    className={`px-2 py-1 rounded-md transition-colors ${
-                      moveBrowseFolderId === folder.id ? "bg-gray-700 text-white" : "hover:bg-gray-700"
-                    }`}
+                    className={`px-2 py-1 rounded-md transition-colors ${moveBrowseFolderId === folder.id ? "bg-gray-700 text-white" : "hover:bg-gray-700"
+                      }`}
                   >
                     {folder.name}
                   </button>
@@ -127,11 +131,10 @@ export function MoveModal({ isOpen, files, selectedFileId, onMove, onClose }: Mo
             <div className="flex items-center gap-2">
               <button
                 onClick={() => setMoveTargetId(moveBrowseFolderId)}
-                className={`flex-1 flex items-center gap-2 px-3 py-2 rounded-lg border transition-colors ${
-                  moveTargetId === moveBrowseFolderId
+                className={`flex-1 flex items-center gap-2 px-3 py-2 rounded-lg border transition-colors ${moveTargetId === moveBrowseFolderId
                     ? "border-brand-pink text-white bg-brand-pink/10"
                     : "border-gray-700 text-gray-300 hover:border-gray-600 hover:text-white"
-                }`}
+                  }`}
               >
                 <Folder size={16} />
                 <span>{moveBrowseFolderId ? "Selecionar esta pasta" : "Selecionar raiz"}</span>
@@ -163,11 +166,10 @@ export function MoveModal({ isOpen, files, selectedFileId, onMove, onClose }: Mo
                       </button>
                       <button
                         onClick={() => setMoveTargetId(folder.id)}
-                        className={`px-2.5 py-1.5 rounded-md text-xs border transition-colors ${
-                          moveTargetId === folder.id
+                        className={`px-2.5 py-1.5 rounded-md text-xs border transition-colors ${moveTargetId === folder.id
                             ? "border-brand-pink text-white bg-brand-pink/10"
                             : "border-gray-600 text-gray-200 hover:border-brand-pink/60"
-                        }`}
+                          }`}
                       >
                         Selecionar
                       </button>
@@ -198,11 +200,10 @@ export function MoveModal({ isOpen, files, selectedFileId, onMove, onClose }: Mo
                       </button>
                       <button
                         onClick={() => setMoveTargetId(folder.id)}
-                        className={`px-2.5 py-1.5 rounded-md text-xs border transition-colors ${
-                          moveTargetId === folder.id
+                        className={`px-2.5 py-1.5 rounded-md text-xs border transition-colors ${moveTargetId === folder.id
                             ? "border-brand-pink text-white bg-brand-pink/10"
                             : "border-gray-600 text-gray-200 hover:border-brand-pink/60"
-                        }`}
+                          }`}
                       >
                         Selecionar
                       </button>

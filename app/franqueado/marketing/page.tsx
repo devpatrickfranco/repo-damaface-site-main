@@ -32,6 +32,7 @@ export default function FileManagerPage() {
     handleDelete,
     handleRename,
     handleMove,
+    handleMoveBatch,
     createFolder,
     toggleSelect,
     clearSelection,
@@ -191,11 +192,11 @@ export default function FileManagerPage() {
               <h1 className="text-2xl font-semibold mb-1">Meus Arquivos</h1>
               <p className="text-gray-400 text-sm">Gerencie seus arquivos e pastas de marketing</p>
             </div>
-            
+
             <div className="flex items-center gap-3">
               {/* ✨ OPÇÃO 1: Progress inline no header (discreto) */}
               <UploadProgressInline progress={uploadProgress} />
-              
+
               <SearchBar value={searchQuery} onChange={setSearchQuery} />
             </div>
           </div>
@@ -237,7 +238,7 @@ export default function FileManagerPage() {
             onToggleSelect={toggleSelect}
             onRename={handleRename}
             onDelete={handleDelete}
-            onDownload={handleDownloadItem} 
+            onDownload={handleDownloadItem}
           />
         ) : (
           <FileList
@@ -270,8 +271,11 @@ export default function FileManagerPage() {
           isOpen={showMoveModal}
           files={files}
           selectedFileId={selectedFileId}
+          selectedIds={selectedIds}
           onMove={(destinationId) => {
-            if (selectedFileId) {
+            if (selectedIds.size > 0 && isSelectionMode) {
+              handleMoveBatch(Array.from(selectedIds), destinationId)
+            } else if (selectedFileId) {
               handleMove(selectedFileId, destinationId)
             }
             setShowMoveModal(false)
@@ -292,8 +296,8 @@ export default function FileManagerPage() {
         />
       </div>
 
-      <UploadProgressToast 
-        progress={uploadProgress} 
+      <UploadProgressToast
+        progress={uploadProgress}
         onCancel={() => {
         }}
       />
