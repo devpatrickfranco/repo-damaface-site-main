@@ -92,13 +92,19 @@ export function useFileManager() {
     }
   }, [currentFolderId, fetchContent])
 
-  // 🚀 UPLOAD OTIMIZADO - Versão com Batch e Progresso
-  const processUpload = useCallback(async (input: FileList | { file: File }[]) => {
+  // 🚀 UPLOAD OTIMIZADO - Com suporte a estrutura de pastas
+  const processUpload = useCallback(async (input: FileList | { file: File; relativePath?: string }[]) => {
     const fileList = Array.isArray(input) ? input : Array.from(input).map(f => ({ file: f }))
     if (!fileList.length) return
 
     const totalFiles = fileList.length
     
+    // Verifica se há arquivos com caminho relativo (upload de pasta)
+    const hasRelativePaths = fileList.some(item => {
+      const path = (item as { file: File; relativePath?: string }).relativePath
+      return path && typeof path === 'string' && path.includes('/')
+    })
+
     // Inicializa progresso
     setUploadProgress({
       total: totalFiles,
@@ -112,45 +118,89 @@ export function useFileManager() {
     }
 
     try {
-      // Upload sequencial com feedback visual
-      for (let i = 0; i < fileList.length; i++) {
-        const item = fileList[i]
-        const file = 'file' in item ? item.file : item
+      // Se tem estrutura de pastas, usa o endpoint batch
+      if (hasRelativePaths) {
+        const formData = new FormData()
         
+        fileList.forEach(item => {
+          const fileItem = item as { file: File; relativePath?: string }
+          const file = 'file' in fileItem ? fileItem.file : (item as unknown as File)
+          const path = fileItem.relativePath || file.name
+          
+          formData.append('files[]', file)
+          formData.append('paths[]', path)
+        })
+        
+        if (currentFolderId) {
+          formData.append('parent_folder_id', currentFolderId)
+        }
+
         setUploadProgress(prev => prev ? {
           ...prev,
-          current: file.name
+          current: 'Criando estrutura de pastas...'
         } : null)
 
         try {
-          const formData = new FormData()
-          formData.append("arquivo", file as File)
-          formData.append("nome", file.name)
-          
-          if (currentFolderId) {
-            formData.append("folder", currentFolderId)
-          }
-
-          await apiBackend.post("/marketing/drive/", formData)
-          results.success.push(file.name)
+          const response = await apiBackend.post("/marketing/drive/upload-batch/", formData)
+          results.success = response.files.map((f: any) => f.nome)
           
           setUploadProgress(prev => prev ? {
             ...prev,
-            completed: prev.completed + 1
+            completed: totalFiles
           } : null)
-
         } catch (error) {
-          console.error(`Erro ao enviar ${file.name}:`, error)
+          console.error('Erro no upload em lote:', error)
           results.failed.push({
-            name: file.name,
+            name: 'Upload em lote',
             error: error instanceof Error ? error.message : "Erro desconhecido"
           })
           
           setUploadProgress(prev => prev ? {
             ...prev,
-            completed: prev.completed + 1,
-            failed: prev.failed + 1
+            failed: totalFiles
           } : null)
+        }
+      } else {
+        // Upload sequencial normal para arquivos individuais
+        for (let i = 0; i < fileList.length; i++) {
+          const item = fileList[i]
+          const file = 'file' in item ? item.file : item
+          
+          setUploadProgress(prev => prev ? {
+            ...prev,
+            current: file.name
+          } : null)
+
+          try {
+            const formData = new FormData()
+            formData.append("arquivo", file as File)
+            formData.append("nome", file.name)
+            
+            if (currentFolderId) {
+              formData.append("folder", currentFolderId)
+            }
+
+            await apiBackend.post("/marketing/drive/", formData)
+            results.success.push(file.name)
+            
+            setUploadProgress(prev => prev ? {
+              ...prev,
+              completed: prev.completed + 1
+            } : null)
+
+          } catch (error) {
+            console.error(`Erro ao enviar ${file.name}:`, error)
+            results.failed.push({
+              name: file.name,
+              error: error instanceof Error ? error.message : "Erro desconhecido"
+            })
+            
+            setUploadProgress(prev => prev ? {
+              ...prev,
+              completed: prev.completed + 1,
+              failed: prev.failed + 1
+            } : null)
+          }
         }
       }
 
