@@ -200,9 +200,10 @@ export function useFileManager() {
           const formData = new FormData()
           
           formData.append("arquivo", file as File)
+          formData.append("nome", file.name)
+          
           if (currentFolderId) {
             formData.append("folder", currentFolderId)
-            formData.append("nome", file.name)
           }
 
           return apiBackend.post("/marketing/drive/", formData)
