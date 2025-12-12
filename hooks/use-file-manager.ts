@@ -4,8 +4,6 @@ import { useState, useCallback, useEffect } from "react"
 import { apiBackend, getBlob } from "@/lib/api-backend"
 import type { FileItem, APIContentResponse, Breadcrumb, UploadProgress, UploadResult } from "@/types/marketing"
 
-
-
 // --- HOOK PRINCIPAL ---
 
 export function useFileManager() {
@@ -75,7 +73,6 @@ export function useFileManager() {
     setIsSelectionMode(false)
   }, [fetchContent])
 
-
   // 2. AÇÕES DE ESCRITA (CREATE, UPDATE, DELETE)
 
   const navigateToFolder = useCallback((folderId: string | null) => {
@@ -115,8 +112,7 @@ export function useFileManager() {
     }
 
     try {
-      // OPÇÃO 1: Upload sequencial com feedback visual
-      // Melhor para muitos arquivos grandes - mostra progresso em tempo real
+      // Upload sequencial com feedback visual
       for (let i = 0; i < fileList.length; i++) {
         const item = fileList[i]
         const file = 'file' in item ? item.file : item
@@ -129,6 +125,7 @@ export function useFileManager() {
         try {
           const formData = new FormData()
           formData.append("arquivo", file as File)
+          formData.append("nome", file.name)
           
           if (currentFolderId) {
             formData.append("folder", currentFolderId)
@@ -163,7 +160,6 @@ export function useFileManager() {
       // Mostra resumo se houve falhas
       if (results.failed.length > 0) {
         console.warn("Alguns arquivos falharam:", results.failed)
-        // Aqui você pode mostrar um toast/notificação
       }
 
     } finally {
@@ -185,7 +181,7 @@ export function useFileManager() {
     })
 
     try {
-      // Upload em paralelo (máximo 3 simultâneos para não sobrecarregar)
+      // Upload em paralelo (máximo 3 simultâneos)
       const BATCH_SIZE = 3
       const batches = []
       
@@ -285,14 +281,13 @@ export function useFileManager() {
     }
 
     try {
-      // Envia para o endpoint correto baseado no tipo
       const endpoint = item.type === "file" 
         ? `/marketing/drive/${itemId}/mover/`
         : `/marketing/folders/${itemId}/mover/`
 
       await apiBackend.post(endpoint, {
-        item_id: parseInt(itemId),           // ✅ ADICIONADO
-        tipo_item: item.type,                // ✅ ADICIONADO
+        item_id: parseInt(itemId),
+        tipo_item: item.type,
         target_folder_id: targetFolderId ? parseInt(targetFolderId) : null
       })
       
@@ -301,10 +296,9 @@ export function useFileManager() {
       setIsSelectionMode(false)
     } catch (error) {
       console.error("Erro ao mover:", error)
-      throw error // Propaga o erro para tratamento na UI
+      throw error
     }
   }, [files, fetchContent])
-
 
   // 3. DOWNLOADS
 
@@ -337,8 +331,7 @@ export function useFileManager() {
     handleDownloadItem(firstId)
   }, [selectedIds, handleDownloadItem])
 
-
-  // 4. LÓGICA DE SELEÇÃO (Visual)
+  // 4. LÓGICA DE SELEÇÃO
 
   const toggleSelect = useCallback((id: string, isFile: boolean) => {
     if (!isSelectionMode) {
