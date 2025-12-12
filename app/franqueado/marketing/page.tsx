@@ -1,7 +1,7 @@
 "use client"
 
 import type React from "react"
-import { useState, useMemo, useCallback } from "react"
+import { useState, useMemo, useCallback, useEffect } from "react"
 import { useFileManager } from "@/hooks/use-file-manager"
 
 import { SearchBar } from "./components/search-bar"
@@ -21,6 +21,7 @@ type UploadItem = { file: File; relativePath?: string }
 export default function FileManagerPage() {
   const {
     files,
+    isLoading,
     currentFolderId,
     selectedFileId,
     selectedIds,
@@ -53,6 +54,27 @@ export default function FileManagerPage() {
   const [newFolderName, setNewFolderName] = useState("")
   const [showMoveModal, setShowMoveModal] = useState(false)
   const [isDragging, setIsDragging] = useState(false)
+
+  // Estado para scroll e highlight
+  const [scrollToId, setScrollToId] = useState<string | null>(null)
+
+  // Efeito para scrollar até o arquivo quando a lista for carregada
+  useEffect(() => {
+    if (!scrollToId || isLoading) return
+
+    const element = document.getElementById(`file-item-${scrollToId}`)
+    if (element) {
+      // Scroll suave
+      element.scrollIntoView({ behavior: 'smooth', block: 'center' })
+
+      // Adiciona highlight visual temporário
+      element.classList.add('ring-2', 'ring-cyan-500', 'bg-gray-800')
+      setTimeout(() => {
+        element.classList.remove('ring-2', 'ring-cyan-500', 'bg-gray-800')
+        setScrollToId(null)
+      }, 2000)
+    }
+  }, [scrollToId, isLoading, files])
 
   const filteredFiles = useMemo(() => {
     return getCurrentFolderFiles()
@@ -213,10 +235,11 @@ export default function FileManagerPage() {
                 onResultClick={(item) => {
                   if (item.type === 'folder') {
                     navigateToFolder(item.id)
+                    setScrollToId(item.id)
                   } else {
                     if (item.parentId) {
                       navigateToFolder(item.parentId)
-                      // Optional: Highlight file after navigation (would require more complex state management)
+                      setScrollToId(item.id)
                     }
                   }
                   setSearchQuery("") // Clear search after selection

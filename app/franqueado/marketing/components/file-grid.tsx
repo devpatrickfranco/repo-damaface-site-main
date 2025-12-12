@@ -40,9 +40,9 @@ export function FileGrid({
                 key={item.id}
                 onDoubleClick={() => onFolderDoubleClick(item.id)}
                 onClick={() => onItemClick(item.id, false)}
-                className={`group relative bg-gray-800/50 hover:bg-gray-800 border border-gray-700/50 hover:border-gray-600 rounded-xl p-4 cursor-pointer transition-all duration-200 ${
-                  selectedIds.has(item.id) ? "ring-2 ring-brand-pink bg-gray-800" : ""
-                }`}
+                id={`file-item-${item.id}`}
+                className={`group relative bg-gray-800/50 hover:bg-gray-800 border border-gray-700/50 hover:border-gray-600 rounded-xl p-4 cursor-pointer transition-all duration-200 ${selectedIds.has(item.id) ? "ring-2 ring-brand-pink bg-gray-800" : ""
+                  }`}
               >
                 {isSelectionMode && (
                   <input
@@ -119,9 +119,9 @@ export function FileGrid({
               <div
                 key={item.id}
                 onClick={() => onItemClick(item.id, true)}
-                className={`group relative bg-gray-800/50 hover:bg-gray-800 border border-gray-700/50 hover:border-gray-600 rounded-xl p-4 cursor-pointer transition-all duration-200 ${
-                  selectedIds.has(item.id) ? "ring-2 ring-brand-pink bg-gray-800" : ""
-                }`}
+                id={`file-item-${item.id}`}
+                className={`group relative bg-gray-800/50 hover:bg-gray-800 border border-gray-700/50 hover:border-gray-600 rounded-xl p-4 cursor-pointer transition-all duration-200 ${selectedIds.has(item.id) ? "ring-2 ring-brand-pink bg-gray-800" : ""
+                  }`}
               >
                 {isSelectionMode && (
                   <input

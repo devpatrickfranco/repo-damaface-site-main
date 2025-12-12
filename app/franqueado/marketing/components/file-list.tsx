@@ -40,9 +40,9 @@ export function FileList({
                 key={item.id}
                 onDoubleClick={() => onFolderDoubleClick(item.id)}
                 onClick={() => onItemClick(item.id, false)}
-                className={`group relative flex items-center gap-4 px-4 py-3 rounded-lg cursor-pointer transition-all duration-200 hover:bg-gray-800 ${
-                  selectedIds.has(item.id) ? "bg-gray-800 ring-1 ring-brand-pink" : ""
-                }`}
+                id={`file-item-${item.id}`}
+                className={`group relative flex items-center gap-4 px-4 py-3 rounded-lg cursor-pointer transition-all duration-200 hover:bg-gray-800 ${selectedIds.has(item.id) ? "bg-gray-800 ring-1 ring-brand-pink" : ""
+                  }`}
               >
                 {isSelectionMode && (
                   <input
@@ -104,9 +104,9 @@ export function FileList({
               <div
                 key={item.id}
                 onClick={() => onItemClick(item.id, true)}
-                className={`group flex items-center gap-4 px-4 py-3 rounded-lg cursor-pointer transition-all duration-200 hover:bg-gray-800 ${
-                  selectedIds.has(item.id) ? "bg-gray-800 ring-1 ring-brand-pink" : ""
-                }`}
+                id={`file-item-${item.id}`}
+                className={`group flex items-center gap-4 px-4 py-3 rounded-lg cursor-pointer transition-all duration-200 hover:bg-gray-800 ${selectedIds.has(item.id) ? "bg-gray-800 ring-1 ring-brand-pink" : ""
+                  }`}
               >
                 {isSelectionMode && (
                   <input
