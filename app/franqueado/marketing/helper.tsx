@@ -42,22 +42,7 @@ export const getFileIcon = (mimeType?: string, name?: string, size = 24): React.
   return <FileText className="text-blue-400" size={size} />
 }
 
-export const getFolderPath = (files: FileItem[], currentFolderId: string | null): FileItem[] => {
-  const path: FileItem[] = []
-  let currentId = currentFolderId
 
-  while (currentId) {
-    const folder = files.find((f) => f.id === currentId && f.type === "folder")
-    if (folder) {
-      path.unshift(folder)
-      currentId = folder.parentId
-    } else {
-      break
-    }
-  }
-
-  return path
-}
 
 export const getFolderFullPath = (files: FileItem[], folderId: string): string => {
   const segments: string[] = []
@@ -74,12 +59,12 @@ export const getFolderFullPath = (files: FileItem[], folderId: string): string =
 export const downloadFilesAsZip = async (files: FileItem[], selectedIds: Set<string>) => {
   const zip = new JSZip()
   const selectedItems = files.filter((f) => selectedIds.has(f.id))
-  
+
   // Função recursiva para adicionar pastas e subpastas ao zip
   const addFolderToZip = (folderId: string, currentPath: string) => {
     // Encontrar todos os filhos desta pasta
     const children = files.filter((f) => f.parentId === folderId)
-    
+
     children.forEach((child) => {
       if (child.type === "file" && child.file) {
         // Se for arquivo, adiciona ao zip no caminho atual
@@ -109,7 +94,7 @@ export const downloadFilesAsZip = async (files: FileItem[], selectedIds: Set<str
   // Gerar o blob e disparar o download
   try {
     const content = await zip.generateAsync({ type: "blob" })
-    
+
     // Criar nome do arquivo
     let zipName = "download.zip"
     if (selectedItems.length === 1) {
@@ -125,7 +110,7 @@ export const downloadFilesAsZip = async (files: FileItem[], selectedIds: Set<str
     a.download = zipName
     document.body.appendChild(a)
     a.click()
-    
+
     // Limpeza
     window.URL.revokeObjectURL(url)
     document.body.removeChild(a)

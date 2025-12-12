@@ -1,10 +1,13 @@
 "use client"
 
 import { Home, ChevronRight } from "lucide-react"
-import type { FileItem } from "@/types/marketing"
+export interface BreadcrumbItem {
+  id: string
+  name: string
+}
 
 interface BreadcrumbProps {
-  path: FileItem[]
+  path: BreadcrumbItem[]
   onNavigate: (folderId: string | null) => void
 }
 

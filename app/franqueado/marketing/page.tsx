@@ -3,7 +3,7 @@
 import type React from "react"
 import { useState, useMemo, useCallback } from "react"
 import { useFileManager } from "@/hooks/use-file-manager"
-import { getFolderPath } from "./helper"
+
 import { SearchBar } from "./components/search-bar"
 import { Toolbar } from "./components/toolbar"
 import { Breadcrumb } from "./components/breadcrumb"
@@ -40,7 +40,8 @@ export default function FileManagerPage() {
     deleteItemsByIds,
     setCurrentFolderId,
     handleDownload,
-    handleDownloadItem
+    handleDownloadItem,
+    breadcrumbs
   } = useFileManager()
 
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid")
@@ -62,7 +63,12 @@ export default function FileManagerPage() {
     return { folders, fileItems }
   }, [filteredFiles])
 
-  const folderPath = getFolderPath(files, currentFolderId)
+  const folderPath = useMemo(() => {
+    return breadcrumbs.map((b) => ({
+      id: `folder-${b.id}`,
+      name: b.nome,
+    }))
+  }, [breadcrumbs])
 
   // Drag & drop handlers
   const handleDragOver = (e: React.DragEvent<HTMLDivElement>) => {
