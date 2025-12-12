@@ -25,18 +25,20 @@ export function useFileManager() {
   const fetchContent = useCallback(async () => {
     setIsLoading(true)
     try {
-      const url = currentFolderId
-        ? `/marketing/folders/${currentFolderId}/conteudo/`
+      const numericFolderId = currentFolderId ? currentFolderId.replace("folder-", "") : null
+      const url = numericFolderId
+        ? `/marketing/folders/${numericFolderId}/conteudo/`
         : `/marketing/folders/root_content/`
 
       const data = await apiBackend.get<APIContentResponse>(url)
 
       const mappedFolders: FileItem[] = data.folders.map((f) => ({
-        id: String(f.id),
+        id: `folder-${f.id}`,
+        originalId: f.id,
         name: f.nome,
         type: "folder",
         modifiedAt: new Date(f.ultima_modificacao),
-        parentId: f.pasta_pai ? String(f.pasta_pai) : null,
+        parentId: f.pasta_pai ? `folder-${f.pasta_pai}` : null,
         path: f.caminho_completo,
         stats: {
           files: f.total_arquivos,
@@ -45,12 +47,13 @@ export function useFileManager() {
       }))
 
       const mappedFiles: FileItem[] = data.files.map((f) => ({
-        id: String(f.id),
+        id: `file-${f.id}`,
+        originalId: f.id,
         name: f.nome,
         type: "file",
         size: f.tamanho,
         modifiedAt: new Date(f.ultima_modificacao),
-        parentId: f.folder ? String(f.folder) : null,
+        parentId: f.folder ? `folder-${f.folder}` : null,
         mimeType: f.tipo,
         url: f.arquivo_url,
         path: f.caminho_completo
@@ -82,9 +85,10 @@ export function useFileManager() {
   const createFolder = useCallback(async (name: string) => {
     if (!name.trim()) return
     try {
+      const parentId = currentFolderId ? parseInt(currentFolderId.replace("folder-", "")) : null
       await apiBackend.post("/marketing/folders/", {
         nome: name.trim(),
-        pasta_pai: currentFolderId ? parseInt(currentFolderId) : null
+        pasta_pai: parentId
       })
       await fetchContent()
     } catch (error) {
@@ -132,7 +136,7 @@ export function useFileManager() {
         })
 
         if (currentFolderId) {
-          formData.append('parent_folder_id', currentFolderId)
+          formData.append('parent_folder_id', currentFolderId.replace("folder-", ""))
         }
 
         setUploadProgress(prev => prev ? {
@@ -177,7 +181,7 @@ export function useFileManager() {
             formData.append("nome", file.name)
 
             if (currentFolderId) {
-              formData.append("folder", currentFolderId)
+              formData.append("folder", currentFolderId.replace("folder-", ""))
             }
 
             await apiBackend.post("/marketing/drive/", formData)
@@ -249,7 +253,7 @@ export function useFileManager() {
           formData.append("nome", file.name)
 
           if (currentFolderId) {
-            formData.append("folder", currentFolderId)
+            formData.append("folder", currentFolderId.replace("folder-", ""))
           }
 
           return apiBackend.post("/marketing/drive/", formData)
@@ -286,8 +290,8 @@ export function useFileManager() {
 
     try {
       const endpoint = item.type === "folder"
-        ? `/marketing/folders/${id}/`
-        : `/marketing/drive/${id}/`
+        ? `/marketing/folders/${item.originalId}/`
+        : `/marketing/drive/${item.originalId}/`
 
       await apiBackend.patch(endpoint, { nome: newName })
       await fetchContent()
@@ -303,8 +307,8 @@ export function useFileManager() {
         if (!item) return Promise.resolve()
 
         const endpoint = item.type === "folder"
-          ? `/marketing/folders/${id}/`
-          : `/marketing/drive/${id}/`
+          ? `/marketing/folders/${item.originalId}/`
+          : `/marketing/drive/${item.originalId}/`
 
         return apiBackend.delete(endpoint)
       })
@@ -332,13 +336,15 @@ export function useFileManager() {
 
     try {
       const endpoint = item.type === "file"
-        ? `/marketing/drive/${itemId}/mover/`
-        : `/marketing/folders/${itemId}/mover/`
+        ? `/marketing/drive/${item.id.replace('file-', '')}/mover/`
+        : `/marketing/folders/${item.id.replace('folder-', '')}/mover/`
+
+      const targetId = targetFolderId ? parseInt(targetFolderId.replace('folder-', '')) : null
 
       await apiBackend.post(endpoint, {
-        item_id: parseInt(itemId),
+        item_id: item.originalId,
         tipo_item: item.type,
-        target_folder_id: targetFolderId ? parseInt(targetFolderId) : null
+        target_folder_id: targetId
       })
 
       await fetchContent()
@@ -355,9 +361,11 @@ export function useFileManager() {
 
     try {
       // Endpoint otimizado: POST /marketing/drive/mover-lote/
+      const targetId = targetFolderId ? parseInt(targetFolderId.replace('folder-', '')) : null
+
       const response = await apiBackend.post("/marketing/drive/mover-lote/", {
-        arquivo_ids: fileIds.map(id => parseInt(id)),
-        target_folder_id: targetFolderId ? parseInt(targetFolderId) : null
+        arquivo_ids: fileIds.map(id => parseInt(id.replace('file-', ''))),
+        target_folder_id: targetId
       })
 
       // O backend pode retornar 200 (tudo ok) ou 207 (parcial)
@@ -387,7 +395,7 @@ export function useFileManager() {
       if (item.url) {
         window.open(item.url, '_blank')
       } else {
-        const blob = await getBlob(`/marketing/drive/${id}/`)
+        const blob = await getBlob(`/marketing/drive/${item.originalId}/`)
         const url = window.URL.createObjectURL(blob)
         const link = document.createElement('a')
         link.href = url

@@ -3,16 +3,17 @@ export type FileType = "file" | "folder"
 export interface FileItem {
   // Campos visuais essenciais
   id: string
+  originalId: number // ID original do banco de dados (sem prefixo)
   name: string
-  type: FileType          
-  mimeType?: string       
-  
+  type: FileType
+  mimeType?: string
+
   // Metadados
   size?: number
   modifiedAt: Date
   parentId: string | null
-  url?: string           
-  path?: string          
+  url?: string
+  path?: string
   stats?: {
     files: number
     folders: number
@@ -55,8 +56,8 @@ export interface BackendFile {
   nome: string
   folder: number | null
   tamanho: number
-  tipo: string        
-  arquivo_url: string 
+  tipo: string
+  arquivo_url: string
   caminho_completo: string
   ultima_modificacao: string
 }
