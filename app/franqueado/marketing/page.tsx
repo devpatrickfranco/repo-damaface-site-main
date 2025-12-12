@@ -14,6 +14,7 @@ import { SelectionBar } from "./components/selection-bar"
 import { CreateFolderModal } from "./components/create-folder-modal"
 import { MoveModal } from "./components/move-modal"
 import { DragOverlay } from "./components/drag-overlay"
+import { UploadProgressToast, UploadProgressInline } from "./components/upload-progress"
 
 type UploadItem = { file: File; relativePath?: string }
 
@@ -24,6 +25,7 @@ export default function FileManagerPage() {
     selectedFileId,
     selectedIds,
     isSelectionMode,
+    uploadProgress,
     getCurrentFolderFiles,
     navigateToFolder,
     processUpload,
@@ -161,8 +163,6 @@ export default function FileManagerPage() {
     }
   }
 
-  // 2. REMOVIDO: A função handleBulkDownload antiga foi removida daqui
-
   const handleBulkDelete = () => {
     if (selectedIds.size === 0) return
     deleteItemsByIds(new Set(selectedIds))
@@ -184,8 +184,6 @@ export default function FileManagerPage() {
       <DragOverlay isVisible={isDragging} />
 
       <div className="max-w-7xl mx-auto p-6">
-        
-
         {/* Header */}
         <div className="mb-8">
           <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6">
@@ -193,7 +191,13 @@ export default function FileManagerPage() {
               <h1 className="text-2xl font-semibold mb-1">Meus Arquivos</h1>
               <p className="text-gray-400 text-sm">Gerencie seus arquivos e pastas de marketing</p>
             </div>
-            <SearchBar value={searchQuery} onChange={setSearchQuery} />
+            
+            <div className="flex items-center gap-3">
+              {/* ✨ OPÇÃO 1: Progress inline no header (discreto) */}
+              <UploadProgressInline progress={uploadProgress} />
+              
+              <SearchBar value={searchQuery} onChange={setSearchQuery} />
+            </div>
           </div>
 
           <Toolbar
@@ -280,13 +284,19 @@ export default function FileManagerPage() {
           selectedIds={selectedIds}
           selectedFileId={selectedFileId}
           files={files}
-          onDownload={handleDownload} // <--- 3. CONECTADO: Usando a nova função
+          onDownload={handleDownload}
           onMove={() => setShowMoveModal(true)}
           onRename={handleRename}
           onDelete={handleBulkDelete}
           onClear={clearSelection}
         />
       </div>
+
+      <UploadProgressToast 
+        progress={uploadProgress} 
+        onCancel={() => {
+        }}
+      />
     </div>
   )
 }

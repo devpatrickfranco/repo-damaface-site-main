@@ -26,6 +26,19 @@ export interface FolderOption {
   label: string
 }
 
+// Tipos para controle de progresso
+export interface UploadProgress {
+  total: number
+  completed: number
+  failed: number
+  current?: string
+}
+
+export interface UploadResult {
+  success: string[]
+  failed: Array<{ name: string; error: string }>
+}
+
 // --- TIPOS INTERNOS DA API (Snake Case do Django) ---
 export interface BackendFolder {
   id: number

@@ -2,7 +2,7 @@
 
 import { useState, useCallback, useEffect } from "react"
 import { apiBackend, getBlob } from "@/lib/api-backend"
-import type { FileItem, APIContentResponse, Breadcrumb } from "@/types/marketing"
+import type { FileItem, APIContentResponse, Breadcrumb, UploadProgress, UploadResult } from "@/types/marketing"
 
 
 
@@ -13,6 +13,9 @@ export function useFileManager() {
   const [files, setFiles] = useState<FileItem[]>([])
   const [breadcrumbs, setBreadcrumbs] = useState<Breadcrumb[]>([])
   const [isLoading, setIsLoading] = useState(false)
+  
+  // Estado de Upload
+  const [uploadProgress, setUploadProgress] = useState<UploadProgress | null>(null)
 
   // Estado de Navegação e Seleção
   const [currentFolderId, setCurrentFolderId] = useState<string | null>(null)
@@ -24,14 +27,12 @@ export function useFileManager() {
   const fetchContent = useCallback(async () => {
     setIsLoading(true)
     try {
-      // Decide qual endpoint chamar (Raiz ou Pasta Específica)
       const url = currentFolderId
         ? `/marketing/folders/${currentFolderId}/conteudo/`
         : `/marketing/folders/root_content/`
 
       const data = await apiBackend.get<APIContentResponse>(url)
 
-      // Mapeia PASTAS (Backend -> FileItem)
       const mappedFolders: FileItem[] = data.folders.map((f) => ({
         id: String(f.id),
         name: f.nome,
@@ -45,7 +46,6 @@ export function useFileManager() {
         }
       }))
 
-      // Mapeia ARQUIVOS (Backend -> FileItem)
       const mappedFiles: FileItem[] = data.files.map((f) => ({
         id: String(f.id),
         name: f.nome,
@@ -68,10 +68,8 @@ export function useFileManager() {
     }
   }, [currentFolderId])
 
-  // Recarrega sempre que mudar a pasta atual
   useEffect(() => {
     fetchContent()
-    // Limpa seleção ao navegar
     setSelectedIds(new Set())
     setSelectedFileId(null)
     setIsSelectionMode(false)
@@ -97,36 +95,140 @@ export function useFileManager() {
     }
   }, [currentFolderId, fetchContent])
 
+  // 🚀 UPLOAD OTIMIZADO - Versão com Batch e Progresso
   const processUpload = useCallback(async (input: FileList | { file: File }[]) => {
-    const fileList = Array.isArray(input) ? input : Array.from(input).map(i => ({ file: i }))
+    const fileList = Array.isArray(input) ? input : Array.from(input).map(f => ({ file: f }))
+    if (!fileList.length) return
+
+    const totalFiles = fileList.length
+    
+    // Inicializa progresso
+    setUploadProgress({
+      total: totalFiles,
+      completed: 0,
+      failed: 0
+    })
+
+    const results: UploadResult = {
+      success: [],
+      failed: []
+    }
+
+    try {
+      // OPÇÃO 1: Upload sequencial com feedback visual
+      // Melhor para muitos arquivos grandes - mostra progresso em tempo real
+      for (let i = 0; i < fileList.length; i++) {
+        const item = fileList[i]
+        const file = 'file' in item ? item.file : item
+        
+        setUploadProgress(prev => prev ? {
+          ...prev,
+          current: file.name
+        } : null)
+
+        try {
+          const formData = new FormData()
+          formData.append("arquivo", file as File)
+          
+          if (currentFolderId) {
+            formData.append("folder", currentFolderId)
+          }
+
+          await apiBackend.post("/marketing/drive/", formData)
+          results.success.push(file.name)
+          
+          setUploadProgress(prev => prev ? {
+            ...prev,
+            completed: prev.completed + 1
+          } : null)
+
+        } catch (error) {
+          console.error(`Erro ao enviar ${file.name}:`, error)
+          results.failed.push({
+            name: file.name,
+            error: error instanceof Error ? error.message : "Erro desconhecido"
+          })
+          
+          setUploadProgress(prev => prev ? {
+            ...prev,
+            completed: prev.completed + 1,
+            failed: prev.failed + 1
+          } : null)
+        }
+      }
+
+      // Recarrega apenas UMA vez no final
+      await fetchContent()
+
+      // Mostra resumo se houve falhas
+      if (results.failed.length > 0) {
+        console.warn("Alguns arquivos falharam:", results.failed)
+        // Aqui você pode mostrar um toast/notificação
+      }
+
+    } finally {
+      // Limpa progresso após 2 segundos
+      setTimeout(() => setUploadProgress(null), 2000)
+    }
+  }, [currentFolderId, fetchContent])
+
+  // 🚀 ALTERNATIVA: Upload em paralelo (mais rápido, mas sem progresso granular)
+  const processUploadParallel = useCallback(async (input: FileList | { file: File }[]) => {
+    const fileList = Array.isArray(input) ? input : Array.from(input).map(f => ({ file: f }))
     if (!fileList.length) return
 
     setIsLoading(true)
+    setUploadProgress({
+      total: fileList.length,
+      completed: 0,
+      failed: 0
+    })
+
     try {
-      // Upload em paralelo
-      const promises = fileList.map(item => {
-        const file = 'file' in item ? item.file : item
-        const formData = new FormData()
-        
-        formData.append("arquivo", file as File)
-        formData.append("nome", file.name)
+      // Upload em paralelo (máximo 3 simultâneos para não sobrecarregar)
+      const BATCH_SIZE = 3
+      const batches = []
+      
+      for (let i = 0; i < fileList.length; i += BATCH_SIZE) {
+        const batch = fileList.slice(i, i + BATCH_SIZE)
+        batches.push(batch)
+      }
 
-        if (currentFolderId) {
-          formData.append("folder", currentFolderId)
-        }
-        // Opcional: Se quiser garantir o nome exato
-        // formData.append("nome", file.name)
+      for (const batch of batches) {
+        const promises = batch.map(item => {
+          const file = 'file' in item ? item.file : item
+          const formData = new FormData()
+          
+          formData.append("arquivo", file as File)
+          if (currentFolderId) {
+            formData.append("folder", currentFolderId)
+          }
 
-        return apiBackend.post("/marketing/drive/", formData)
-      })
+          return apiBackend.post("/marketing/drive/", formData)
+            .then(() => {
+              setUploadProgress(prev => prev ? {
+                ...prev,
+                completed: prev.completed + 1
+              } : null)
+            })
+            .catch(error => {
+              console.error(`Erro ao enviar ${file.name}:`, error)
+              setUploadProgress(prev => prev ? {
+                ...prev,
+                completed: prev.completed + 1,
+                failed: prev.failed + 1
+              } : null)
+            })
+        })
 
-      await Promise.all(promises)
+        await Promise.all(promises)
+      }
+
       await fetchContent()
 
-    } catch (error) {
-      console.error("Erro no upload:", error)
     } finally {
       setIsLoading(false)
+      setTimeout(() => setUploadProgress(null), 2000)
     }
   }, [currentFolderId, fetchContent])
 
@@ -162,7 +264,6 @@ export function useFileManager() {
       await Promise.all(promises)
       await fetchContent()
       
-      // Limpa seleção após deletar
       setSelectedIds(new Set())
       setIsSelectionMode(false)
     } catch (error) {
@@ -176,21 +277,29 @@ export function useFileManager() {
 
   const handleMove = useCallback(async (itemId: string, targetFolderId: string | null) => {
     const item = files.find(f => f.id === itemId)
-    if (!item || item.type !== "file") {
-      console.warn("Movimentação de pastas ainda não suportada.")
+    if (!item) {
+      console.warn("Item não encontrado.")
       return
     }
 
     try {
-      await apiBackend.post(`/marketing/drive/${itemId}/mover/`, {
+      // Envia para o endpoint correto baseado no tipo
+      const endpoint = item.type === "file" 
+        ? `/marketing/drive/${itemId}/mover/`
+        : `/marketing/folders/${itemId}/mover/`
+
+      await apiBackend.post(endpoint, {
+        item_id: parseInt(itemId),           // ✅ ADICIONADO
+        tipo_item: item.type,                // ✅ ADICIONADO
         target_folder_id: targetFolderId ? parseInt(targetFolderId) : null
       })
+      
       await fetchContent()
-      // Limpa seleção após mover
       setSelectedIds(new Set())
       setIsSelectionMode(false)
     } catch (error) {
       console.error("Erro ao mover:", error)
+      throw error // Propaga o erro para tratamento na UI
     }
   }, [files, fetchContent])
 
@@ -202,11 +311,9 @@ export function useFileManager() {
     if (!item || item.type !== "file") return
 
     try {
-      // Usa a URL direta se disponível, ou endpoint de download seguro
       if (item.url) {
         window.open(item.url, '_blank')
       } else {
-        // Fallback via Blob
         const blob = await getBlob(`/marketing/drive/${id}/`) 
         const url = window.URL.createObjectURL(blob)
         const link = document.createElement('a')
@@ -224,7 +331,6 @@ export function useFileManager() {
 
   const handleDownload = useCallback(() => {
     if (selectedIds.size === 0) return
-    // Baixa o primeiro selecionado como exemplo
     const firstId = Array.from(selectedIds)[0]
     handleDownloadItem(firstId)
   }, [selectedIds, handleDownloadItem])
@@ -278,6 +384,7 @@ export function useFileManager() {
     files,
     breadcrumbs,
     isLoading,
+    uploadProgress,
     
     // Estado
     currentFolderId,
@@ -291,6 +398,7 @@ export function useFileManager() {
     // Ações
     navigateToFolder,
     processUpload,
+    processUploadParallel,
     handleDelete,
     deleteItemsByIds,
     handleRename,
