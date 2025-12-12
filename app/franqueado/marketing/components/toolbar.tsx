@@ -8,8 +8,8 @@ import { Upload, FolderPlus, Grid3X3, List, CheckSquare } from "lucide-react"
 interface ToolbarProps {
   viewMode: "grid" | "list"
   onViewModeChange: (mode: "grid" | "list") => void
-  onFileUpload: (files: FileList) => void
-  onFolderUpload: (files: FileList) => void
+  onFileUpload: (files: { file: File; relativePath?: string }[]) => void
+  onFolderUpload: (files: { file: File; relativePath?: string }[]) => void
   onCreateFolder: () => void
   isSelectionMode: boolean
   onToggleSelectionMode: () => void
@@ -24,22 +24,34 @@ export function Toolbar({
   isSelectionMode,
   onToggleSelectionMode,
 }: ToolbarProps) {
+
   const fileInputRef = useRef<HTMLInputElement>(null)
   const folderInputRef = useRef<HTMLInputElement>(null)
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files) {
-      onFileUpload(e.target.files)
+      const files = Array.from(e.target.files).map(file => ({
+        file,
+        relativePath: file.name,
+      }))
+  
+      onFileUpload(files as any)
       if (fileInputRef.current) fileInputRef.current.value = ""
     }
   }
-
+  
   const handleFolderChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files) {
-      onFolderUpload(e.target.files)
+      const files = Array.from(e.target.files).map(file => ({
+        file,
+        relativePath: (file as any).webkitRelativePath || file.name,
+      }))
+  
+      onFolderUpload(files as any)
       if (folderInputRef.current) folderInputRef.current.value = ""
     }
   }
+  
 
   return (
     <div className="flex flex-wrap items-center gap-3">
