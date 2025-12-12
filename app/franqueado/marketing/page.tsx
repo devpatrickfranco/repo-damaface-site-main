@@ -41,7 +41,10 @@ export default function FileManagerPage() {
     setCurrentFolderId,
     handleDownload,
     handleDownloadItem,
-    breadcrumbs
+    breadcrumbs,
+    searchFiles,
+    globalSearchResults,
+    isSearching
   } = useFileManager()
 
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid")
@@ -203,7 +206,24 @@ export default function FileManagerPage() {
               {/* ✨ OPÇÃO 1: Progress inline no header (discreto) */}
               <UploadProgressInline progress={uploadProgress} />
 
-              <SearchBar value={searchQuery} onChange={setSearchQuery} />
+              <SearchBar
+                value={searchQuery}
+                onChange={setSearchQuery}
+                onSearch={searchFiles}
+                results={globalSearchResults}
+                isSearching={isSearching}
+                onResultClick={(item) => {
+                  if (item.type === 'folder') {
+                    navigateToFolder(item.id)
+                  } else {
+                    if (item.parentId) {
+                      navigateToFolder(item.parentId)
+                      // Optional: Highlight file after navigation (would require more complex state management)
+                    }
+                  }
+                  setSearchQuery("") // Clear search after selection
+                }}
+              />
             </div>
           </div>
 

@@ -2,7 +2,7 @@
 
 import { useState, useCallback, useEffect } from "react"
 import { apiBackend, getBlob } from "@/lib/api-backend"
-import type { FileItem, APIContentResponse, Breadcrumb, UploadProgress, UploadResult } from "@/types/marketing"
+import type { FileItem, APIContentResponse, Breadcrumb, UploadProgress, UploadResult, BackendFile, BackendFolder } from "@/types/marketing"
 
 // --- HOOK PRINCIPAL ---
 
@@ -20,6 +20,10 @@ export function useFileManager() {
   const [selectedFileId, setSelectedFileId] = useState<string | null>(null)
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set())
   const [isSelectionMode, setIsSelectionMode] = useState(false)
+
+  // Estado de Pesquisa Global
+  const [globalSearchResults, setGlobalSearchResults] = useState<FileItem[]>([])
+  const [isSearching, setIsSearching] = useState(false)
 
   // 1. CARREGAMENTO DE DADOS (READ)
   const fetchContent = useCallback(async () => {
@@ -385,6 +389,53 @@ export function useFileManager() {
     }
   }, [fetchContent])
 
+  // 2.1 PESQUISA GLOBAL
+  const searchFiles = useCallback(async (query: string) => {
+    if (!query.trim()) {
+      setGlobalSearchResults([])
+      return
+    }
+
+    setIsSearching(true)
+    try {
+      const response = await apiBackend.get<{ files: BackendFile[], folders: BackendFolder[] }>(`/marketing/search/?q=${encodeURIComponent(query)}`)
+
+      const mappedFolders: FileItem[] = (response.folders || []).map((f) => ({
+        id: `folder-${f.id}`,
+        originalId: f.id,
+        name: f.nome,
+        type: "folder",
+        modifiedAt: new Date(f.ultima_modificacao),
+        parentId: f.pasta_pai ? `folder-${f.pasta_pai}` : null,
+        path: f.caminho_completo,
+        stats: {
+          files: f.total_arquivos,
+          folders: f.total_subpastas
+        }
+      }))
+
+      const mappedFiles: FileItem[] = (response.files || []).map((f) => ({
+        id: `file-${f.id}`,
+        originalId: f.id,
+        name: f.nome,
+        type: "file",
+        size: f.tamanho,
+        modifiedAt: new Date(f.ultima_modificacao),
+        parentId: f.folder ? `folder-${f.folder}` : null,
+        mimeType: f.tipo,
+        url: f.arquivo_url,
+        path: f.caminho_completo
+      }))
+
+      setGlobalSearchResults([...mappedFolders, ...mappedFiles])
+    } catch (error) {
+      console.error("Erro na pesquisa:", error)
+      setGlobalSearchResults([])
+    } finally {
+      setIsSearching(false)
+    }
+  }, [])
+
   // 3. DOWNLOADS
 
   const handleDownloadItem = useCallback(async (id: string) => {
@@ -492,6 +543,11 @@ export function useFileManager() {
     toggleSelect,
     clearSelection,
     toggleSelectionMode,
-    setCurrentFolderId
+    setCurrentFolderId,
+
+    // Pesquisa
+    searchFiles,
+    globalSearchResults,
+    isSearching
   }
 }
