@@ -202,6 +202,7 @@ export function useFileManager() {
           formData.append("arquivo", file as File)
           if (currentFolderId) {
             formData.append("folder", currentFolderId)
+            formData.append("nome", file.name)
           }
 
           return apiBackend.post("/marketing/drive/", formData)
