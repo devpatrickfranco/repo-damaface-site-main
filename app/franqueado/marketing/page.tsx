@@ -55,10 +55,8 @@ export default function FileManagerPage() {
   const [isDragging, setIsDragging] = useState(false)
 
   const filteredFiles = useMemo(() => {
-    const currentFiles = getCurrentFolderFiles()
-    if (!searchQuery.trim()) return currentFiles
-    return currentFiles.filter((file) => file.name.toLowerCase().includes(searchQuery.toLowerCase()))
-  }, [getCurrentFolderFiles, searchQuery])
+    return getCurrentFolderFiles()
+  }, [getCurrentFolderFiles])
 
   const { folders, fileItems } = useMemo(() => {
     const folders = filteredFiles.filter((f) => f.type === "folder")
