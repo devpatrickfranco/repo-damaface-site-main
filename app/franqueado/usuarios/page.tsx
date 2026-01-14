@@ -35,6 +35,8 @@ export default function UsuariosPage() {
   const [searchTerm, setSearchTerm] = useState("")
   const [filterRole, setFilterRole] = useState<string>("all")
   const [filterTipo, setFilterTipo] = useState<string>("all")
+  const [filterFranquia, setFilterFranquia] = useState<string>("all")
+  const [sortAlphabetical, setSortAlphabetical] = useState<boolean>(true)
 
   // Estado do formulário
   const [formData, setFormData] = useState<{
@@ -57,7 +59,7 @@ export default function UsuariosPage() {
   const fetchData = useCallback(async () => {
     setPageLoading(true)
     setDataError(null)
-    
+
     try {
       const [usuariosRes, franquiasRes] = await Promise.allSettled([
         apiBackend.get("/users/usuarios/"),
@@ -67,7 +69,7 @@ export default function UsuariosPage() {
       // Processa usuários
       if (usuariosRes.status === "fulfilled") {
 
-        
+
         // Tenta acessar os dados de múltiplas formas
         let usuariosData = []
         if (Array.isArray(usuariosRes.value)) {
@@ -80,7 +82,7 @@ export default function UsuariosPage() {
           // A resposta tem data aninhado
           usuariosData = usuariosRes.value.data.data
         }
-        
+
         setUsuarios(usuariosData)
       } else {
         setUsuarios([])
@@ -89,7 +91,7 @@ export default function UsuariosPage() {
       // Processa franquias
       if (franquiasRes.status === "fulfilled") {
 
-        
+
         // Tenta acessar os dados de múltiplas formas
         let franquiasData = []
         if (Array.isArray(franquiasRes.value)) {
@@ -102,7 +104,7 @@ export default function UsuariosPage() {
           // A resposta tem data aninhado
           franquiasData = franquiasRes.value.data.data
         }
-        
+
         setFranquias(franquiasData)
       } else {
         setFranquias([])
@@ -272,18 +274,29 @@ export default function UsuariosPage() {
   }
 
   // Filtros
-  const filteredUsuarios = usuarios.filter((usuario) => {
-    const matchesSearch =
-      usuario.nome.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      usuario.email.toLowerCase().includes(searchTerm.toLowerCase())
-    const matchesRole = filterRole === "all" || usuario.role === filterRole
-    const matchesTipo =
-      filterTipo === "all" ||
-      (filterTipo === "franqueadora" && !usuario.franquia) ||
-      (filterTipo === "franquia" && usuario.franquia)
+  const filteredUsuarios = usuarios
+    .filter((usuario) => {
+      const matchesSearch =
+        usuario.nome.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        usuario.email.toLowerCase().includes(searchTerm.toLowerCase())
+      const matchesRole = filterRole === "all" || usuario.role === filterRole
+      const matchesTipo =
+        filterTipo === "all" ||
+        (filterTipo === "franqueadora" && !usuario.franquia) ||
+        (filterTipo === "franquia" && usuario.franquia)
+      const matchesFranquia =
+        filterFranquia === "all" ||
+        (filterFranquia === "none" && !usuario.franquia) ||
+        (usuario.franquia && usuario.franquia.toString() === filterFranquia)
 
-    return matchesSearch && matchesRole && matchesTipo
-  })
+      return matchesSearch && matchesRole && matchesTipo && matchesFranquia
+    })
+    .sort((a, b) => {
+      if (sortAlphabetical) {
+        return a.nome.localeCompare(b.nome, 'pt-BR')
+      }
+      return 0
+    })
 
   const filteredFranquias = franquias.filter(
     (franquia) => franquia.nome.toLowerCase().includes(searchTerm.toLowerCase()) || franquia.cnpj.includes(searchTerm),
@@ -318,96 +331,129 @@ export default function UsuariosPage() {
 
   return (
     <div className="bg-background">
-        <div className="p-6">
-          {/* Header */}
-          <div className="mb-8">
-            <h1 className="text-2xl md:text-3xl font-bold text-white mb-2">Gerenciar Usuários e Franquias</h1>
-            <p className="text-gray-400">Controle completo de usuários e unidades franqueadas</p>
-          </div>
+      <div className="p-6">
+        {/* Header */}
+        <div className="mb-8">
+          <h1 className="text-2xl md:text-3xl font-bold text-white mb-2">Gerenciar Usuários e Franquias</h1>
+          <p className="text-gray-400">Controle completo de usuários e unidades franqueadas</p>
+        </div>
 
-          {/* Error Display */}
-          {dataError && (
-            <div className="mb-6 bg-red-900/20 border border-red-500 rounded-lg p-4 flex items-center space-x-2">
-              <AlertCircle className="w-5 h-5 text-red-400" />
-              <span className="text-red-400">{dataError}</span>
-              <button 
-                onClick={() => {
-                  setDataError(null)
-                  fetchData()
-                }} 
-                className="ml-auto text-red-400 hover:text-red-300 underline"
+        {/* Error Display */}
+        {dataError && (
+          <div className="mb-6 bg-red-900/20 border border-red-500 rounded-lg p-4 flex items-center space-x-2">
+            <AlertCircle className="w-5 h-5 text-red-400" />
+            <span className="text-red-400">{dataError}</span>
+            <button
+              onClick={() => {
+                setDataError(null)
+                fetchData()
+              }}
+              className="ml-auto text-red-400 hover:text-red-300 underline"
+            >
+              Tentar novamente
+            </button>
+          </div>
+        )}
+
+        {error && (
+          <div className="mb-6 bg-red-900/20 border border-red-500 rounded-lg p-4 flex items-center space-x-2">
+            <AlertCircle className="w-5 h-5 text-red-400" />
+            <span className="text-red-400">{error}</span>
+            <button onClick={() => setError("")} className="ml-auto text-red-400 hover:text-red-300">
+              <X className="w-4 h-4" />
+            </button>
+          </div>
+        )}
+
+        {/* Tabs */}
+        <div className="mb-6">
+          <div className="border-b border-gray-700">
+            <nav className="-mb-px flex space-x-8">
+              <button
+                onClick={() => setActiveTab("usuarios")}
+                className={`py-2 px-1 border-b-2 font-medium text-sm ${activeTab === "usuarios"
+                  ? "border-pink-500 text-pink-400"
+                  : "border-transparent text-gray-400 hover:text-gray-300 hover:border-gray-300"
+                  }`}
               >
-                Tentar novamente
+                <div className="flex items-center space-x-2">
+                  <Users className="w-4 h-4" />
+                  <span>Usuários ({usuarios.length})</span>
+                </div>
               </button>
-            </div>
-          )}
-
-          {error && (
-            <div className="mb-6 bg-red-900/20 border border-red-500 rounded-lg p-4 flex items-center space-x-2">
-              <AlertCircle className="w-5 h-5 text-red-400" />
-              <span className="text-red-400">{error}</span>
-              <button onClick={() => setError("")} className="ml-auto text-red-400 hover:text-red-300">
-                <X className="w-4 h-4" />
+              <button
+                onClick={() => setActiveTab("franquias")}
+                className={`py-2 px-1 border-b-2 font-medium text-sm ${activeTab === "franquias"
+                  ? "border-pink-500 text-pink-400"
+                  : "border-transparent text-gray-400 hover:text-gray-300 hover:border-gray-300"
+                  }`}
+              >
+                <div className="flex items-center space-x-2">
+                  <Building className="w-4 h-4" />
+                  <span>Franquias ({franquias.length})</span>
+                </div>
               </button>
-            </div>
-          )}
+            </nav>
+          </div>
+        </div>
 
-          {/* Tabs */}
-          <div className="mb-6">
-            <div className="border-b border-gray-700">
-              <nav className="-mb-px flex space-x-8">
-                <button
-                  onClick={() => setActiveTab("usuarios")}
-                  className={`py-2 px-1 border-b-2 font-medium text-sm ${
-                    activeTab === "usuarios"
-                      ? "border-pink-500 text-pink-400"
-                      : "border-transparent text-gray-400 hover:text-gray-300 hover:border-gray-300"
-                  }`}
-                >
-                  <div className="flex items-center space-x-2">
-                    <Users className="w-4 h-4" />
-                    <span>Usuários ({usuarios.length})</span>
-                  </div>
-                </button>
-                <button
-                  onClick={() => setActiveTab("franquias")}
-                  className={`py-2 px-1 border-b-2 font-medium text-sm ${
-                    activeTab === "franquias"
-                      ? "border-pink-500 text-pink-400"
-                      : "border-transparent text-gray-400 hover:text-gray-300 hover:border-gray-300"
-                  }`}
-                >
-                  <div className="flex items-center space-x-2">
-                    <Building className="w-4 h-4" />
-                    <span>Franquias ({franquias.length})</span>
-                  </div>
-                </button>
-              </nav>
+        {/* Filters and Actions */}
+        <div className="mb-6 space-y-4">
+          {/* Search and Add Button Row */}
+          <div className="flex flex-col sm:flex-row gap-4 justify-between">
+            {/* Search */}
+            <div className="relative flex-1 max-w-md">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+              <input
+                type="text"
+                placeholder={`Buscar ${activeTab}...`}
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="w-full pl-10 pr-4 py-2.5 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-pink-500 focus:ring-2 focus:ring-pink-500/20 transition-all"
+              />
             </div>
+
+            {/* Add Button */}
+            <button
+              onClick={() => openModal(activeTab === "usuarios" ? "usuario" : "franquia")}
+              className="bg-gradient-to-r from-pink-500 to-pink-600 hover:from-pink-600 hover:to-pink-700 text-white font-semibold px-4 py-2.5 rounded-lg flex items-center justify-center space-x-2 transition-all shadow-lg hover:shadow-pink-500/25"
+            >
+              <Plus className="w-4 h-4" />
+              <span>Adicionar {activeTab === "usuarios" ? "Usuário" : "Franquia"}</span>
+            </button>
           </div>
 
-          {/* Filters and Actions */}
-          <div className="mb-6 flex flex-col sm:flex-row gap-4 justify-between">
-            <div className="flex flex-col sm:flex-row gap-4">
-              {/* Search */}
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
-                <input
-                  type="text"
-                  placeholder={`Buscar ${activeTab}...`}
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="pl-10 pr-4 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-pink-500"
-                />
+          {/* Filters for usuarios */}
+          {activeTab === "usuarios" && (
+            <div className="bg-gray-800/50 border border-gray-700 rounded-lg p-4">
+              <div className="flex items-center justify-between mb-3">
+                <h3 className="text-sm font-semibold text-gray-300 flex items-center space-x-2">
+                  <svg className="w-4 h-4 text-pink-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" />
+                  </svg>
+                  <span>Filtros Avançados</span>
+                </h3>
+                <button
+                  onClick={() => {
+                    setFilterRole("all")
+                    setFilterTipo("all")
+                    setFilterFranquia("all")
+                    setSortAlphabetical(true)
+                  }}
+                  className="text-xs text-pink-400 hover:text-pink-300 font-medium transition-colors"
+                >
+                  Limpar filtros
+                </button>
               </div>
 
-              {/* Filters for usuarios */}
-              {activeTab === "usuarios" && (
-                <>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+                {/* Role Filter */}
+                <div className="space-y-1.5">
+                  <label className="text-xs font-medium text-gray-400 block">Função</label>
                   <select
                     value={filterRole}
                     onChange={(e) => setFilterRole(e.target.value)}
-                    className="px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:border-pink-500"
+                    className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white text-sm focus:outline-none focus:border-pink-500 focus:ring-2 focus:ring-pink-500/20 transition-all"
                   >
                     <option value="all">Todas as funções</option>
                     <option value="SUPERADMIN">Super Admin</option>
@@ -415,189 +461,261 @@ export default function UsuariosPage() {
                     <option value="FRANQUEADO">Franqueado</option>
                     <option value="FUNCIONARIO">Funcionário</option>
                   </select>
+                </div>
 
+                {/* Type Filter */}
+                <div className="space-y-1.5">
+                  <label className="text-xs font-medium text-gray-400 block">Tipo</label>
                   <select
                     value={filterTipo}
                     onChange={(e) => setFilterTipo(e.target.value)}
-                    className="px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:border-pink-500"
+                    className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white text-sm focus:outline-none focus:border-pink-500 focus:ring-2 focus:ring-pink-500/20 transition-all"
                   >
                     <option value="all">Todos os tipos</option>
                     <option value="franqueadora">Franqueadora</option>
                     <option value="franquia">Franquia</option>
                   </select>
-                </>
+                </div>
+
+                {/* Franchise Filter */}
+                <div className="space-y-1.5">
+                  <label className="text-xs font-medium text-gray-400 block">Unidade</label>
+                  <select
+                    value={filterFranquia}
+                    onChange={(e) => setFilterFranquia(e.target.value)}
+                    className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white text-sm focus:outline-none focus:border-pink-500 focus:ring-2 focus:ring-pink-500/20 transition-all"
+                  >
+                    <option value="all">Todas as unidades</option>
+                    <option value="none">Franqueadora (sem unidade)</option>
+                    {franquias.map((franquia) => (
+                      <option key={franquia.id} value={franquia.id.toString()}>
+                        {franquia.nome}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                {/* Alphabetical Sort Toggle */}
+                <div className="space-y-1.5">
+                  <label className="text-xs font-medium text-gray-400 block">Ordenação</label>
+                  <button
+                    onClick={() => setSortAlphabetical(!sortAlphabetical)}
+                    className={`w-full px-3 py-2 rounded-lg text-sm font-medium flex items-center justify-center space-x-2 transition-all ${sortAlphabetical
+                        ? "bg-pink-500/20 border-2 border-pink-500 text-pink-400"
+                        : "bg-gray-700 border-2 border-gray-600 text-gray-300 hover:border-gray-500"
+                      }`}
+                  >
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 4h13M3 8h9m-9 4h6m4 0l4-4m0 0l4 4m-4-4v12" />
+                    </svg>
+                    <span>{sortAlphabetical ? "A-Z Ativo" : "A-Z Inativo"}</span>
+                  </button>
+                </div>
+              </div>
+
+              {/* Active Filters Summary */}
+              {(filterRole !== "all" || filterTipo !== "all" || filterFranquia !== "all") && (
+                <div className="mt-3 pt-3 border-t border-gray-700">
+                  <div className="flex flex-wrap gap-2">
+                    <span className="text-xs text-gray-400">Filtros ativos:</span>
+                    {filterRole !== "all" && (
+                      <span className="inline-flex items-center px-2 py-1 rounded-md bg-blue-500/20 text-blue-300 text-xs font-medium">
+                        Função: {filterRole}
+                        <button
+                          onClick={() => setFilterRole("all")}
+                          className="ml-1.5 hover:text-blue-200"
+                        >
+                          <X className="w-3 h-3" />
+                        </button>
+                      </span>
+                    )}
+                    {filterTipo !== "all" && (
+                      <span className="inline-flex items-center px-2 py-1 rounded-md bg-purple-500/20 text-purple-300 text-xs font-medium">
+                        Tipo: {filterTipo === "franqueadora" ? "Franqueadora" : "Franquia"}
+                        <button
+                          onClick={() => setFilterTipo("all")}
+                          className="ml-1.5 hover:text-purple-200"
+                        >
+                          <X className="w-3 h-3" />
+                        </button>
+                      </span>
+                    )}
+                    {filterFranquia !== "all" && (
+                      <span className="inline-flex items-center px-2 py-1 rounded-md bg-orange-500/20 text-orange-300 text-xs font-medium">
+                        Unidade: {filterFranquia === "none" ? "Franqueadora" : franquias.find(f => f.id.toString() === filterFranquia)?.nome || filterFranquia}
+                        <button
+                          onClick={() => setFilterFranquia("all")}
+                          className="ml-1.5 hover:text-orange-200"
+                        >
+                          <X className="w-3 h-3" />
+                        </button>
+                      </span>
+                    )}
+                  </div>
+                </div>
               )}
-            </div>
-
-            {/* Add Button */}
-            <button
-              onClick={() => openModal(activeTab === "usuarios" ? "usuario" : "franquia")}
-              className="bg-gradient-to-r from-pink-500 to-pink-600 hover:from-pink-600 hover:to-pink-700 text-white font-semibold px-4 py-2 rounded-lg flex items-center space-x-2"
-            >
-              <Plus className="w-4 h-4" />
-              <span>Adicionar {activeTab === "usuarios" ? "Usuário" : "Franquia"}</span>
-            </button>
-          </div>
-
-          {/* Content */}
-          {activeTab === "usuarios" ? (
-            /* Tabela de Usuários */
-            <div className="bg-gray-800 rounded-lg border border-gray-700 overflow-hidden">
-              <div className="overflow-x-auto">
-                <table className="w-full">
-                  <thead className="bg-gray-700">
-                    <tr>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">
-                        Usuário
-                      </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">
-                        Função
-                      </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">
-                        Tipo
-                      </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">
-                        Franquia
-                      </th>
-                      <th className="px-6 py-3 text-right text-xs font-medium text-gray-300 uppercase tracking-wider">
-                        Ações
-                      </th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-gray-700">
-                    {filteredUsuarios.map((usuario) => (
-                      <tr key={usuario.id} className="hover:bg-gray-700/50">
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <div className="flex items-center">
-                            <Avatar src={usuario.imgProfile} alt={usuario.nome} />
-                            <div className="ml-4">
-                              <div className="text-sm font-medium text-white">{usuario.nome}</div>
-                              <div className="text-sm text-gray-400">{usuario.email}</div>
-                            </div>
-                          </div>
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <div className="flex items-center space-x-2">
-                            {getRoleIcon(usuario.role)}
-                            <span
-                              className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full border ${getRoleBadgeColor(usuario.role)}`}
-                            >
-                              {getRoleDisplayName(usuario.role)}
-                            </span>
-                          </div>
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <span
-                            className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
-                              usuario.franquia
-                                ? "bg-orange-100 text-orange-800 border border-orange-200"
-                                : "bg-purple-100 text-purple-800 border border-purple-200"
-                            }`}
-                          >
-                            {usuario.franquia ? "Franquia" : "Franqueadora"}
-                          </span>
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-300">
-                          {usuario.franquia ? franquias.find(f => f.id === usuario.franquia)?.nome || `ID: ${usuario.franquia}` : "-"}
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                          <div className="flex items-center justify-end space-x-2">
-                            <button
-                              onClick={() => openModal("usuario", usuario)}
-                              className="text-blue-400 hover:text-blue-300 p-1"
-                            >
-                              <Edit className="w-4 h-4" />
-                            </button>
-                            <button
-                              onClick={() => handleDelete("usuario", usuario.id)}
-                              className="text-red-400 hover:text-red-300 p-1"
-                            >
-                              <Trash2 className="w-4 h-4" />
-                            </button>
-                          </div>
-                        </td>
-                      </tr>
-                    ))}
-                    {filteredUsuarios.length === 0 && (
-                      <tr>
-                        <td colSpan={5} className="px-6 py-8 text-center text-gray-400">
-                          {usuarios.length === 0 ? "Nenhum usuário cadastrado" : "Nenhum usuário encontrado com os filtros aplicados"}
-                        </td>
-                      </tr>
-                    )}
-                  </tbody>
-                </table>
-              </div>
-            </div>
-          ) : (
-            /* Tabela de Franquias */
-            <div className="bg-gray-800 rounded-lg border border-gray-700 overflow-hidden">
-              <div className="overflow-x-auto">
-                <table className="w-full">
-                  <thead className="bg-gray-700">
-                    <tr>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">
-                        Franquia
-                      </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">
-                        CNPJ
-                      </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">
-                        Usuários
-                      </th>
-                      <th className="px-6 py-3 text-right text-xs font-medium text-gray-300 uppercase tracking-wider">
-                        Ações
-                      </th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-gray-700">
-                    {filteredFranquias.map((franquia) => (
-                      <tr key={franquia.id} className="hover:bg-gray-700/50">
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <div className="flex items-center">
-                            <div className="w-10 h-10 bg-orange-500 rounded-full flex items-center justify-center">
-                              <Building className="w-5 h-5 text-white" />
-                            </div>
-                            <div className="ml-4">
-                              <div className="text-sm font-medium text-white">{franquia.nome}</div>
-                            </div>
-                          </div>
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-300">{franquia.cnpj}</td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-300">
-                          {usuarios.filter((u) => u.franquia === franquia.id).length} usuários
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                          <div className="flex items-center justify-end space-x-2">
-                            <button
-                              onClick={() => openModal("franquia", franquia)}
-                              className="text-blue-400 hover:text-blue-300 p-1"
-                            >
-                              <Edit className="w-4 h-4" />
-                            </button>
-                            <button
-                              onClick={() => handleDelete("franquia", franquia.id)}
-                              className="text-red-400 hover:text-red-300 p-1"
-                            >
-                              <Trash2 className="w-4 h-4" />
-                            </button>
-                          </div>
-                        </td>
-                      </tr>
-                    ))}
-                    {filteredFranquias.length === 0 && (
-                      <tr>
-                        <td colSpan={4} className="px-6 py-8 text-center text-gray-400">
-                          {franquias.length === 0 ? "Nenhuma franquia cadastrada" : "Nenhuma franquia encontrada com os filtros aplicados"}
-                        </td>
-                      </tr>
-                    )}
-                  </tbody>
-                </table>
-              </div>
             </div>
           )}
         </div>
+
+        {/* Content */}
+        {activeTab === "usuarios" ? (
+          /* Tabela de Usuários */
+          <div className="bg-gray-800 rounded-lg border border-gray-700 overflow-hidden">
+            <div className="overflow-x-auto">
+              <table className="w-full">
+                <thead className="bg-gray-700">
+                  <tr>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">
+                      Usuário
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">
+                      Função
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">
+                      Tipo
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">
+                      Franquia
+                    </th>
+                    <th className="px-6 py-3 text-right text-xs font-medium text-gray-300 uppercase tracking-wider">
+                      Ações
+                    </th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-700">
+                  {filteredUsuarios.map((usuario) => (
+                    <tr key={usuario.id} className="hover:bg-gray-700/50">
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="flex items-center">
+                          <Avatar src={usuario.imgProfile} alt={usuario.nome} />
+                          <div className="ml-4">
+                            <div className="text-sm font-medium text-white">{usuario.nome}</div>
+                            <div className="text-sm text-gray-400">{usuario.email}</div>
+                          </div>
+                        </div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="flex items-center space-x-2">
+                          {getRoleIcon(usuario.role)}
+                          <span
+                            className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full border ${getRoleBadgeColor(usuario.role)}`}
+                          >
+                            {getRoleDisplayName(usuario.role)}
+                          </span>
+                        </div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <span
+                          className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${usuario.franquia
+                            ? "bg-orange-100 text-orange-800 border border-orange-200"
+                            : "bg-purple-100 text-purple-800 border border-purple-200"
+                            }`}
+                        >
+                          {usuario.franquia ? "Franquia" : "Franqueadora"}
+                        </span>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-300">
+                        {usuario.franquia ? franquias.find(f => f.id === usuario.franquia)?.nome || `ID: ${usuario.franquia}` : "-"}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                        <div className="flex items-center justify-end space-x-2">
+                          <button
+                            onClick={() => openModal("usuario", usuario)}
+                            className="text-blue-400 hover:text-blue-300 p-1"
+                          >
+                            <Edit className="w-4 h-4" />
+                          </button>
+                          <button
+                            onClick={() => handleDelete("usuario", usuario.id)}
+                            className="text-red-400 hover:text-red-300 p-1"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                  {filteredUsuarios.length === 0 && (
+                    <tr>
+                      <td colSpan={5} className="px-6 py-8 text-center text-gray-400">
+                        {usuarios.length === 0 ? "Nenhum usuário cadastrado" : "Nenhum usuário encontrado com os filtros aplicados"}
+                      </td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        ) : (
+          /* Tabela de Franquias */
+          <div className="bg-gray-800 rounded-lg border border-gray-700 overflow-hidden">
+            <div className="overflow-x-auto">
+              <table className="w-full">
+                <thead className="bg-gray-700">
+                  <tr>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">
+                      Franquia
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">
+                      CNPJ
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">
+                      Usuários
+                    </th>
+                    <th className="px-6 py-3 text-right text-xs font-medium text-gray-300 uppercase tracking-wider">
+                      Ações
+                    </th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-700">
+                  {filteredFranquias.map((franquia) => (
+                    <tr key={franquia.id} className="hover:bg-gray-700/50">
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="flex items-center">
+                          <div className="w-10 h-10 bg-orange-500 rounded-full flex items-center justify-center">
+                            <Building className="w-5 h-5 text-white" />
+                          </div>
+                          <div className="ml-4">
+                            <div className="text-sm font-medium text-white">{franquia.nome}</div>
+                          </div>
+                        </div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-300">{franquia.cnpj}</td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-300">
+                        {usuarios.filter((u) => u.franquia === franquia.id).length} usuários
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                        <div className="flex items-center justify-end space-x-2">
+                          <button
+                            onClick={() => openModal("franquia", franquia)}
+                            className="text-blue-400 hover:text-blue-300 p-1"
+                          >
+                            <Edit className="w-4 h-4" />
+                          </button>
+                          <button
+                            onClick={() => handleDelete("franquia", franquia.id)}
+                            className="text-red-400 hover:text-red-300 p-1"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                  {filteredFranquias.length === 0 && (
+                    <tr>
+                      <td colSpan={4} className="px-6 py-8 text-center text-gray-400">
+                        {franquias.length === 0 ? "Nenhuma franquia cadastrada" : "Nenhuma franquia encontrada com os filtros aplicados"}
+                      </td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        )}
+      </div>
 
       {/* Modal */}
       {showModal && (
