@@ -10,7 +10,7 @@ export default function Banner() {
         src="/banner-carnaval-desktop.png"
         alt="Banner Desktop"
         fill
-        className="hidden md:block object-cover object-center"
+        className="hidden md:block object-contain object-center"
         priority
         sizes="100vw"
       />
