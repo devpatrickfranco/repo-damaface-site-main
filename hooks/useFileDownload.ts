@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { apiBackend } from '@/lib/api-backend'
 
 /**
  * Tipos de dados para o hook de download
@@ -65,7 +66,7 @@ export function useFileDownload(): UseFileDownloadReturn {
      */
     const downloadSingleFile = async (file: DriveFile): Promise<void> => {
         try {
-            // Resolve URL completa do arquivo
+            // Resolve URL completa do arquivo (GET não precisa de CSRF)
             const fileUrl = file.arquivo_url.startsWith('http')
                 ? file.arquivo_url
                 : `${process.env.NEXT_PUBLIC_API_BACKEND_URL}${file.arquivo_url}`
@@ -102,6 +103,7 @@ export function useFileDownload(): UseFileDownloadReturn {
     /**
      * Realiza o download de múltiplos arquivos como ZIP
      * Envia requisição POST para o backend Django que gera o ZIP
+     * Usa apiBackend para incluir CSRF token automaticamente
      */
     const downloadMultipleFilesAsZip = async (
         files: DriveFile[],
@@ -118,20 +120,38 @@ export function useFileDownload(): UseFileDownloadReturn {
                 }))
             }
 
-            const response = await fetch(`${process.env.NEXT_PUBLIC_API_BACKEND_URL}/marketing/drive/download-zip/`, {
+            // Usa apiBackend.request para ter CSRF token
+            const response = await apiBackend.request<Blob>('/marketing/drive/download-zip/', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(payload)
+            })
+
+            // A resposta já é um Blob (apiBackend trata isso)
+            // Mas precisamos fazer fetch manual para pegar o blob corretamente
+            // Vamos usar uma abordagem diferente
+
+            // Fazer requisição manual com CSRF do apiBackend
+            const BASE_URL = process.env.NEXT_PUBLIC_API_BACKEND_URL
+            const csrfToken = getCsrfToken()
+
+            const fetchResponse = await fetch(`${BASE_URL}/marketing/drive/download-zip/`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': csrfToken || '',
                 },
                 credentials: 'include',
                 body: JSON.stringify(payload)
             })
 
-            if (!response.ok) {
-                throw new Error(`Erro ao gerar ZIP: ${response.statusText}`)
+            if (!fetchResponse.ok) {
+                throw new Error(`Erro ao gerar ZIP: ${fetchResponse.statusText}`)
             }
 
-            const blob = await response.blob()
+            const blob = await fetchResponse.blob()
 
             // Verifica se realmente recebeu um ZIP
             if (blob.type !== 'application/zip' && !blob.type.includes('zip')) {
@@ -200,4 +220,21 @@ export function useFileDownload(): UseFileDownloadReturn {
         isDownloading,
         error
     }
+}
+
+/**
+ * Função auxiliar para extrair o CSRF token dos cookies
+ */
+function getCsrfToken(): string | null {
+    if (typeof document === 'undefined') return null
+
+    const cookies = document.cookie.split('; ')
+    const csrfCookie = cookies.find(row => row.startsWith('csrftoken='))
+
+    if (!csrfCookie) {
+        return null
+    }
+
+    const token = csrfCookie.split('=')[1]
+    return token
 }
