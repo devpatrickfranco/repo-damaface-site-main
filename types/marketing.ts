@@ -73,3 +73,47 @@ export interface APIContentResponse {
   folders: BackendFolder[]
   files: BackendFile[]
 }
+
+// --- TIPOS PARA HOOK DE DOWNLOAD ---
+
+/**
+ * Arquivo do Drive para download (compatível com useFileDownload)
+ */
+export type DriveFile = {
+  id: number
+  nome: string
+  arquivo_url: string
+}
+
+/**
+ * Pasta do Drive (compatível com useFileDownload)
+ */
+export type DriveFolder = {
+  id: number
+  nome: string
+}
+
+// --- FUNÇÕES DE CONVERSÃO ---
+
+/**
+ * Converte FileItem para DriveFile (para uso com useFileDownload)
+ */
+export function fileItemToDriveFile(item: FileItem): DriveFile | null {
+  if (item.type !== 'file' || !item.url) return null
+
+  return {
+    id: item.originalId,
+    nome: item.name,
+    arquivo_url: item.url
+  }
+}
+
+/**
+ * Converte Breadcrumb para DriveFolder (para uso com useFileDownload)
+ */
+export function breadcrumbToDriveFolder(breadcrumb: Breadcrumb): DriveFolder {
+  return {
+    id: breadcrumb.id,
+    nome: breadcrumb.nome
+  }
+}

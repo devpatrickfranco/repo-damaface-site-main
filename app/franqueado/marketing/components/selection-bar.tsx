@@ -1,13 +1,15 @@
 "use client"
 
 import { Download, MoveRight, Edit, Trash2, X } from "lucide-react"
-import type { FileItem } from "@/types/marketing"
+import { useFileDownload } from "@/hooks/useFileDownload"
+import { fileItemToDriveFile, breadcrumbToDriveFolder } from "@/types/marketing"
+import type { FileItem, Breadcrumb } from "@/types/marketing"
 
 interface SelectionBarProps {
   selectedIds: Set<string>
   selectedFileId: string | null
   files: FileItem[]
-  onDownload: () => void
+  breadcrumbs: Breadcrumb[]
   onMove: () => void
   onRename: (id: string, newName: string) => void
   onDelete: () => void
@@ -18,15 +20,55 @@ export function SelectionBar({
   selectedIds,
   selectedFileId,
   files,
-  onDownload,
+  breadcrumbs,
   onMove,
   onRename,
   onDelete,
   onClear,
 }: SelectionBarProps) {
+  const { download, isDownloading, error } = useFileDownload()
+
   if (selectedIds.size === 0) return null
 
   const selectedFile = selectedFileId ? files.find((f) => f.id === selectedFileId) : null
+
+  const handleDownload = async () => {
+    // Filtra apenas arquivos selecionados (não pastas)
+    const selectedFiles = files.filter(f =>
+      selectedIds.has(f.id) && f.type === 'file'
+    )
+
+    if (selectedFiles.length === 0) {
+      alert('Nenhum arquivo selecionado para download')
+      return
+    }
+
+    // Converte FileItems para DriveFiles
+    const driveFiles = selectedFiles
+      .map(fileItemToDriveFile)
+      .filter(Boolean) as any[]
+
+    if (driveFiles.length === 0) {
+      alert('Arquivos selecionados não possuem URL de download')
+      return
+    }
+
+    // Pega a pasta atual dos breadcrumbs
+    const currentFolder = breadcrumbs.length > 0
+      ? breadcrumbToDriveFolder(breadcrumbs[breadcrumbs.length - 1])
+      : null
+
+    try {
+      await download(driveFiles, currentFolder)
+
+      // Limpa seleção após download bem-sucedido
+      if (!error) {
+        onClear()
+      }
+    } catch (err) {
+      console.error('Erro ao baixar arquivos:', err)
+    }
+  }
 
   return (
     <div className="fixed bottom-6 left-1/2 transform -translate-x-1/2 bg-gray-800 border border-gray-700 rounded-2xl px-6 py-4 shadow-2xl z-40">
@@ -44,12 +86,19 @@ export function SelectionBar({
 
         <div className="flex items-center gap-1">
           <button
-            onClick={onDownload}
-            className="p-2.5 hover:bg-gray-700 rounded-full transition-colors text-gray-300 hover:text-white"
-            title="Download"
+            onClick={handleDownload}
+            disabled={isDownloading}
+            className="p-2.5 hover:bg-gray-700 rounded-full transition-colors text-gray-300 hover:text-white disabled:opacity-50 disabled:cursor-not-allowed"
+            title={isDownloading ? "Baixando..." : "Download"}
           >
-            <Download size={20} />
+            <Download size={20} className={isDownloading ? "animate-pulse" : ""} />
           </button>
+
+          {error && (
+            <span className="text-red-400 text-xs max-w-[200px] truncate" title={error}>
+              {error}
+            </span>
+          )}
 
           {selectedIds.size >= 1 && (
             <button

@@ -285,7 +285,6 @@ export default function FileManagerPage() {
             onToggleSelect={toggleSelect}
             onRename={handleRename}
             onDelete={handleDelete}
-            onDownload={handleDownloadItem}
           />
         ) : (
           <FileList
@@ -298,7 +297,6 @@ export default function FileManagerPage() {
             onToggleSelect={toggleSelect}
             onRename={handleRename}
             onDelete={handleDelete}
-            onDownload={handleDownloadItem}
           />
         )}
 
@@ -335,7 +333,7 @@ export default function FileManagerPage() {
           selectedIds={selectedIds}
           selectedFileId={selectedFileId}
           files={files}
-          onDownload={handleDownload}
+          breadcrumbs={breadcrumbs}
           onMove={() => setShowMoveModal(true)}
           onRename={handleRename}
           onDelete={handleBulkDelete}

@@ -14,7 +14,6 @@ interface FileGridProps {
   onToggleSelect: (id: string, isFile: boolean) => void
   onRename: (id: string, newName: string) => void
   onDelete: (id: string) => void
-  onDownload: (id: string) => void
 }
 
 export function FileGrid({
@@ -26,8 +25,7 @@ export function FileGrid({
   onFolderDoubleClick,
   onToggleSelect,
   onRename,
-  onDelete,
-  onDownload
+  onDelete
 }: FileGridProps) {
   return (
     <div className="space-y-8">
@@ -80,16 +78,7 @@ export function FileGrid({
                     >
                       <Trash2 size={16} />
                     </button>
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation()
-                        onDownload(item.id)
-                      }}
-                      className="p-2 bg-gray-700 hover:bg-gray-600 rounded-md transition-colors text-gray-300 hover:text-white"
-                      title="Baixar pasta"
-                    >
-                      <Download size={16} />
-                    </button>
+
                   </div>
                 )}
 
