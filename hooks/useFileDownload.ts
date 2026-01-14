@@ -65,7 +65,12 @@ export function useFileDownload(): UseFileDownloadReturn {
      */
     const downloadSingleFile = async (file: DriveFile): Promise<void> => {
         try {
-            const response = await fetch(file.arquivo_url)
+            // Resolve URL completa do arquivo
+            const fileUrl = file.arquivo_url.startsWith('http')
+                ? file.arquivo_url
+                : `${process.env.NEXT_PUBLIC_API_BACKEND_URL}${file.arquivo_url}`
+
+            const response = await fetch(fileUrl)
 
             if (!response.ok) {
                 throw new Error(`Erro ao baixar arquivo: ${response.statusText}`)
@@ -113,11 +118,12 @@ export function useFileDownload(): UseFileDownloadReturn {
                 }))
             }
 
-            const response = await fetch('/marketing/drive/download-zip/', {
+            const response = await fetch(`${process.env.NEXT_PUBLIC_API_BACKEND_URL}/marketing/drive/download-zip/`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                 },
+                credentials: 'include',
                 body: JSON.stringify(payload)
             })
 
