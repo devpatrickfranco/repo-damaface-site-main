@@ -138,7 +138,9 @@ export function useFileDownload(): UseFileDownloadReturn {
             const payload: DownloadZipPayload = {
                 folder_name: folderName,
                 files: files.map(file => ({
-                    path: file.arquivo_url,
+                    // Decodifica a URL para remover caracteres como %C3%A7 (ç), %C3%A3 (ã), etc.
+                    // O backend Django precisa do caminho decodificado para acessar o arquivo
+                    path: decodeURIComponent(file.arquivo_url),
                     name: file.nome
                 }))
             }
@@ -146,7 +148,12 @@ export function useFileDownload(): UseFileDownloadReturn {
             // Log para debug - verificar quais arquivos estão sendo enviados
             console.log('📦 Solicitando download de ZIP:', {
                 totalArquivos: files.length,
-                arquivos: files.map(f => ({ id: f.id, nome: f.nome, url: f.arquivo_url })),
+                arquivos: files.map(f => ({
+                    id: f.id,
+                    nome: f.nome,
+                    url_original: f.arquivo_url,
+                    url_decodificada: decodeURIComponent(f.arquivo_url)
+                })),
                 payload
             })
 
