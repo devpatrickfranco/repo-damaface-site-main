@@ -15,6 +15,8 @@ import { CreateFolderModal } from "./components/create-folder-modal"
 import { MoveModal } from "./components/move-modal"
 import { DragOverlay } from "./components/drag-overlay"
 import { UploadProgressToast, UploadProgressInline } from "./components/upload-progress"
+import { DownloadProgressToast } from "./components/download-progress"
+import type { DownloadProgress } from "@/hooks/useFileDownload"
 
 type UploadItem = { file: File; relativePath?: string }
 
@@ -54,6 +56,7 @@ export default function FileManagerPage() {
   const [newFolderName, setNewFolderName] = useState("")
   const [showMoveModal, setShowMoveModal] = useState(false)
   const [isDragging, setIsDragging] = useState(false)
+  const [downloadProgress, setDownloadProgress] = useState<DownloadProgress | null>(null)
 
   // Estado para scroll e highlight
   const [scrollToId, setScrollToId] = useState<string | null>(null)
@@ -338,6 +341,7 @@ export default function FileManagerPage() {
           onRename={handleRename}
           onDelete={handleBulkDelete}
           onClear={clearSelection}
+          onDownloadProgressChange={setDownloadProgress}
         />
       </div>
 
@@ -345,6 +349,11 @@ export default function FileManagerPage() {
         progress={uploadProgress}
         onCancel={() => {
         }}
+      />
+
+      <DownloadProgressToast
+        progress={downloadProgress}
+        onCancel={() => setDownloadProgress(null)}
       />
     </div>
   )

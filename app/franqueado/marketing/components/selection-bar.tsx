@@ -1,9 +1,11 @@
 "use client"
 
 import { Download, MoveRight, Edit, Trash2, X } from "lucide-react"
+import { useEffect } from "react"
 import { useFileDownload } from "@/hooks/useFileDownload"
 import { fileItemToDriveFile, breadcrumbToDriveFolder } from "@/types/marketing"
 import type { FileItem, Breadcrumb } from "@/types/marketing"
+import type { DownloadProgress } from "@/hooks/useFileDownload"
 
 interface SelectionBarProps {
   selectedIds: Set<string>
@@ -14,6 +16,7 @@ interface SelectionBarProps {
   onRename: (id: string, newName: string) => void
   onDelete: () => void
   onClear: () => void
+  onDownloadProgressChange?: (progress: DownloadProgress | null) => void
 }
 
 export function SelectionBar({
@@ -25,8 +28,16 @@ export function SelectionBar({
   onRename,
   onDelete,
   onClear,
+  onDownloadProgressChange,
 }: SelectionBarProps) {
-  const { download, isDownloading, error } = useFileDownload()
+  const { download, isDownloading, error, downloadProgress } = useFileDownload()
+
+  // Notify parent of download progress changes
+  useEffect(() => {
+    if (onDownloadProgressChange) {
+      onDownloadProgressChange(downloadProgress)
+    }
+  }, [downloadProgress, onDownloadProgressChange])
 
   if (selectedIds.size === 0) return null
 

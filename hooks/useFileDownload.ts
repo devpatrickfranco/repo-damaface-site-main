@@ -18,12 +18,24 @@ type DriveFolder = {
 }
 
 /**
+ * Progresso do download
+ */
+export type DownloadProgress = {
+    total: number
+    completed: number
+    failed: number
+    current?: string
+    isGeneratingZip?: boolean
+}
+
+/**
  * Estados retornados pelo hook
  */
 type UseFileDownloadReturn = {
     download: (files: DriveFile[], currentFolder?: DriveFolder | null) => Promise<void>
     isDownloading: boolean
     error: string | null
+    downloadProgress: DownloadProgress | null
 }
 
 /**
@@ -59,6 +71,7 @@ type DownloadZipPayload = {
 export function useFileDownload(): UseFileDownloadReturn {
     const [isDownloading, setIsDownloading] = useState(false)
     const [error, setError] = useState<string | null>(null)
+    const [downloadProgress, setDownloadProgress] = useState<DownloadProgress | null>(null)
 
     /**
      * Realiza o download de um único arquivo
@@ -66,6 +79,8 @@ export function useFileDownload(): UseFileDownloadReturn {
      */
     const downloadSingleFile = async (file: DriveFile): Promise<void> => {
         try {
+            setDownloadProgress(prev => prev ? { ...prev, current: file.nome } : null)
+
             // Resolve URL completa do arquivo (GET não precisa de CSRF)
             const fileUrl = file.arquivo_url.startsWith('http')
                 ? file.arquivo_url
@@ -91,6 +106,8 @@ export function useFileDownload(): UseFileDownloadReturn {
             // Limpeza
             document.body.removeChild(link)
             window.URL.revokeObjectURL(url)
+
+            setDownloadProgress(prev => prev ? { ...prev, completed: prev.completed + 1 } : null)
         } catch (err) {
             throw new Error(
                 err instanceof Error
@@ -110,6 +127,8 @@ export function useFileDownload(): UseFileDownloadReturn {
         currentFolder?: DriveFolder | null
     ): Promise<void> => {
         try {
+            setDownloadProgress(prev => prev ? { ...prev, isGeneratingZip: true, current: 'Gerando ZIP...' } : null)
+
             const folderName = currentFolder?.nome || 'arquivos'
 
             const payload: DownloadZipPayload = {
@@ -158,6 +177,8 @@ export function useFileDownload(): UseFileDownloadReturn {
                 console.warn('Tipo de resposta inesperado:', blob.type)
             }
 
+            setDownloadProgress(prev => prev ? { ...prev, isGeneratingZip: false, current: `${folderName}.zip` } : null)
+
             const url = window.URL.createObjectURL(blob)
             const zipFileName = `${folderName}.zip`
 
@@ -172,6 +193,8 @@ export function useFileDownload(): UseFileDownloadReturn {
             // Limpeza
             document.body.removeChild(link)
             window.URL.revokeObjectURL(url)
+
+            setDownloadProgress(prev => prev ? { ...prev, completed: prev.completed + 1 } : null)
         } catch (err) {
             throw new Error(
                 err instanceof Error
@@ -197,6 +220,11 @@ export function useFileDownload(): UseFileDownloadReturn {
 
         setIsDownloading(true)
         setError(null)
+        setDownloadProgress({
+            total: files.length,
+            completed: 0,
+            failed: 0
+        })
 
         try {
             if (files.length === 1) {
@@ -209,16 +237,20 @@ export function useFileDownload(): UseFileDownloadReturn {
         } catch (err) {
             const errorMessage = err instanceof Error ? err.message : 'Erro ao realizar download'
             setError(errorMessage)
+            setDownloadProgress(prev => prev ? { ...prev, failed: prev.failed + 1, completed: prev.completed + 1 } : null)
             console.error('Erro no download:', err)
         } finally {
             setIsDownloading(false)
+            // Limpa progresso após 3 segundos
+            setTimeout(() => setDownloadProgress(null), 3000)
         }
     }
 
     return {
         download,
         isDownloading,
-        error
+        error,
+        downloadProgress
     }
 }
 
