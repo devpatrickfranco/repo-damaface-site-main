@@ -2,7 +2,7 @@
 
 import { useState, useCallback, useEffect } from "react"
 import { apiBackend, getBlob } from "@/lib/api-backend"
-import type { FileItem, APIContentResponse, Breadcrumb, UploadProgress, UploadResult, BackendFile, BackendFolder } from "@/types/marketing"
+import type { FileItem, APIContentResponse, Breadcrumb, UploadProgress, UploadResult, BackendFile, BackendFolder, MoveProgress } from "@/types/marketing"
 
 // --- HOOK PRINCIPAL ---
 
@@ -14,6 +14,9 @@ export function useFileManager() {
 
   // Estado de Upload
   const [uploadProgress, setUploadProgress] = useState<UploadProgress | null>(null)
+
+  // Estado de Move
+  const [moveProgress, setMoveProgress] = useState<MoveProgress | null>(null)
 
   // Estado de Navegação e Seleção
   const [currentFolderId, setCurrentFolderId] = useState<string | null>(null)
@@ -364,30 +367,68 @@ export function useFileManager() {
     if (fileIds.length === 0) return
 
     try {
+      // Separa arquivos e pastas dos IDs selecionados
+      const selectedItems = fileIds.map(id => files.find(f => f.id === id)).filter(Boolean) as FileItem[]
+
+      const fileItems = selectedItems.filter(item => item.type === 'file')
+      const folderItems = selectedItems.filter(item => item.type === 'folder')
+
+      // Extrai IDs numéricos corretamente
+      const arquivo_ids = fileItems.map(item => item.originalId)
+      const pasta_ids = folderItems.map(item => item.originalId)
+
+      const totalItems = selectedItems.length
+
+      // Inicializa progresso
+      setMoveProgress({
+        total: totalItems,
+        completed: 0,
+        failed: 0,
+        current: selectedItems[0]?.name
+      })
+
       // Endpoint otimizado: POST /marketing/drive/mover-lote/
       const targetId = targetFolderId ? parseInt(targetFolderId.replace('folder-', '')) : null
 
       const response = await apiBackend.post("/marketing/drive/mover-lote/", {
-        arquivo_ids: fileIds.map(id => parseInt(id.replace('file-', ''))),
+        arquivo_ids,
+        pasta_ids,
         target_folder_id: targetId
       })
 
+      // Atualiza progresso como completo
+      setMoveProgress(prev => prev ? {
+        ...prev,
+        completed: totalItems
+      } : null)
+
       // O backend pode retornar 200 (tudo ok) ou 207 (parcial)
-      // Se retornar 207, o wrapper apiBackend provavelmente não lança erro (pois é 2xx),
-      // mas precisamos verificar a resposta se quisermos mostrar detalhes.
-      // Por enquanto, assumimos que o refresh é suficiente ou logamos o resultado.
       console.log("Resultado mover lote:", response)
 
       await fetchContent()
       setSelectedIds(new Set())
       setIsSelectionMode(false)
 
+      // Limpa progresso após 2 segundos
+      setTimeout(() => setMoveProgress(null), 2000)
+
       return response
     } catch (error) {
       console.error("Erro ao mover em lote:", error)
+
+      // Marca como falha
+      setMoveProgress(prev => prev ? {
+        ...prev,
+        completed: prev.total,
+        failed: prev.total
+      } : null)
+
+      // Limpa progresso após 3 segundos em caso de erro
+      setTimeout(() => setMoveProgress(null), 3000)
+
       throw error
     }
-  }, [fetchContent])
+  }, [files, fetchContent])
 
   // 2.1 PESQUISA GLOBAL
   const searchFiles = useCallback(async (query: string) => {
@@ -516,6 +557,7 @@ export function useFileManager() {
     breadcrumbs,
     isLoading,
     uploadProgress,
+    moveProgress,
 
     // Estado
     currentFolderId,

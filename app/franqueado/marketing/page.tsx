@@ -16,6 +16,7 @@ import { MoveModal } from "./components/move-modal"
 import { DragOverlay } from "./components/drag-overlay"
 import { UploadProgressToast, UploadProgressInline } from "./components/upload-progress"
 import { DownloadProgressToast } from "./components/download-progress"
+import { MoveProgressToast } from "./components/move-progress"
 import type { DownloadProgress } from "@/hooks/useFileDownload"
 
 type UploadItem = { file: File; relativePath?: string }
@@ -29,6 +30,7 @@ export default function FileManagerPage() {
     selectedIds,
     isSelectionMode,
     uploadProgress,
+    moveProgress,
     getCurrentFolderFiles,
     navigateToFolder,
     processUpload,
@@ -354,6 +356,11 @@ export default function FileManagerPage() {
       <DownloadProgressToast
         progress={downloadProgress}
         onCancel={() => setDownloadProgress(null)}
+      />
+
+      <MoveProgressToast
+        progress={moveProgress}
+        onCancel={() => { }}
       />
     </div>
   )

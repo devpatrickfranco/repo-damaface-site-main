@@ -35,6 +35,13 @@ export interface UploadProgress {
   current?: string
 }
 
+export interface MoveProgress {
+  total: number
+  completed: number
+  failed: number
+  current?: string
+}
+
 export interface UploadResult {
   success: string[]
   failed: Array<{ name: string; error: string }>
