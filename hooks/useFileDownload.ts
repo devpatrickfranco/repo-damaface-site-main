@@ -127,7 +127,11 @@ export function useFileDownload(): UseFileDownloadReturn {
         currentFolder?: DriveFolder | null
     ): Promise<void> => {
         try {
-            setDownloadProgress(prev => prev ? { ...prev, isGeneratingZip: true, current: 'Gerando ZIP...' } : null)
+            setDownloadProgress(prev => prev ? {
+                ...prev,
+                isGeneratingZip: true,
+                current: `Preparando ${files.length} arquivos...`
+            } : null)
 
             const folderName = currentFolder?.nome || 'arquivos'
 
@@ -138,6 +142,13 @@ export function useFileDownload(): UseFileDownloadReturn {
                     name: file.nome
                 }))
             }
+
+            // Log para debug - verificar quais arquivos estão sendo enviados
+            console.log('📦 Solicitando download de ZIP:', {
+                totalArquivos: files.length,
+                arquivos: files.map(f => ({ id: f.id, nome: f.nome, url: f.arquivo_url })),
+                payload
+            })
 
             // Usa apiBackend.request para ter CSRF token
             const response = await apiBackend.request<Blob>('/marketing/drive/download-zip/', {
@@ -167,6 +178,12 @@ export function useFileDownload(): UseFileDownloadReturn {
             })
 
             if (!fetchResponse.ok) {
+                const errorText = await fetchResponse.text()
+                console.error('❌ Erro na resposta do servidor:', {
+                    status: fetchResponse.status,
+                    statusText: fetchResponse.statusText,
+                    body: errorText
+                })
                 throw new Error(`Erro ao gerar ZIP: ${fetchResponse.statusText}`)
             }
 
@@ -174,10 +191,21 @@ export function useFileDownload(): UseFileDownloadReturn {
 
             // Verifica se realmente recebeu um ZIP
             if (blob.type !== 'application/zip' && !blob.type.includes('zip')) {
-                console.warn('Tipo de resposta inesperado:', blob.type)
+                console.warn('⚠️ Tipo de resposta inesperado:', blob.type)
             }
 
-            setDownloadProgress(prev => prev ? { ...prev, isGeneratingZip: false, current: `${folderName}.zip` } : null)
+            console.log('✅ ZIP gerado com sucesso:', {
+                tamanho: `${(blob.size / 1024 / 1024).toFixed(2)} MB`,
+                tipo: blob.type
+            })
+
+            setDownloadProgress(prev => prev ? {
+                ...prev,
+                isGeneratingZip: false,
+                current: `${folderName}.zip`,
+                // Marca todos os arquivos como completos quando o ZIP é gerado
+                completed: prev.total
+            } : null)
 
             const url = window.URL.createObjectURL(blob)
             const zipFileName = `${folderName}.zip`
@@ -193,9 +221,8 @@ export function useFileDownload(): UseFileDownloadReturn {
             // Limpeza
             document.body.removeChild(link)
             window.URL.revokeObjectURL(url)
-
-            setDownloadProgress(prev => prev ? { ...prev, completed: prev.completed + 1 } : null)
         } catch (err) {
+            console.error('❌ Erro no download ZIP:', err)
             throw new Error(
                 err instanceof Error
                     ? `Falha ao gerar ZIP: ${err.message}`

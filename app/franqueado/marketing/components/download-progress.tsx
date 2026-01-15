@@ -99,10 +99,10 @@ export function DownloadProgressToast({ progress, onCancel }: DownloadProgressPr
                 <div className="w-full bg-gray-700 rounded-full h-1.5 overflow-hidden">
                     <div
                         className={`h-full transition-all duration-300 ${isComplete
-                                ? hasErrors
-                                    ? "bg-yellow-500"
-                                    : "bg-green-500"
-                                : "bg-blue-500"
+                            ? hasErrors
+                                ? "bg-yellow-500"
+                                : "bg-green-500"
+                            : "bg-blue-500"
                             }`}
                         style={{ width: `${percentage}%` }}
                     />
@@ -149,7 +149,10 @@ export function DownloadProgressToast({ progress, onCancel }: DownloadProgressPr
                                 </div>
                                 <div className="flex-1">
                                     <p className="text-sm text-white font-medium">
-                                        {progress.completed} arquivo{progress.completed !== 1 ? 's' : ''} baixado{progress.completed !== 1 ? 's' : ''}
+                                        {isComplete
+                                            ? `${progress.total} arquivo${progress.total !== 1 ? 's' : ''} pronto${progress.total !== 1 ? 's' : ''} para download`
+                                            : `${progress.completed} de ${progress.total} arquivo${progress.total !== 1 ? 's' : ''}`
+                                        }
                                     </p>
                                     {hasErrors && (
                                         <p className="text-xs text-yellow-400 mt-0.5">
@@ -217,10 +220,10 @@ export function DownloadProgressInline({ progress }: { progress: DownloadProgres
                 <div className="w-full bg-gray-700 rounded-full h-1">
                     <div
                         className={`h-full transition-all duration-300 ${isComplete
-                                ? hasErrors
-                                    ? "bg-yellow-500"
-                                    : "bg-green-500"
-                                : "bg-blue-500"
+                            ? hasErrors
+                                ? "bg-yellow-500"
+                                : "bg-green-500"
+                            : "bg-blue-500"
                             }`}
                         style={{ width: `${percentage}%` }}
                     />
