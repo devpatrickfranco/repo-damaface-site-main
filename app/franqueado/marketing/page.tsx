@@ -6,6 +6,7 @@ import { useFileManager } from "@/hooks/use-file-manager"
 
 import { SearchBar } from "./components/search-bar"
 import { Toolbar } from "./components/toolbar"
+import type { SortOption } from "./components/sort-dropdown"
 import { Breadcrumb } from "./components/breadcrumb"
 import { FileGrid } from "./components/file-grid"
 import { FileList } from "./components/file-list"
@@ -59,6 +60,7 @@ export default function FileManagerPage() {
   const [showMoveModal, setShowMoveModal] = useState(false)
   const [isDragging, setIsDragging] = useState(false)
   const [downloadProgress, setDownloadProgress] = useState<DownloadProgress | null>(null)
+  const [sortOption, setSortOption] = useState<SortOption>("name-asc")
 
   // Estado para scroll e highlight
   const [scrollToId, setScrollToId] = useState<string | null>(null)
@@ -82,8 +84,24 @@ export default function FileManagerPage() {
   }, [scrollToId, isLoading, files])
 
   const filteredFiles = useMemo(() => {
-    return getCurrentFolderFiles()
-  }, [getCurrentFolderFiles])
+    const files = getCurrentFolderFiles()
+
+    // Apply sorting
+    return [...files].sort((a, b) => {
+      switch (sortOption) {
+        case "name-asc":
+          return a.name.localeCompare(b.name, 'pt-BR', { sensitivity: 'base' })
+        case "name-desc":
+          return b.name.localeCompare(a.name, 'pt-BR', { sensitivity: 'base' })
+        case "date-desc":
+          return b.modifiedAt.getTime() - a.modifiedAt.getTime()
+        case "date-asc":
+          return a.modifiedAt.getTime() - b.modifiedAt.getTime()
+        default:
+          return 0
+      }
+    })
+  }, [getCurrentFolderFiles, sortOption])
 
   const { folders, fileItems } = useMemo(() => {
     const folders = filteredFiles.filter((f) => f.type === "folder")
@@ -261,6 +279,8 @@ export default function FileManagerPage() {
             onCreateFolder={() => setShowCreateFolderModal(true)}
             isSelectionMode={isSelectionMode}
             onToggleSelectionMode={toggleSelectionMode}
+            sortOption={sortOption}
+            onSortChange={setSortOption}
           />
         </div>
 
