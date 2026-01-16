@@ -1,25 +1,26 @@
 'use client'
 
-import { 
+import {
   Megaphone,
   X,
   Newspaper,
   Users2,
-  Home, 
+  Home,
   LifeBuoy,
   GraduationCap,
   BrainCircuit,
   HelpCircle
 } from 'lucide-react'
 import { useRouter, usePathname } from 'next/navigation'
-import { useState } from 'react'
 import { useAuth } from '@/context/AuthContext'
 
-// ✅ REMOVIDO: interface SidebarProps (não precisa mais de props!)
+interface SidebarProps {
+  isOpen: boolean
+  onClose: () => void
+}
 
-const Sidebar = () => {
+const Sidebar = ({ isOpen, onClose }: SidebarProps) => {
   const { user } = useAuth()
-  const [sidebarOpen, setSidebarOpen] = useState(false)
   const router = useRouter()
   const pathname = usePathname() // ✅ Detecta automaticamente a rota
 
@@ -47,12 +48,12 @@ const Sidebar = () => {
 
   return (
     <>
-      <aside className={`fixed left-0 top-16 h-[calc(100vh-4rem)] w-64 bg-gray-900 border-r border-gray-700 z-30 transform transition-transform lg:translate-x-0 ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'} overflow-y-auto shadow-lg`}>
-        
+      <aside className={`fixed left-0 top-16 h-[calc(100vh-4rem)] w-64 bg-gray-900 border-r border-gray-700 z-30 transform transition-transform lg:translate-x-0 ${isOpen ? 'translate-x-0' : '-translate-x-full'} overflow-y-auto shadow-lg`}>
+
         {/* Botão fechar mobile */}
         <div className="lg:hidden flex justify-end p-4">
           <button
-            onClick={() => setSidebarOpen(false)}
+            onClick={onClose}
             className="p-2 rounded-lg hover:bg-gray-700"
             aria-label="Fechar menu"
           >
@@ -68,13 +69,12 @@ const Sidebar = () => {
                 key={item.id}
                 onClick={() => {
                   router.push(item.route)
-                  setSidebarOpen(false)
+                  onClose()
                 }}
-                className={`w-full flex items-center space-x-3 px-4 py-3 rounded-lg text-left transition-colors ${
-                  isActive(item.route) // ✅ Usa a função isActive
+                className={`w-full flex items-center space-x-3 px-4 py-3 rounded-lg text-left transition-colors ${isActive(item.route) // ✅ Usa a função isActive
                     ? 'bg-pink-900/30 text-pink-400 border border-pink-800'
                     : 'text-gray-300 hover:bg-gray-700'
-                }`}
+                  }`}
               >
                 <item.icon className="w-5 h-5" />
                 <span className="font-medium">{item.name}</span>
@@ -85,10 +85,10 @@ const Sidebar = () => {
       </aside>
 
       {/* Overlay mobile */}
-      {sidebarOpen && (
+      {isOpen && (
         <div
           className="fixed inset-0 bg-black/50 z-20 lg:hidden"
-          onClick={() => setSidebarOpen(false)}
+          onClick={onClose}
         />
       )}
     </>

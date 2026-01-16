@@ -1,6 +1,7 @@
 'use client'
 
 import { AuthProvider } from '@/context/AuthContext'
+import { useState } from 'react'
 import HeaderFranqueado from './components/HeaderFranqueado'
 import Sidebar from './components/Sidebar'
 import { usePathname } from 'next/navigation'
@@ -11,11 +12,12 @@ export default function FranqueadoLayout({
   children: React.ReactNode
 }) {
   const pathname = usePathname()
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false)
 
   // Páginas que NÃO devem mostrar Header/Sidebar
   const publicPages = ['/franqueado', '/franqueado/reset_password']
   const isPublicPage = publicPages.includes(pathname)
-  
+
   return (
     <AuthProvider>
       {isPublicPage ? (
@@ -26,9 +28,9 @@ export default function FranqueadoLayout({
       ) : (
         // Página autenticada - COM Header e Sidebar
         <div className="min-h-screen bg-gray-900">
-          <HeaderFranqueado />
-          <Sidebar />
-          
+          <HeaderFranqueado onMenuClick={() => setIsSidebarOpen(!isSidebarOpen)} />
+          <Sidebar isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} />
+
           {/* Main Content - com padding para não ficar atrás do header/sidebar */}
           <main className="lg:ml-64 pt-16 min-h-screen">
             <div className="p-6">
