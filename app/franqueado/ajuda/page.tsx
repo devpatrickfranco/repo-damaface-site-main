@@ -3,8 +3,9 @@
 import { useState, useRef, useEffect } from 'react';
 import { useAuth } from "@/context/AuthContext"
 import { useRouter } from "next/navigation"
+import { useSessionId } from './useSessionId';
 
-import { Send, Sparkles, MessageCircle, FileText, Users, GraduationCap, ArrowLeft } from 'lucide-react';
+import { Send, Sparkles, MessageCircle, FileText, Users, GraduationCap, ArrowLeft, RotateCcw } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 
 interface Message {
@@ -17,6 +18,7 @@ interface Message {
 const AIHelpPage = () => {
   const { isAuthenticated, user, loading } = useAuth()
   const router = useRouter()
+  const { sessionId, resetSession } = useSessionId();
 
   const [messages, setMessages] = useState<Message[]>([]);
   const [inputValue, setInputValue] = useState('');
@@ -79,7 +81,10 @@ const AIHelpPage = () => {
       const response = await fetch('https://n8n-n8n.i4khe5.easypanel.host/webhook/ajuda', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ message: textToSend })
+        body: JSON.stringify({
+          message: textToSend,
+          sessionId: sessionId
+        })
       });
 
       if (!response.ok) {
@@ -90,7 +95,7 @@ const AIHelpPage = () => {
       const contentType = response.headers.get('content-type') || '';
 
       let messageContent: string;
-      
+
       // Verifica se a resposta é JSON
       if (contentType.includes('application/json')) {
         try {
@@ -136,23 +141,40 @@ const AIHelpPage = () => {
     }
   };
 
+  const handleNewConversation = () => {
+    resetSession();
+    setMessages([]);
+  };
+
   return (
     <div className=" bg-gray-900 min-h-[calc(100vh-4rem)] flex flex-col">
       <div className="flex flex-col flex-1 max-w-5xl mx-auto w-full px-4 py-8">
-        
+
         {/* Header */}
         <div className="mb-8">
-          <div className="flex items-center space-x-3 mb-2">
-            <button
-              onClick={() => window.location.href = '/franqueado/dashboard'}
-              className="p-2 hover:bg-gray-800 rounded-lg transition-colors"
-            >
-              <ArrowLeft className="w-6 h-6 text-gray-400 hover:text-white" />
-            </button>
-            <div className="p-2 bg-brand-pink/20 rounded-lg">
-              <Sparkles className="w-6 h-6 text-brand-pink" />
+          <div className="flex items-center justify-between mb-2">
+            <div className="flex items-center space-x-3">
+              <button
+                onClick={() => window.location.href = '/franqueado/dashboard'}
+                className="p-2 hover:bg-gray-800 rounded-lg transition-colors"
+              >
+                <ArrowLeft className="w-6 h-6 text-gray-400 hover:text-white" />
+              </button>
+              <div className="p-2 bg-brand-pink/20 rounded-lg">
+                <Sparkles className="w-6 h-6 text-brand-pink" />
+              </div>
+              <h1 className="text-3xl font-bold text-white">Central de Ajuda</h1>
             </div>
-            <h1 className="text-3xl font-bold text-white">Central de Ajuda</h1>
+
+            {messages.length > 0 && (
+              <button
+                onClick={handleNewConversation}
+                className="flex items-center space-x-2 px-4 py-2 bg-gray-800 hover:bg-gray-750 border border-gray-700 hover:border-brand-pink/50 rounded-lg transition-all duration-200 group"
+              >
+                <RotateCcw className="w-4 h-4 text-gray-400 group-hover:text-brand-pink transition-colors" />
+                <span className="text-sm text-gray-300 group-hover:text-white transition-colors">Nova Conversa</span>
+              </button>
+            )}
           </div>
           <p className="text-gray-400 text-sm ml-14">
             Assistente inteligente para ajudar você a navegar pelo sistema DamaFace
@@ -206,11 +228,10 @@ const AIHelpPage = () => {
                 className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'} animate-fade-up`}
               >
                 <div
-                  className={`max-w-[80%] ${
-                    message.role === 'user'
-                      ? 'bg-brand-pink text-white'
-                      : 'bg-gray-800 text-gray-100 border border-gray-700'
-                  } rounded-2xl px-5 py-3 shadow-lg`}
+                  className={`max-w-[80%] ${message.role === 'user'
+                    ? 'bg-brand-pink text-white'
+                    : 'bg-gray-800 text-gray-100 border border-gray-700'
+                    } rounded-2xl px-5 py-3 shadow-lg`}
                 >
                   {message.role === 'assistant' && (
                     <div className="flex items-center space-x-2 mb-2">
