@@ -83,7 +83,8 @@ const AIHelpPage = () => {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           message: textToSend,
-          sessionId: sessionId
+          sessionId: sessionId,
+          userName: user?.nome
         })
       });
 
