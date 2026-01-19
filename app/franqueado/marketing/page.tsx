@@ -1,12 +1,13 @@
 "use client"
 
-import type React from "react"
 import { useState, useMemo, useCallback, useEffect } from "react"
 import { useFileManager } from "@/hooks/use-file-manager"
+import { useAuth } from "@/context/AuthContext"
+import { useRouter } from "next/navigation"
+import type React from "react"
 
 import { SearchBar } from "./components/search-bar"
 import { Toolbar } from "./components/toolbar"
-import type { SortOption } from "./components/sort-dropdown"
 import { Breadcrumb } from "./components/breadcrumb"
 import { FileGrid } from "./components/file-grid"
 import { FileList } from "./components/file-list"
@@ -18,11 +19,24 @@ import { DragOverlay } from "./components/drag-overlay"
 import { UploadProgressToast, UploadProgressInline } from "./components/upload-progress"
 import { DownloadProgressToast } from "./components/download-progress"
 import { MoveProgressToast } from "./components/move-progress"
+import type { SortOption } from "./components/sort-dropdown"
 import type { DownloadProgress } from "@/hooks/useFileDownload"
 
 type UploadItem = { file: File; relativePath?: string }
 
+
+
 export default function FileManagerPage() {
+
+  const { user, loading: authLoading, isAuthenticated } = useAuth()
+  const router = useRouter()
+
+  useEffect(() => {
+    if (!authLoading && !isAuthenticated) {
+      router.push("/franqueado")
+    }
+  }, [isAuthenticated, authLoading, router])
+
   const {
     files,
     isLoading,
@@ -281,6 +295,7 @@ export default function FileManagerPage() {
             onToggleSelectionMode={toggleSelectionMode}
             sortOption={sortOption}
             onSortChange={setSortOption}
+            userRole={user?.role}
           />
         </div>
 

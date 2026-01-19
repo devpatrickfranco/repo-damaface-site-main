@@ -16,6 +16,7 @@ interface ToolbarProps {
   onToggleSelectionMode: () => void
   sortOption: SortOption
   onSortChange: (option: SortOption) => void
+  userRole?: 'SUPERADMIN' | 'ADMIN' | 'FRANQUEADO' | 'FUNCIONARIO'
 }
 
 export function Toolbar({
@@ -28,6 +29,7 @@ export function Toolbar({
   onToggleSelectionMode,
   sortOption,
   onSortChange,
+  userRole,
 }: ToolbarProps) {
 
   const fileInputRef = useRef<HTMLInputElement>(null)
@@ -58,40 +60,50 @@ export function Toolbar({
   }
 
 
+  const isSuperAdmin = userRole === 'SUPERADMIN'
+
   return (
     <div className="flex flex-wrap items-center gap-3">
-      <button
-        onClick={() => fileInputRef.current?.click()}
-        className="flex items-center gap-2 px-4 py-2.5 bg-brand-pink hover:bg-brand-pink/90 rounded-full transition-colors font-medium text-sm"
-      >
-        <Upload size={18} />
-        <span>Upload Arquivo</span>
-      </button>
-      <input ref={fileInputRef} type="file" multiple onChange={handleFileChange} className="hidden" />
+      {isSuperAdmin && (
+        <>
+          <button
+            onClick={() => fileInputRef.current?.click()}
+            className="flex items-center gap-2 px-4 py-2.5 bg-brand-pink hover:bg-brand-pink/90 rounded-full transition-colors font-medium text-sm"
+          >
+            <Upload size={18} />
+            <span>Upload Arquivo</span>
+          </button>
+          <input ref={fileInputRef} type="file" multiple onChange={handleFileChange} className="hidden" />
 
-      <button
-        onClick={() => folderInputRef.current?.click()}
-        className="flex items-center gap-2 px-4 py-2.5 bg-gray-700 hover:bg-gray-600 rounded-full transition-colors font-medium text-sm border border-gray-600"
-      >
-        <Upload size={18} />
-        <span>Upload Pasta</span>
-      </button>
-      <input
-        ref={folderInputRef}
-        type="file"
-        {...({ webkitdirectory: "" } as any)}
-        multiple
-        onChange={handleFolderChange}
-        className="hidden"
-      />
+          <button
+            onClick={() => folderInputRef.current?.click()}
+            className="flex items-center gap-2 px-4 py-2.5 bg-gray-700 hover:bg-gray-600 rounded-full transition-colors font-medium text-sm border border-gray-600"
+          >
+            <Upload size={18} />
+            <span>Upload Pasta</span>
+          </button>
+          <input
+            ref={folderInputRef}
+            type="file"
+            {...({ webkitdirectory: "" } as any)}
+            multiple
+            onChange={handleFolderChange}
+            className="hidden"
+          />
 
-      <button
-        onClick={onCreateFolder}
-        className="flex items-center gap-2 px-4 py-2.5 bg-gray-700 hover:bg-gray-600 rounded-full transition-colors font-medium text-sm border border-gray-600"
-      >
-        <FolderPlus size={18} />
-        <span>Nova Pasta</span>
-      </button>
+          <button
+            onClick={onCreateFolder}
+            className="flex items-center gap-2 px-4 py-2.5 bg-gray-700 hover:bg-gray-600 rounded-full transition-colors font-medium text-sm border border-gray-600"
+          >
+            <FolderPlus size={18} />
+            <span>Nova Pasta</span>
+          </button>
+        </>
+      )}
+
+      <SortDropdown value={sortOption} onChange={onSortChange} />
+
+      <div className="flex-1" />
 
       <button
         onClick={onToggleSelectionMode}
@@ -103,10 +115,6 @@ export function Toolbar({
         <CheckSquare size={18} />
         <span>{isSelectionMode ? "Cancelar seleção" : "Selecionar"}</span>
       </button>
-
-      <SortDropdown value={sortOption} onChange={onSortChange} />
-
-      <div className="flex-1" />
 
       <div className="flex items-center bg-gray-800 rounded-full p-1 border border-gray-700">
         <button
