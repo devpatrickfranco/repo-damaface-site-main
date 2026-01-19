@@ -101,9 +101,9 @@ export function Toolbar({
         </>
       )}
 
-      <SortDropdown value={sortOption} onChange={onSortChange} />
-
       <div className="flex-1" />
+
+      <SortDropdown value={sortOption} onChange={onSortChange} />
 
       <button
         onClick={onToggleSelectionMode}
