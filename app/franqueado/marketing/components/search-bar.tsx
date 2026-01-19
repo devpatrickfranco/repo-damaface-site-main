@@ -54,7 +54,7 @@ export function SearchBar({
   }, [])
 
   return (
-    <div ref={wrapperRef} className="relative w-full md:w-[600px] z-50">
+    <div ref={wrapperRef} className="relative w-full md:w-[600px] z-10">
       <div className="relative">
         <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
         <input
