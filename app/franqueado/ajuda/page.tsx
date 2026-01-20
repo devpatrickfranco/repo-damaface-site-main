@@ -5,7 +5,7 @@ import { useAuth } from "@/context/AuthContext"
 import { useRouter } from "next/navigation"
 import { useSessionId } from './useSessionId';
 
-import { Send, Sparkles, MessageCircle, FileText, Users, GraduationCap, ArrowLeft, RotateCcw } from 'lucide-react';
+import { Send, Sparkles, MessageCircle, FileText, Users, GraduationCap, ArrowLeft, RotateCcw, Download } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 
 interface Message {
@@ -14,6 +14,65 @@ interface Message {
   role: 'user' | 'assistant';
   timestamp: Date;
 }
+
+// Componente para renderizar imagens geradas com botão de download
+const ImageWithDownload = ({ url }: { url: string }) => {
+  const handleDownload = async () => {
+    try {
+      const response = await fetch(url);
+      const blob = await response.blob();
+      const downloadUrl = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = downloadUrl;
+      link.download = url.split('/').pop() || 'imagem.png';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(downloadUrl);
+    } catch (error) {
+      console.error('Erro ao baixar imagem:', error);
+    }
+  };
+
+  return (
+    <div className="mt-3 space-y-2">
+      <div className="relative rounded-lg overflow-hidden border border-gray-700">
+        <img
+          src={url}
+          alt="Imagem gerada"
+          className="w-full h-auto max-h-96 object-contain bg-gray-900"
+          loading="lazy"
+        />
+      </div>
+      <button
+        onClick={handleDownload}
+        className="flex items-center space-x-2 px-4 py-2 bg-brand-pink hover:bg-pink-600 text-white rounded-lg transition-all duration-200 w-full justify-center group"
+      >
+        <Download className="w-4 h-4 group-hover:translate-y-0.5 transition-transform" />
+        <span className="text-sm font-medium">Baixar Imagem</span>
+      </button>
+    </div>
+  );
+};
+
+// Função para processar conteúdo e extrair URLs de imagens
+const processMessageContent = (content: string) => {
+  const IMAGE_PREFIX = 'https://ia-minio.i4khe5.easypanel.host/aws/';
+  const urlRegex = new RegExp(`${IMAGE_PREFIX}[^\\s<>)"']+`, 'g');
+  const matches = content.match(urlRegex);
+
+  if (!matches || matches.length === 0) {
+    return { text: content, imageUrls: [] };
+  }
+
+  // Remove as URLs do texto
+  let cleanedText = content;
+  matches.forEach(url => {
+    cleanedText = cleanedText.replace(url, '').trim();
+  });
+
+  return { text: cleanedText, imageUrls: matches };
+};
 
 const AIHelpPage = () => {
   const { isAuthenticated, user, loading } = useAuth()
@@ -240,11 +299,21 @@ const AIHelpPage = () => {
                       <span className="text-xs font-medium text-brand-pink">Help</span>
                     </div>
                   )}
-                  {message.role === 'assistant' ? (
-                    <div className="text-sm leading-relaxed prose prose-invert prose-sm max-w-none">
-                      <ReactMarkdown>{message.content}</ReactMarkdown>
-                    </div>
-                  ) : (
+                  {message.role === 'assistant' ? (() => {
+                    const { text, imageUrls } = processMessageContent(message.content);
+                    return (
+                      <>
+                        {text && (
+                          <div className="text-sm leading-relaxed prose prose-invert prose-sm max-w-none">
+                            <ReactMarkdown>{text}</ReactMarkdown>
+                          </div>
+                        )}
+                        {imageUrls.map((url, index) => (
+                          <ImageWithDownload key={index} url={url} />
+                        ))}
+                      </>
+                    );
+                  })() : (
                     <p className="text-sm leading-relaxed whitespace-pre-wrap">
                       {message.content}
                     </p>
