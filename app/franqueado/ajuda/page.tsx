@@ -5,7 +5,7 @@ import { useAuth } from "@/context/AuthContext"
 import { useRouter } from "next/navigation"
 import { useSessionId } from './useSessionId';
 
-import { Send, Sparkles, MessageCircle, FileText, Users, GraduationCap, ArrowLeft, RotateCcw, Download, Plus, Image as ImageIcon } from 'lucide-react';
+import { Send, Sparkles, MessageCircle, FileText, Users, GraduationCap, ArrowLeft, RotateCcw, Download, Plus, Image as ImageIcon, X, Flame } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 
 interface Message {
@@ -102,6 +102,7 @@ const AIHelpPage = () => {
   const [inputValue, setInputValue] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [showMenu, setShowMenu] = useState(false);
+  const [imageGenerationMode, setImageGenerationMode] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -385,7 +386,7 @@ const AIHelpPage = () => {
               <div className="absolute bottom-full left-0 mb-2 bg-gray-800 border border-gray-700 rounded-xl shadow-2xl overflow-hidden min-w-[240px] animate-fade-up">
                 <button
                   onClick={() => {
-                    setInputValue('Gerar uma imagem de ');
+                    setImageGenerationMode(true);
                     setShowMenu(false);
                   }}
                   className="w-full px-4 py-3 text-left text-sm text-gray-300 hover:bg-gray-750 hover:text-white transition-colors flex items-center space-x-3"
@@ -404,6 +405,20 @@ const AIHelpPage = () => {
               >
                 <Plus className={`w-5 h-5 text-gray-400 group-hover:text-brand-pink transition-all duration-200 ${showMenu ? 'rotate-45' : ''}`} />
               </button>
+
+              {/* Badge de modo de geração de imagem */}
+              {imageGenerationMode && (
+                <div className="flex items-center space-x-1.5 px-3 py-1.5 bg-gradient-to-r from-orange-500/20 to-yellow-500/20 border border-orange-500/30 rounded-lg">
+                  <Flame className="w-4 h-4 text-orange-400" />
+                  <span className="text-sm font-medium text-orange-300">Imagem</span>
+                  <button
+                    onClick={() => setImageGenerationMode(false)}
+                    className="ml-1 p-0.5 hover:bg-orange-500/20 rounded transition-colors"
+                  >
+                    <X className="w-3.5 h-3.5 text-orange-400" />
+                  </button>
+                </div>
+              )}
 
               <input
                 type="text"
