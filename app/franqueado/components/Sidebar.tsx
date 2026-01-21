@@ -13,7 +13,8 @@ import {
   ChevronDown,
   ChevronRight,
   Image,
-  TrendingUp
+  TrendingUp,
+  FolderOpen
 } from 'lucide-react'
 import { useRouter, usePathname } from 'next/navigation'
 import { useAuth } from '@/context/AuthContext'
@@ -38,6 +39,7 @@ const Sidebar = ({ isOpen, onClose }: SidebarProps) => {
   const [marketingExpanded, setMarketingExpanded] = useState(false)
 
   const marketingSubModules: SubModule[] = [
+    { id: 'drive', name: 'Drive', icon: FolderOpen, route: '/franqueado/marketing/drive' },
     { id: 'gerar-imagem', name: 'Gerar Imagem', icon: Image, route: '/franqueado/marketing/gerar-imagem' },
     { id: 'trafego', name: 'Tráfego', icon: TrendingUp, route: '/franqueado/marketing/trafego' }
   ]
@@ -93,8 +95,8 @@ const Sidebar = ({ isOpen, onClose }: SidebarProps) => {
                     }
                   }}
                   className={`w-full flex items-center justify-between px-4 py-3 rounded-lg text-left transition-colors ${isActive(item.route) && !item.hasSubModules
-                      ? 'bg-pink-900/30 text-pink-400 border border-pink-800'
-                      : 'text-gray-300 hover:bg-gray-700'
+                    ? 'bg-pink-900/30 text-pink-400 border border-pink-800'
+                    : 'text-gray-300 hover:bg-gray-700'
                     }`}
                 >
                   <div className="flex items-center space-x-3">
@@ -121,8 +123,8 @@ const Sidebar = ({ isOpen, onClose }: SidebarProps) => {
                           onClose()
                         }}
                         className={`w-full flex items-center space-x-3 px-4 py-2.5 rounded-lg text-left transition-colors text-sm ${isActive(subModule.route)
-                            ? 'bg-pink-900/20 text-pink-400 border border-pink-800/50'
-                            : 'text-gray-400 hover:bg-gray-700/50 hover:text-gray-300'
+                          ? 'bg-pink-900/20 text-pink-400 border border-pink-800/50'
+                          : 'text-gray-400 hover:bg-gray-700/50 hover:text-gray-300'
                           }`}
                       >
                         <subModule.icon className="w-4 h-4" />
