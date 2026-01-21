@@ -77,20 +77,35 @@ const ImageWithDownload = ({ url }: { url: string }) => {
 // Função para processar conteúdo e extrair URLs de imagens
 const processMessageContent = (content: string) => {
   const IMAGE_PREFIX = 'https://ia-minio.i4khe5.easypanel.host/aws/';
-  const urlRegex = new RegExp(`${IMAGE_PREFIX}[^\\s<>)"']+`, 'g');
-  const matches = content.match(urlRegex);
 
-  if (!matches || matches.length === 0) {
-    return { text: content, imageUrls: [] };
+  // Regex para capturar URLs tanto em texto puro quanto em markdown links [text](url)
+  const markdownLinkRegex = new RegExp(`\\[([^\\]]+)\\]\\((${IMAGE_PREFIX}[^)]+)\\)`, 'g');
+  const plainUrlRegex = new RegExp(`${IMAGE_PREFIX}[^\\s<>)"'\\[]+`, 'g');
+
+  const imageUrls: string[] = [];
+  let cleanedText = content;
+
+  // Extrai URLs de markdown links [text](url)
+  let match;
+  while ((match = markdownLinkRegex.exec(content)) !== null) {
+    imageUrls.push(match[2]); // match[2] é a URL
+    cleanedText = cleanedText.replace(match[0], ''); // Remove o link markdown completo
   }
 
-  // Remove as URLs do texto
-  let cleanedText = content;
-  matches.forEach(url => {
-    cleanedText = cleanedText.replace(url, '').trim();
-  });
+  // Extrai URLs em texto puro
+  const plainMatches = content.match(plainUrlRegex);
+  if (plainMatches) {
+    plainMatches.forEach(url => {
+      if (!imageUrls.includes(url)) {
+        imageUrls.push(url);
+        cleanedText = cleanedText.replace(url, '');
+      }
+    });
+  }
 
-  return { text: cleanedText, imageUrls: matches };
+  cleanedText = cleanedText.trim();
+
+  return { text: cleanedText, imageUrls };
 };
 
 const AIHelpPage = () => {
@@ -225,6 +240,7 @@ const AIHelpPage = () => {
   const handleNewConversation = () => {
     resetSession();
     setMessages([]);
+    setImageGenerationMode(false); // Reset badge
   };
 
   return (
