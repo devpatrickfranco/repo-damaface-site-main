@@ -406,29 +406,33 @@ const AIHelpPage = () => {
                 <Plus className={`w-5 h-5 text-gray-400 group-hover:text-brand-pink transition-all duration-200 ${showMenu ? 'rotate-45' : ''}`} />
               </button>
 
-              {/* Badge de modo de geração de imagem */}
-              {imageGenerationMode && (
-                <div className="flex items-center space-x-1.5 px-3 py-1.5 bg-gradient-to-r from-orange-500/20 to-yellow-500/20 border border-orange-500/30 rounded-lg">
-                  <Flame className="w-4 h-4 text-orange-400" />
-                  <span className="text-sm font-medium text-orange-300">Imagem</span>
-                  <button
-                    onClick={() => setImageGenerationMode(false)}
-                    className="ml-1 p-0.5 hover:bg-orange-500/20 rounded transition-colors"
-                  >
-                    <X className="w-3.5 h-3.5 text-orange-400" />
-                  </button>
-                </div>
-              )}
+              {/* Container do input com badge */}
+              <div className="flex-1 relative">
+                <input
+                  type="text"
+                  value={inputValue}
+                  onChange={(e) => setInputValue(e.target.value)}
+                  onKeyPress={handleKeyPress}
+                  placeholder={imageGenerationMode ? "Descreva a imagem..." : "Digite sua pergunta..."}
+                  className={`w-full bg-gray-800 border border-gray-700 rounded-2xl ${imageGenerationMode ? 'pl-24 sm:pl-28' : 'pl-6'} pr-14 py-4 text-white placeholder-gray-500 focus:outline-none focus:border-brand-pink focus:ring-2 focus:ring-brand-pink/20 transition-all`}
+                  disabled={isLoading}
+                />
 
-              <input
-                type="text"
-                value={inputValue}
-                onChange={(e) => setInputValue(e.target.value)}
-                onKeyPress={handleKeyPress}
-                placeholder="Digite sua pergunta..."
-                className="flex-1 bg-gray-800 border border-gray-700 rounded-2xl pl-6 pr-14 py-4 text-white placeholder-gray-500 focus:outline-none focus:border-brand-pink focus:ring-2 focus:ring-brand-pink/20 transition-all"
-                disabled={isLoading}
-              />
+                {/* Badge de modo de geração de imagem - posicionado dentro do input */}
+                {imageGenerationMode && (
+                  <div className="absolute left-3 top-1/2 -translate-y-1/2 flex items-center space-x-1 px-2 py-1 bg-gradient-to-r from-orange-500/30 to-yellow-500/30 border border-orange-500/40 rounded-md">
+                    <Flame className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-orange-400" />
+                    <span className="text-xs sm:text-sm font-medium text-orange-300 hidden sm:inline">Imagem</span>
+                    <button
+                      onClick={() => setImageGenerationMode(false)}
+                      className="p-0.5 hover:bg-orange-500/30 rounded transition-colors"
+                      title="Remover modo de imagem"
+                    >
+                      <X className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-orange-400" />
+                    </button>
+                  </div>
+                )}
+              </div>
             </div>
             <button
               onClick={() => handleSendMessage()}
