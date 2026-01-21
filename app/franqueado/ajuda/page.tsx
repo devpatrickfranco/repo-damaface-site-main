@@ -215,7 +215,7 @@ const AIHelpPage = () => {
     }
   };
 
-  const handleKeyPress = (e: React.KeyboardEvent<HTMLInputElement>) => {
+  const handleKeyPress = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
       handleSendMessage();
@@ -408,19 +408,25 @@ const AIHelpPage = () => {
 
               {/* Container do input com badge */}
               <div className="flex-1 relative">
-                <input
-                  type="text"
+                <textarea
+                  rows={1}
                   value={inputValue}
-                  onChange={(e) => setInputValue(e.target.value)}
-                  onKeyPress={handleKeyPress}
+                  onChange={(e) => {
+                    setInputValue(e.target.value);
+                    // Auto-resize
+                    e.target.style.height = 'auto';
+                    e.target.style.height = Math.min(e.target.scrollHeight, 120) + 'px';
+                  }}
+                  onKeyDown={handleKeyPress}
                   placeholder={imageGenerationMode ? "Descreva a imagem..." : "Digite sua pergunta..."}
-                  className={`w-full bg-gray-800 border border-gray-700 rounded-2xl ${imageGenerationMode ? 'pl-24 sm:pl-28' : 'pl-6'} pr-14 py-4 text-white placeholder-gray-500 focus:outline-none focus:border-brand-pink focus:ring-2 focus:ring-brand-pink/20 transition-all`}
+                  className={`w-full bg-gray-800 border border-gray-700 rounded-2xl ${imageGenerationMode ? 'pl-28 sm:pl-32' : 'pl-6'} pr-14 py-4 text-white placeholder-gray-500 focus:outline-none focus:border-brand-pink focus:ring-2 focus:ring-brand-pink/20 transition-all resize-none overflow-y-auto`}
                   disabled={isLoading}
+                  style={{ minHeight: '56px', maxHeight: '120px' }}
                 />
 
                 {/* Badge de modo de geração de imagem - posicionado dentro do input */}
                 {imageGenerationMode && (
-                  <div className="absolute left-3 top-1/2 -translate-y-1/2 flex items-center space-x-1 px-2 py-1 bg-gradient-to-r from-orange-500/30 to-yellow-500/30 border border-orange-500/40 rounded-md">
+                  <div className="absolute left-3 top-4 flex items-center space-x-1 px-2 py-1 bg-gradient-to-r from-orange-500/30 to-yellow-500/30 border border-orange-500/40 rounded-md">
                     <Flame className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-orange-400" />
                     <span className="text-xs sm:text-sm font-medium text-orange-300 hidden sm:inline">Imagem</span>
                     <button
