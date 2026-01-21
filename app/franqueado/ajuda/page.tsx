@@ -1,11 +1,11 @@
 'use client';
 
-import { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { useAuth } from "@/context/AuthContext"
 import { useRouter } from "next/navigation"
 import { useSessionId } from './useSessionId';
 
-import { Send, Sparkles, MessageCircle, FileText, Users, GraduationCap, ArrowLeft, RotateCcw, Download } from 'lucide-react';
+import { Send, Sparkles, MessageCircle, FileText, Users, GraduationCap, ArrowLeft, RotateCcw, Download, Plus, Image as ImageIcon } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 
 interface Message {
@@ -13,7 +13,25 @@ interface Message {
   content: string;
   role: 'user' | 'assistant';
   timestamp: Date;
+  isGeneratingImage?: boolean;
 }
+
+// Componente de loading para geração de imagem
+const ImageGenerationLoading = () => {
+  return (
+    <div className="flex justify-start animate-fade-up">
+      <div className="w-full max-w-md">
+        <div className="text-xs text-gray-400 mb-2">Criando imagem</div>
+        <div className="relative rounded-2xl overflow-hidden aspect-video bg-gradient-to-br from-purple-900/40 via-pink-900/40 to-orange-900/40 animate-gradient-shift">
+          <div className="absolute inset-0 bg-gradient-to-br from-purple-500/20 via-pink-500/20 to-orange-500/20 animate-pulse"></div>
+          <div className="absolute bottom-4 right-4 w-10 h-10 bg-gray-900/80 rounded-full flex items-center justify-center">
+            <Download className="w-5 h-5 text-gray-400" />
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
 
 // Componente para renderizar imagens geradas com botão de download
 const ImageWithDownload = ({ url }: { url: string }) => {
@@ -35,22 +53,23 @@ const ImageWithDownload = ({ url }: { url: string }) => {
   };
 
   return (
-    <div className="mt-3 space-y-2">
-      <div className="relative rounded-lg overflow-hidden border border-gray-700">
-        <img
-          src={url}
-          alt="Imagem gerada"
-          className="w-full h-auto max-h-96 object-contain bg-gray-900"
-          loading="lazy"
-        />
+    <div className="flex justify-start animate-fade-up">
+      <div className="w-full max-w-md space-y-2">
+        <div className="relative rounded-2xl overflow-hidden group">
+          <img
+            src={url}
+            alt="Imagem gerada"
+            className="w-full h-auto object-contain bg-gray-900"
+            loading="lazy"
+          />
+          <button
+            onClick={handleDownload}
+            className="absolute bottom-4 right-4 w-10 h-10 bg-gray-900/80 hover:bg-brand-pink/90 backdrop-blur-sm rounded-full flex items-center justify-center transition-all duration-200 opacity-0 group-hover:opacity-100"
+          >
+            <Download className="w-5 h-5 text-white" />
+          </button>
+        </div>
       </div>
-      <button
-        onClick={handleDownload}
-        className="flex items-center space-x-2 px-4 py-2 bg-brand-pink hover:bg-pink-600 text-white rounded-lg transition-all duration-200 w-full justify-center group"
-      >
-        <Download className="w-4 h-4 group-hover:translate-y-0.5 transition-transform" />
-        <span className="text-sm font-medium">Baixar Imagem</span>
-      </button>
     </div>
   );
 };
@@ -82,6 +101,7 @@ const AIHelpPage = () => {
   const [messages, setMessages] = useState<Message[]>([]);
   const [inputValue, setInputValue] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [showMenu, setShowMenu] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -283,49 +303,60 @@ const AIHelpPage = () => {
         ) : (
           <div className="flex-1 overflow-y-auto space-y-6 mb-6 pr-2">
             {messages.map((message) => (
-              <div
-                key={message.id}
-                className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'} animate-fade-up`}
-              >
+              <React.Fragment key={message.id}>
                 <div
-                  className={`max-w-[80%] ${message.role === 'user'
-                    ? 'bg-brand-pink text-white'
-                    : 'bg-gray-800 text-gray-100 border border-gray-700'
-                    } rounded-2xl px-5 py-3 shadow-lg`}
+                  key={message.id}
+                  className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'} animate-fade-up`}
                 >
-                  {message.role === 'assistant' && (
-                    <div className="flex items-center space-x-2 mb-2">
-                      <Sparkles className="w-4 h-4 text-brand-pink" />
-                      <span className="text-xs font-medium text-brand-pink">Help</span>
-                    </div>
-                  )}
-                  {message.role === 'assistant' ? (() => {
-                    const { text, imageUrls } = processMessageContent(message.content);
-                    return (
-                      <>
-                        {text && (
+                  <div
+                    className={`max-w-[80%] ${message.role === 'user'
+                      ? 'bg-brand-pink text-white'
+                      : 'bg-gray-800 text-gray-100 border border-gray-700'
+                      } rounded-2xl px-5 py-3 shadow-lg`}
+                  >
+                    {message.role === 'assistant' && (
+                      <div className="flex items-center space-x-2 mb-2">
+                        <Sparkles className="w-4 h-4 text-brand-pink" />
+                        <span className="text-xs font-medium text-brand-pink">Help</span>
+                      </div>
+                    )}
+                    {message.role === 'assistant' ? (() => {
+                      const { text, imageUrls } = processMessageContent(message.content);
+                      // Se tem imagens, não renderiza nada aqui (será renderizado fora do balão)
+                      if (imageUrls.length > 0) {
+                        return text ? (
                           <div className="text-sm leading-relaxed prose prose-invert prose-sm max-w-none">
                             <ReactMarkdown>{text}</ReactMarkdown>
                           </div>
-                        )}
-                        {imageUrls.map((url, index) => (
-                          <ImageWithDownload key={index} url={url} />
-                        ))}
-                      </>
-                    );
-                  })() : (
-                    <p className="text-sm leading-relaxed whitespace-pre-wrap">
-                      {message.content}
-                    </p>
-                  )}
-                  <div className={`text-xs mt-2 ${message.role === 'user' ? 'text-pink-200' : 'text-gray-500'}`}>
-                    {message.timestamp.toLocaleTimeString('pt-BR', {
-                      hour: '2-digit',
-                      minute: '2-digit'
-                    })}
+                        ) : null;
+                      }
+                      // Se não tem imagens, renderiza normalmente
+                      return (
+                        <div className="text-sm leading-relaxed prose prose-invert prose-sm max-w-none">
+                          <ReactMarkdown>{message.content}</ReactMarkdown>
+                        </div>
+                      );
+                    })() : (
+                      <p className="text-sm leading-relaxed whitespace-pre-wrap">
+                        {message.content}
+                      </p>
+                    )}
+                    <div className={`text-xs mt-2 ${message.role === 'user' ? 'text-pink-200' : 'text-gray-500'}`}>
+                      {message.timestamp.toLocaleTimeString('pt-BR', {
+                        hour: '2-digit',
+                        minute: '2-digit'
+                      })}
+                    </div>
                   </div>
                 </div>
-              </div>
+                {/* Renderiza imagens fora do balão de mensagem */}
+                {message.role === 'assistant' && (() => {
+                  const { imageUrls } = processMessageContent(message.content);
+                  return imageUrls.map((url, index) => (
+                    <ImageWithDownload key={`${message.id}-img-${index}`} url={url} />
+                  ));
+                })()}
+              </React.Fragment>
             ))}
             {isLoading && (
               <div className="flex justify-start animate-fade-up">
@@ -349,15 +380,41 @@ const AIHelpPage = () => {
         {/* Barra inferior */}
         <div className="sticky bottom-0 bg-gray-900 pb-4 pt-2">
           <div className="relative">
-            <input
-              type="text"
-              value={inputValue}
-              onChange={(e) => setInputValue(e.target.value)}
-              onKeyPress={handleKeyPress}
-              placeholder="Digite sua pergunta..."
-              className="w-full bg-gray-800 border border-gray-700 rounded-2xl pl-6 pr-14 py-4 text-white placeholder-gray-500 focus:outline-none focus:border-brand-pink focus:ring-2 focus:ring-brand-pink/20 transition-all"
-              disabled={isLoading}
-            />
+            {/* Menu de opções */}
+            {showMenu && (
+              <div className="absolute bottom-full left-0 mb-2 bg-gray-800 border border-gray-700 rounded-xl shadow-2xl overflow-hidden min-w-[240px] animate-fade-up">
+                <button
+                  onClick={() => {
+                    setInputValue('Gerar uma imagem de ');
+                    setShowMenu(false);
+                  }}
+                  className="w-full px-4 py-3 text-left text-sm text-gray-300 hover:bg-gray-750 hover:text-white transition-colors flex items-center space-x-3"
+                >
+                  <ImageIcon className="w-4 h-4" />
+                  <span>Criar imagem</span>
+                </button>
+              </div>
+            )}
+
+            <div className="flex items-center space-x-2">
+              {/* Botão + */}
+              <button
+                onClick={() => setShowMenu(!showMenu)}
+                className="p-3 bg-gray-800 hover:bg-gray-750 border border-gray-700 hover:border-brand-pink/50 rounded-xl transition-all duration-200 group flex-shrink-0"
+              >
+                <Plus className={`w-5 h-5 text-gray-400 group-hover:text-brand-pink transition-all duration-200 ${showMenu ? 'rotate-45' : ''}`} />
+              </button>
+
+              <input
+                type="text"
+                value={inputValue}
+                onChange={(e) => setInputValue(e.target.value)}
+                onKeyPress={handleKeyPress}
+                placeholder="Digite sua pergunta..."
+                className="flex-1 bg-gray-800 border border-gray-700 rounded-2xl pl-6 pr-14 py-4 text-white placeholder-gray-500 focus:outline-none focus:border-brand-pink focus:ring-2 focus:ring-brand-pink/20 transition-all"
+                disabled={isLoading}
+              />
+            </div>
             <button
               onClick={() => handleSendMessage()}
               disabled={!inputValue.trim() || isLoading}
@@ -382,6 +439,20 @@ const AIHelpPage = () => {
         }
         .overflow-y-auto::-webkit-scrollbar-thumb:hover {
           background-color: #64748b;
+        }
+        
+        @keyframes gradient-shift {
+          0%, 100% {
+            background-position: 0% 50%;
+          }
+          50% {
+            background-position: 100% 50%;
+          }
+        }
+        
+        .animate-gradient-shift {
+          background-size: 200% 200%;
+          animation: gradient-shift 3s ease infinite;
         }
       `}</style>
     </div>
