@@ -58,7 +58,7 @@ const ImageWithDownload = ({ url }: { url: string }) => {
         <div className="relative rounded-2xl overflow-hidden group">
           <img
             src={url}
-            alt="Imagem gerada"
+            alt=""
             className="w-full h-auto object-contain bg-gray-900"
             loading="lazy"
           />
