@@ -48,14 +48,27 @@ export function Toolbar({
   }
 
   const handleFolderChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    console.log('📁 handleFolderChange chamado', {
+      filesCount: e.target.files?.length,
+      files: e.target.files
+    })
+
     if (e.target.files) {
       const files = Array.from(e.target.files).map(file => ({
         file,
         relativePath: (file as any).webkitRelativePath || file.name,
       }))
 
+      console.log('📁 Arquivos processados para upload:', {
+        totalFiles: files.length,
+        firstFile: files[0]?.relativePath,
+        allPaths: files.map(f => f.relativePath)
+      })
+
       onFolderUpload(files as any)
       if (folderInputRef.current) folderInputRef.current.value = ""
+    } else {
+      console.warn('⚠️ Nenhum arquivo selecionado')
     }
   }
 

@@ -105,6 +105,12 @@ export function useFileManager() {
 
   // 🚀 UPLOAD OTIMIZADO - Com suporte a estrutura de pastas
   const processUpload = useCallback(async (input: FileList | { file: File; relativePath?: string }[]) => {
+    console.log('🚀 processUpload chamado', {
+      isArray: Array.isArray(input),
+      inputType: input.constructor.name,
+      length: Array.isArray(input) ? input.length : input.length
+    })
+
     const fileList = Array.isArray(input) ? input : Array.from(input).map(f => ({ file: f }))
     if (!fileList.length) return
 
@@ -114,6 +120,13 @@ export function useFileManager() {
     const hasRelativePaths = fileList.some(item => {
       const path = (item as { file: File; relativePath?: string }).relativePath
       return path && typeof path === 'string' && path.includes('/')
+    })
+
+    console.log('📊 Análise do upload:', {
+      totalFiles,
+      hasRelativePaths,
+      firstItemPath: (fileList[0] as any)?.relativePath,
+      samplePaths: fileList.slice(0, 3).map((item: any) => item.relativePath)
     })
 
     // Inicializa progresso
@@ -131,6 +144,7 @@ export function useFileManager() {
     try {
       // Se tem estrutura de pastas, usa o endpoint batch
       if (hasRelativePaths) {
+        console.log('✅ Usando endpoint batch para estrutura de pastas')
         const formData = new FormData()
 
         fileList.forEach(item => {
@@ -152,7 +166,9 @@ export function useFileManager() {
         } : null)
 
         try {
+          console.log('📤 Enviando para /marketing/drive/upload-batch/')
           const response = await apiBackend.post("/marketing/drive/upload-batch/", formData)
+          console.log('✅ Resposta do upload batch:', response)
           results.success = response.files.map((f: any) => f.nome)
 
           setUploadProgress(prev => prev ? {
@@ -160,7 +176,7 @@ export function useFileManager() {
             completed: totalFiles
           } : null)
         } catch (error) {
-          console.error('Erro no upload em lote:', error)
+          console.error('❌ Erro no upload em lote:', error)
           results.failed.push({
             name: 'Upload em lote',
             error: error instanceof Error ? error.message : "Erro desconhecido"
@@ -172,6 +188,7 @@ export function useFileManager() {
           } : null)
         }
       } else {
+        console.log('📝 Usando upload sequencial para arquivos individuais')
         // Upload sequencial normal para arquivos individuais
         for (let i = 0; i < fileList.length; i++) {
           const item = fileList[i]
