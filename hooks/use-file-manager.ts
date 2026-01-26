@@ -166,8 +166,8 @@ export function useFileManager() {
         } : null)
 
         try {
-          console.log('📤 Enviando para /marketing/drive/upload-batch/')
-          const response = await apiBackend.post("/marketing/drive/upload-batch/", formData)
+          console.log('📤 Enviando para /marketing/drive/files/upload-batch/')
+          const response = await apiBackend.post("/marketing/drive/files/upload-batch/", formData)
           console.log('✅ Resposta do upload batch:', response)
           results.success = response.files.map((f: any) => f.nome)
 
