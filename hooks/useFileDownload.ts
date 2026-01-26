@@ -158,7 +158,7 @@ export function useFileDownload(): UseFileDownloadReturn {
             })
 
             // Usa apiBackend.request para ter CSRF token
-            const response = await apiBackend.request<Blob>('/marketing/drive/download-zip/', {
+            const response = await apiBackend.request<Blob>('/marketing/drive/files/download-zip/', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -174,7 +174,7 @@ export function useFileDownload(): UseFileDownloadReturn {
             const BASE_URL = process.env.NEXT_PUBLIC_API_BACKEND_URL
             const csrfToken = getCsrfToken()
 
-            const fetchResponse = await fetch(`${BASE_URL}/marketing/drive/download-zip/`, {
+            const fetchResponse = await fetch(`${BASE_URL}/marketing/drive/files/download-zip/`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
