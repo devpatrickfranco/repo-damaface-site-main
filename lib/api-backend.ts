@@ -3,14 +3,14 @@
 // Função auxiliar para extrair o CSRF token dos cookies
 function getCsrfToken(): string | null {
   if (typeof document === 'undefined') return null;
-  
+
   const cookies = document.cookie.split('; ');
   const csrfCookie = cookies.find(row => row.startsWith('csrftoken='));
-  
+
   if (!csrfCookie) {
     return null;
   }
-  
+
   const token = csrfCookie.split('=')[1];
   return token;
 }
@@ -28,7 +28,7 @@ export const apiBackend = {
     // Só adiciona X-CSRFToken se o token existir
     if (csrftoken) {
       headers['X-CSRFToken'] = csrftoken;
-    } else {  
+    } else {
       console.error('❌ CSRF Token não encontrado - requisição pode falhar!');
     }
 
@@ -56,7 +56,7 @@ export const apiBackend = {
 
   post<T = any>(path: string, body?: any): Promise<T> {
     const headers: Record<string, string> = {};
-    
+
     // Só adiciona Content-Type se não for FormData
     if (!(body instanceof FormData)) {
       headers["Content-Type"] = "application/json";
@@ -71,7 +71,7 @@ export const apiBackend = {
 
   put<T = any>(path: string, body?: any): Promise<T> {
     const headers: Record<string, string> = {};
-    
+
     if (!(body instanceof FormData)) {
       headers["Content-Type"] = "application/json";
     }
@@ -85,7 +85,7 @@ export const apiBackend = {
 
   patch<T = any>(path: string, body?: any): Promise<T> {
     const headers: Record<string, string> = {};
-    
+
     if (!(body instanceof FormData)) {
       headers["Content-Type"] = "application/json";
     }
@@ -99,6 +99,38 @@ export const apiBackend = {
 
   delete<T = any>(path: string): Promise<T> {
     return this.request<T>(path, { method: "DELETE" });
+  },
+
+  // Método para streaming (SSE - Server-Sent Events)
+  async stream(path: string, body?: any): Promise<ReadableStreamDefaultReader<Uint8Array>> {
+    const BASE_URL = process.env.NEXT_PUBLIC_API_BACKEND_URL;
+    const csrftoken = getCsrfToken();
+
+    const headers: Record<string, string> = {
+      'Content-Type': 'application/json',
+    };
+
+    if (csrftoken) {
+      headers['X-CSRFToken'] = csrftoken;
+    }
+
+    const response = await fetch(`${BASE_URL}${path}`, {
+      method: 'POST',
+      credentials: 'include',
+      headers,
+      body: JSON.stringify(body || {}),
+    });
+
+    if (!response.ok) {
+      const text = await response.text();
+      throw new Error(`Erro ${response.status}: ${text}`);
+    }
+
+    if (!response.body) {
+      throw new Error('Stream não disponível');
+    }
+
+    return response.body.getReader();
   },
 };
 

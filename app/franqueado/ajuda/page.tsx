@@ -5,7 +5,7 @@ import { useAuth } from "@/context/AuthContext"
 import { useRouter } from "next/navigation"
 import { useSessionId } from './useSessionId';
 
-import { Send, Sparkles, MessageCircle, FileText, Users, GraduationCap, ArrowLeft, RotateCcw, Download, Plus, Image as ImageIcon, X, Flame } from 'lucide-react';
+import { Send, Sparkles, MessageCircle, FileText, Users, GraduationCap, ArrowLeft, RotateCcw, Plus, Image as ImageIcon, X, Flame } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 
 interface Message {
@@ -13,100 +13,9 @@ interface Message {
   content: string;
   role: 'user' | 'assistant';
   timestamp: Date;
-  isGeneratingImage?: boolean;
 }
 
-// Componente de loading para geração de imagem
-const ImageGenerationLoading = () => {
-  return (
-    <div className="flex justify-start animate-fade-up">
-      <div className="w-full max-w-md">
-        <div className="text-xs text-gray-400 mb-2">Criando imagem</div>
-        <div className="relative rounded-2xl overflow-hidden aspect-video bg-gradient-to-br from-purple-900/40 via-pink-900/40 to-orange-900/40 animate-gradient-shift">
-          <div className="absolute inset-0 bg-gradient-to-br from-purple-500/20 via-pink-500/20 to-orange-500/20 animate-pulse"></div>
-          <div className="absolute bottom-4 right-4 w-10 h-10 bg-gray-900/80 rounded-full flex items-center justify-center">
-            <Download className="w-5 h-5 text-gray-400" />
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-};
 
-// Componente para renderizar imagens geradas com botão de download
-const ImageWithDownload = ({ url }: { url: string }) => {
-  const handleDownload = async () => {
-    try {
-      const response = await fetch(url);
-      const blob = await response.blob();
-      const downloadUrl = window.URL.createObjectURL(blob);
-      const link = document.createElement('a');
-      link.href = downloadUrl;
-      link.download = url.split('/').pop() || 'imagem.png';
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      window.URL.revokeObjectURL(downloadUrl);
-    } catch (error) {
-      console.error('Erro ao baixar imagem:', error);
-    }
-  };
-
-  return (
-    <div className="flex justify-start animate-fade-up">
-      <div className="w-full max-w-md space-y-2">
-        <div className="relative rounded-2xl overflow-hidden group">
-          <img
-            src={url}
-            alt=""
-            className="w-full h-auto object-contain bg-gray-900"
-            loading="lazy"
-          />
-          <button
-            onClick={handleDownload}
-            className="absolute bottom-4 right-4 w-10 h-10 bg-gray-900/80 hover:bg-brand-pink/90 backdrop-blur-sm rounded-full flex items-center justify-center transition-all duration-200 opacity-0 group-hover:opacity-100"
-          >
-            <Download className="w-5 h-5 text-white" />
-          </button>
-        </div>
-      </div>
-    </div>
-  );
-};
-
-// Função para processar conteúdo e extrair URLs de imagens
-const processMessageContent = (content: string) => {
-  const IMAGE_PREFIX = 'https://ia-minio.i4khe5.easypanel.host/aws/';
-
-  // Regex para capturar URLs tanto em texto puro quanto em markdown links [text](url)
-  const markdownLinkRegex = new RegExp(`\\[([^\\]]+)\\]\\((${IMAGE_PREFIX}[^)]+)\\)`, 'g');
-  const plainUrlRegex = new RegExp(`${IMAGE_PREFIX}[^\\s<>)"'\\[]+`, 'g');
-
-  const imageUrls: string[] = [];
-  let cleanedText = content;
-
-  // Extrai URLs de markdown links [text](url)
-  let match;
-  while ((match = markdownLinkRegex.exec(content)) !== null) {
-    imageUrls.push(match[2]); // match[2] é a URL
-    cleanedText = cleanedText.replace(match[0], ''); // Remove o link markdown completo
-  }
-
-  // Extrai URLs em texto puro
-  const plainMatches = content.match(plainUrlRegex);
-  if (plainMatches) {
-    plainMatches.forEach(url => {
-      if (!imageUrls.includes(url)) {
-        imageUrls.push(url);
-        cleanedText = cleanedText.replace(url, '');
-      }
-    });
-  }
-
-  cleanedText = cleanedText.trim();
-
-  return { text: cleanedText, imageUrls };
-};
 
 const AIHelpPage = () => {
   const { isAuthenticated, user, loading } = useAuth()
@@ -337,23 +246,11 @@ const AIHelpPage = () => {
                         <span className="text-xs font-medium text-brand-pink">Help</span>
                       </div>
                     )}
-                    {message.role === 'assistant' ? (() => {
-                      const { text, imageUrls } = processMessageContent(message.content);
-                      // Se tem imagens, não renderiza nada aqui (será renderizado fora do balão)
-                      if (imageUrls.length > 0) {
-                        return text ? (
-                          <div className="text-sm leading-relaxed prose prose-invert prose-sm max-w-none">
-                            <ReactMarkdown>{text}</ReactMarkdown>
-                          </div>
-                        ) : null;
-                      }
-                      // Se não tem imagens, renderiza normalmente
-                      return (
-                        <div className="text-sm leading-relaxed prose prose-invert prose-sm max-w-none">
-                          <ReactMarkdown>{message.content}</ReactMarkdown>
-                        </div>
-                      );
-                    })() : (
+                    {message.role === 'assistant' ? (
+                      <div className="text-sm leading-relaxed prose prose-invert prose-sm max-w-none">
+                        <ReactMarkdown>{message.content}</ReactMarkdown>
+                      </div>
+                    ) : (
                       <p className="text-sm leading-relaxed whitespace-pre-wrap">
                         {message.content}
                       </p>
@@ -366,13 +263,6 @@ const AIHelpPage = () => {
                     </div>
                   </div>
                 </div>
-                {/* Renderiza imagens fora do balão de mensagem */}
-                {message.role === 'assistant' && (() => {
-                  const { imageUrls } = processMessageContent(message.content);
-                  return imageUrls.map((url, index) => (
-                    <ImageWithDownload key={`${message.id}-img-${index}`} url={url} />
-                  ));
-                })()}
               </React.Fragment>
             ))}
             {isLoading && (
