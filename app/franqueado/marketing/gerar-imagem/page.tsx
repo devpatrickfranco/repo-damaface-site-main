@@ -92,15 +92,8 @@ const GerarImagemPage = () => {
 
             const decoder = new TextDecoder();
 
-            // Adiciona mensagem vazia do assistente
-            setMessages(prev => [...prev, {
-                id: (Date.now() + 1).toString(),
-                role: 'assistant',
-                content: '',
-                timestamp: new Date()
-            }]);
-
             let buffer = '';
+            let isFirstChunk = true;
 
             while (true) {
                 const { value, done } = await reader.read();
@@ -121,17 +114,26 @@ const GerarImagemPage = () => {
                             if (data.chunk) {
                                 assistantMessage += data.chunk;
 
-                                // Atualiza mensagem gradualmente
-                                setMessages(prev => {
-                                    const updated = [...prev];
-                                    updated[messageIndex] = {
+                                if (isFirstChunk) {
+                                    isFirstChunk = false;
+                                    // Cria a mensagem apenas quando recebe o primeiro chunk
+                                    setMessages(prev => [...prev, {
                                         id: (Date.now() + 1).toString(),
                                         role: 'assistant',
                                         content: assistantMessage,
                                         timestamp: new Date()
-                                    };
-                                    return updated;
-                                });
+                                    }]);
+                                } else {
+                                    // Atualiza mensagem existente
+                                    setMessages(prev => {
+                                        const updated = [...prev];
+                                        updated[updated.length - 1] = {
+                                            ...updated[updated.length - 1],
+                                            content: assistantMessage
+                                        };
+                                        return updated;
+                                    });
+                                }
                             }
 
                             if (data.status === 'completed') {
@@ -294,7 +296,7 @@ const GerarImagemPage = () => {
                                 </div>
                             </React.Fragment>
                         ))}
-                        {isStreaming && (
+                        {isStreaming && messages[messages.length - 1]?.role !== 'assistant' && (
                             <div className="flex justify-start animate-fade-up">
                                 <div className="max-w-[80%] bg-gray-800 border border-gray-700 rounded-2xl px-5 py-3 shadow-lg">
                                     <div className="flex items-center space-x-2 mb-2">
