@@ -14,6 +14,7 @@ interface FileGridProps {
   onToggleSelect: (id: string, isFile: boolean) => void
   onRename: (id: string, newName: string) => void
   onDelete: (id: string) => void
+  userRole?: 'SUPERADMIN' | 'ADMIN' | 'FRANQUEADO' | 'FUNCIONARIO'
 }
 
 export function FileGrid({
@@ -25,8 +26,10 @@ export function FileGrid({
   onFolderDoubleClick,
   onToggleSelect,
   onRename,
-  onDelete
+  onDelete,
+  userRole
 }: FileGridProps) {
+  const isSuperAdmin = userRole === 'SUPERADMIN'
   return (
     <div className="space-y-8">
       {folders.length > 0 && (
@@ -51,7 +54,7 @@ export function FileGrid({
                     onClick={(e) => e.stopPropagation()}
                   />
                 )}
-                {!isSelectionMode && (
+                {!isSelectionMode && isSuperAdmin && (
                   <div className="absolute top-2 right-2 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                     <button
                       onClick={(e) => {

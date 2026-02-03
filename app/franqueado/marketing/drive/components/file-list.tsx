@@ -14,6 +14,7 @@ interface FileListProps {
   onToggleSelect: (id: string, isFile: boolean) => void
   onRename: (id: string, newName: string) => void
   onDelete: (id: string) => void
+  userRole?: 'SUPERADMIN' | 'ADMIN' | 'FRANQUEADO' | 'FUNCIONARIO'
 }
 
 export function FileList({
@@ -25,8 +26,10 @@ export function FileList({
   onFolderDoubleClick,
   onToggleSelect,
   onRename,
-  onDelete
+  onDelete,
+  userRole
 }: FileListProps) {
+  const isSuperAdmin = userRole === 'SUPERADMIN'
   return (
     <div className="space-y-8">
       {folders.length > 0 && (
@@ -59,7 +62,7 @@ export function FileList({
                 </div>
                 <p className="text-sm text-gray-500">{item.modifiedAt.toLocaleDateString("pt-BR")}</p>
 
-                {!isSelectionMode && (
+                {!isSelectionMode && isSuperAdmin && (
                   <div className="flex items-center gap-1 ml-2 opacity-0 group-hover:opacity-100 transition-opacity">
                     <button
                       onClick={(e) => {

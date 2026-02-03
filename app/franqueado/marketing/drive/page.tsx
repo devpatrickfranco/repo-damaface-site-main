@@ -325,6 +325,7 @@ export default function FileManagerPage() {
             onToggleSelect={toggleSelect}
             onRename={handleRename}
             onDelete={handleDelete}
+            userRole={user?.role}
           />
         ) : (
           <FileList
@@ -337,6 +338,7 @@ export default function FileManagerPage() {
             onToggleSelect={toggleSelect}
             onRename={handleRename}
             onDelete={handleDelete}
+            userRole={user?.role}
           />
         )}
 
