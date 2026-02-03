@@ -3,14 +3,14 @@ import DynamicIcon from '@/app/franqueado/academy/components/DynamicIcon';
 
 import { useState, useEffect } from 'react';
 import { apiBackend } from '@/lib/api-backend';
-import { useCategorias /*, useTrilhas */, useCursos } from '@/hooks/useApi';
+import { useCategorias /*, useTrilhas */, useCursos, useMetricas } from '@/hooks/useApi';
 
 import type { Categoria /*, Trilha */, Curso } from '@/types/academy'
 
-import { 
-  Clock, 
-  Star, 
-  BookOpen, 
+import {
+  Clock,
+  Star,
+  BookOpen,
   ChevronRight,
   PlayCircle,
   Loader2
@@ -32,6 +32,7 @@ export default function RenderHome() {
     data: categorias = [],
     loading: loadingCategorias,
     error: errorCategorias,
+    refetch: refetchCategorias,
   } = useCategorias({ page_size: 6 });
 
   // TODO: Trilhas de Formação - Comentado temporariamente
@@ -41,49 +42,31 @@ export default function RenderHome() {
   //   error: errorTrilhas,
   // } = useTrilhas({ page_size: 6 });
 
-  const { 
+  const {
     data: cursosDestaque = [],
     loading: loadingCursos,
     error: errorCursos,
+    refetch: refetchCursos,
   } = useCursos({ destaque: true, page_size: 2 });
 
-  const loading = loadingCategorias /* || loadingTrilhas */ || loadingCursos;
-  const error = errorCategorias /* || errorTrilhas */ || errorCursos;
+  // Buscar métricas do aluno
+  const {
+    data: metricas,
+    loading: loadingMetricas,
+    error: errorMetricas,
+    refetch: refetchMetricas,
+  } = useMetricas();
 
-// Estatísticas
-const calcularEstatisticas = (cursos: Curso[] = []) => {
-  const cursosComProgresso = cursos.filter(c => c.progresso && c.progresso.progresso_percentual > 0);
-  const cursosIniciados = cursosComProgresso.length;
+  const loading = loadingCategorias /* || loadingTrilhas */ || loadingCursos || loadingMetricas;
+  const error = errorCategorias /* || errorTrilhas */ || errorCursos || errorMetricas;
 
-  const somaProgresso = cursosComProgresso.reduce((acc, c) => 
-    acc + (c.progresso?.progresso_percentual || 0), 0
-  );
-  const percentualMedio = cursosIniciados > 0 
-    ? Math.round(somaProgresso / cursosIniciados) 
-    : 0;
-
-  const certificados = cursos.filter(c => 
-    c.progresso?.concluida
-  ).length;
-
-  // Estimativa de horas estudadas (simplificada)
-  const horasEstudadas = cursosComProgresso.reduce((acc, c) => {
-    const duracao = parseDuracao(c.duracao);
-    const progresso = c.progresso?.progresso_percentual || 0;
-    return acc + (duracao * progresso / 100);
-  }, 0);
-
-  const ultimoCurso = cursosComProgresso[0]?.titulo || 'Nenhum curso iniciado';
-
-  return {
-    cursosIniciados,
-    percentualConcluido: percentualMedio,
-    ultimoCurso,
-    certificados,
-    horasEstudadas: Math.round(horasEstudadas * 10) / 10
+  // Mapear dados da API para o formato de estatísticas
+  const estatisticas = {
+    cursosIniciados: metricas ? parseInt(metricas.cursos_iniciados) : 0,
+    percentualConcluido: metricas ? parseFloat(metricas.concluidos) : 0,
+    certificados: metricas ? parseInt(metricas.certificados) : 0,
+    horasEstudadas: metricas ? parseFloat(metricas.horas_estudadas) : 0,
   };
-};
-  const estatisticas = calcularEstatisticas(cursosDestaque || []);
 
   // Função auxiliar para converter duração em horas
   const parseDuracao = (duracao: string): number => {
@@ -106,11 +89,12 @@ const calcularEstatisticas = (cursos: Curso[] = []) => {
     return (
       <div className="bg-red-500/10 border border-red-500/30 rounded-xl p-6 text-center">
         <p className="text-red-400">{error}</p>
-        <button 
+        <button
           onClick={() => {
-            if (errorCategorias) useCategorias({ page_size: 6 }).refetch();
+            if (errorCategorias) refetchCategorias();
             // if (errorTrilhas) useTrilhas({ page_size: 6 }).refetch();
-            if (errorCursos) useCursos({ destaque: true, page_size: 2 }).refetch();
+            if (errorCursos) refetchCursos();
+            if (errorMetricas) refetchMetricas();
           }}
           className="mt-4 px-4 py-2 bg-red-500 hover:bg-red-600 text-white rounded-lg transition-colors"
         >
@@ -152,9 +136,9 @@ const calcularEstatisticas = (cursos: Curso[] = []) => {
                 href={`/franqueado/academy/categorias/${categoria.slug}`}
                 className="bg-gray-800 rounded-xl p-6 border border-gray-700 hover:border-pink-400/30 transition-all cursor-pointer group hover:scale-105"
               >
-                <div 
-                style={{ backgroundColor: categoria.cor }}
-                className={`w-12 h-12 rounded-lg flex items-center justify-center mb-4 group-hover:scale-110 transition-transform`}>
+                <div
+                  style={{ backgroundColor: categoria.cor }}
+                  className={`w-12 h-12 rounded-lg flex items-center justify-center mb-4 group-hover:scale-110 transition-transform`}>
                   <DynamicIcon name={categoria.icon} className="w-6 h-6 text-white" />
                 </div>
                 <h3 className="font-semibold text-white mb-2">{categoria.nome}</h3>
@@ -166,7 +150,7 @@ const calcularEstatisticas = (cursos: Curso[] = []) => {
           </div>
         </div>
       )}
-      
+
       {/* TODO: Trilhas de Formação - Comentado temporariamente */}
       {/* Trilhas Section */}
       {/* {trilhas && trilhas.length > 0 && (
@@ -205,7 +189,7 @@ const calcularEstatisticas = (cursos: Curso[] = []) => {
       )} */}
       {/* Cursos em Destaq  ue Section */}
       {cursosDestaque && cursosDestaque.length > 0 && (
-        
+
         <div>
           <div className="flex items-center justify-between mb-6">
             <h2 className="text-2xl font-bold text-white">Cursos em Destaque</h2>
@@ -224,7 +208,7 @@ const calcularEstatisticas = (cursos: Curso[] = []) => {
                 href={`/franqueado/academy/cursos/${curso.slug}`}
                 className="bg-gray-800 rounded-xl border border-gray-700 overflow-hidden hover:border-pink-400/30 transition-all cursor-pointer group"
               >
-                
+
                 <div className="flex">
                   <div className="relative w-48 h-32 flex-shrink-0">
                     <img
@@ -237,14 +221,14 @@ const calcularEstatisticas = (cursos: Curso[] = []) => {
                     </div>
                     {curso.preco !== undefined && parseFloat(curso.preco) > 0 && (
                       <div className="absolute top-2 left-2 bg-yellow-500 text-black text-xs font-bold px-2 py-1 rounded">
-                        PREMIUM 
+                        PREMIUM
                       </div>
                     )}
                   </div>
                   <div className="flex-1 p-6">
                     <div className="flex items-start justify-between mb-2">
                       <h3 className="font-semibold text-white text-lg line-clamp-2 group-hover:text-pink-400 transition-colors">
-                        {curso.titulo}  
+                        {curso.titulo}
                       </h3>
                     </div>
                     <p className="text-gray-400 text-sm mb-4 line-clamp-2">
@@ -306,7 +290,7 @@ const calcularEstatisticas = (cursos: Curso[] = []) => {
             <div className="text-sm text-gray-400">Cursos Iniciados</div>
           </div>
           <div className="text-center">
-            <div className="text-2xl font-bold text-green-400 mb-1">{estatisticas.percentualConcluido}%</div>
+            <div className="text-2xl font-bold text-green-400 mb-1">{Math.round(estatisticas.percentualConcluido)}%</div>
             <div className="text-sm text-gray-400">Concluído</div>
           </div>
           <div className="text-center">

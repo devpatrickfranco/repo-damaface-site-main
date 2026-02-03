@@ -23,7 +23,7 @@ export function useApi<T>(url: string, dependencies: any[] = []) {
     try {
       setState(prev => ({ ...prev, loading: true, error: null }));
       const response = await apiBackend.get<T>(url);
-      
+
       setState({
         data: response,
         loading: false,
@@ -60,14 +60,14 @@ export function useCursos(filters?: {
   const params = filters ? { ...filters } : {};
 
   // Transforma objeto em string: "categoria=python&nivel=iniciante"
-  const queryString = new URLSearchParams(params as Record<string, string>).toString(); 
-  
+  const queryString = new URLSearchParams(params as Record<string, string>).toString();
+
   // Monta a URL final com a interrogação
   const endpoint = `/academy/cursos/${queryString ? `?${queryString}` : ''}`;
-  
+
   // Passa a URL dinâmica
   return useApi<any[]>(endpoint, [queryString]);
-  }
+}
 
 export function useCurso(slug: string) {
   return useApi<any>(`/academy/cursos/${slug}/`, [slug]);
@@ -131,6 +131,18 @@ export function useValidarCertificado(codigo: string | null) {
 // ==================== HOOKS DE ALUNOS ====================
 
 /**
+ * Hook para buscar métricas do aluno logado
+ */
+export function useMetricas() {
+  return useApi<{
+    cursos_iniciados: string;
+    concluidos: string;
+    certificados: string;
+    horas_estudadas: string;
+  }>('/academy/aluno/me/metricas/');
+}
+
+/**
  * Hook para buscar detalhes completos de um aluno
  * @param alunoId - ID numérico do aluno (pk)
  * @param enabled - Se false, não faz a requisição (útil para requisições condicionais)
@@ -159,10 +171,10 @@ export function useAlunoDetalhes(alunoId: number | null, enabled: boolean = true
 
     const fetchDetalhes = async () => {
       setState(prev => ({ ...prev, loading: true, error: null }));
-      
+
       try {
         const response = await apiBackend.get<Aluno>(`/academy/aluno/${alunoId}/detalhes/`);
-        
+
         setState({
           data: response,
           loading: false,
@@ -170,7 +182,7 @@ export function useAlunoDetalhes(alunoId: number | null, enabled: boolean = true
         });
       } catch (err: any) {
         let errorMessage = 'Erro ao carregar detalhes do aluno';
-        
+
         // Tratamento de erros específicos
         if (err.message) {
           if (err.message.includes('403')) {
@@ -183,7 +195,7 @@ export function useAlunoDetalhes(alunoId: number | null, enabled: boolean = true
             errorMessage = err.message;
           }
         }
-        
+
         setState({
           data: null,
           loading: false,
