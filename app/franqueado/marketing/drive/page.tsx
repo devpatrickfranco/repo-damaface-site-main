@@ -379,6 +379,7 @@ export default function FileManagerPage() {
           onDelete={handleBulkDelete}
           onClear={clearSelection}
           onDownloadProgressChange={setDownloadProgress}
+          userRole={user?.role}
         />
       </div>
 

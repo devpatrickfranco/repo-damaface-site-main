@@ -17,6 +17,7 @@ interface SelectionBarProps {
   onDelete: () => void
   onClear: () => void
   onDownloadProgressChange?: (progress: DownloadProgress | null) => void
+  userRole?: 'SUPERADMIN' | 'ADMIN' | 'FRANQUEADO' | 'FUNCIONARIO'
 }
 
 export function SelectionBar({
@@ -29,8 +30,10 @@ export function SelectionBar({
   onDelete,
   onClear,
   onDownloadProgressChange,
+  userRole,
 }: SelectionBarProps) {
   const { download, isDownloading, error, downloadProgress } = useFileDownload()
+  const isSuperAdmin = userRole === 'SUPERADMIN'
 
   // Notify parent of download progress changes
   useEffect(() => {
@@ -111,7 +114,7 @@ export function SelectionBar({
             </span>
           )}
 
-          {selectedIds.size >= 1 && (
+          {isSuperAdmin && selectedIds.size >= 1 && (
             <button
               onClick={onMove}
               className="p-2.5 hover:bg-gray-700 rounded-full transition-colors text-gray-300 hover:text-white"
@@ -121,7 +124,7 @@ export function SelectionBar({
             </button>
           )}
 
-          {selectedIds.size === 1 && (
+          {isSuperAdmin && selectedIds.size === 1 && (
             <button
               onClick={() => {
                 const id = Array.from(selectedIds)[0]
@@ -140,18 +143,20 @@ export function SelectionBar({
             </button>
           )}
 
-          <button
-            onClick={() => {
-              const count = selectedIds.size
-              if (confirm(`Tem certeza que deseja excluir ${count} ${count === 1 ? "item" : "itens"}?`)) {
-                onDelete()
-              }
-            }}
-            className="p-2.5 hover:bg-red-600/20 rounded-full transition-colors text-gray-300 hover:text-red-400"
-            title="Excluir"
-          >
-            <Trash2 size={20} />
-          </button>
+          {isSuperAdmin && (
+            <button
+              onClick={() => {
+                const count = selectedIds.size
+                if (confirm(`Tem certeza que deseja excluir ${count} ${count === 1 ? "item" : "itens"}?`)) {
+                  onDelete()
+                }
+              }}
+              className="p-2.5 hover:bg-red-600/20 rounded-full transition-colors text-gray-300 hover:text-red-400"
+              title="Excluir"
+            >
+              <Trash2 size={20} />
+            </button>
+          )}
 
           <button
             onClick={onClear}
