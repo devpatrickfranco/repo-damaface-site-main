@@ -143,6 +143,37 @@ export function useMetricas() {
 }
 
 /**
+ * Hook para buscar cursos do aluno logado (meus cursos)
+ */
+export function useMeusCursos() {
+  return useApi<{
+    resumo: {
+      total_cursos: number;
+      cursos_livres: number;
+      cursos_premium: number;
+      avaliacao_media: number;
+    };
+    cursos: Array<{
+      id: number;
+      slug: string;
+      titulo: string;
+      capa: string;
+      tipo: 'PREMIUM' | 'LIVRE';
+      progresso: {
+        percentual: number;
+        aulas_concluidas: number;
+        total_aulas: number;
+        ultima_aula: string;
+        tempo_assistido: string;
+      };
+      avaliacao_usuario: number | null;
+      data_inscricao: string;
+      ultima_visualizacao: string;
+    }>;
+  }>('/academy/aluno/me/cursos/');
+}
+
+/**
  * Hook para buscar detalhes completos de um aluno
  * @param alunoId - ID numérico do aluno (pk)
  * @param enabled - Se false, não faz a requisição (útil para requisições condicionais)
