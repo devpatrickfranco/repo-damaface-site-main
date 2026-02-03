@@ -5,7 +5,7 @@ import { useAuth } from "@/context/AuthContext"
 import { useRouter } from "next/navigation"
 import { useSessionId } from './useSessionId';
 
-import { Send, Sparkles, MessageCircle, FileText, Users, GraduationCap, ArrowLeft, RotateCcw, Plus, Image as ImageIcon, X, Flame } from 'lucide-react';
+import { Send, Sparkles, MessageCircle, FileText, Users, GraduationCap, ArrowLeft, RotateCcw } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 
 interface Message {
@@ -25,8 +25,6 @@ const AIHelpPage = () => {
   const [messages, setMessages] = useState<Message[]>([]);
   const [inputValue, setInputValue] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const [showMenu, setShowMenu] = useState(false);
-  const [imageGenerationMode, setImageGenerationMode] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -149,7 +147,6 @@ const AIHelpPage = () => {
   const handleNewConversation = () => {
     resetSession();
     setMessages([]);
-    setImageGenerationMode(false); // Reset badge
   };
 
   return (
@@ -287,64 +284,22 @@ const AIHelpPage = () => {
         {/* Barra inferior */}
         <div className="sticky bottom-0 bg-gray-900 pb-4 pt-2">
           <div className="relative">
-            {/* Menu de opções */}
-            {showMenu && (
-              <div className="absolute bottom-full left-0 mb-2 bg-gray-800 border border-gray-700 rounded-xl shadow-2xl overflow-hidden min-w-[240px] animate-fade-up">
-                <button
-                  onClick={() => {
-                    setImageGenerationMode(true);
-                    setShowMenu(false);
-                  }}
-                  className="w-full px-4 py-3 text-left text-sm text-gray-300 hover:bg-gray-750 hover:text-white transition-colors flex items-center space-x-3"
-                >
-                  <ImageIcon className="w-4 h-4" />
-                  <span>Criar imagem</span>
-                </button>
-              </div>
-            )}
-
-            <div className="flex items-center space-x-2">
-              {/* Botão + */}
-              <button
-                onClick={() => setShowMenu(!showMenu)}
-                className="p-3 bg-gray-800 hover:bg-gray-750 border border-gray-700 hover:border-brand-pink/50 rounded-xl transition-all duration-200 group flex-shrink-0"
-              >
-                <Plus className={`w-5 h-5 text-gray-400 group-hover:text-brand-pink transition-all duration-200 ${showMenu ? 'rotate-45' : ''}`} />
-              </button>
-
-              {/* Container do input com badge */}
-              <div className="flex-1 relative">
-                <textarea
-                  rows={1}
-                  value={inputValue}
-                  onChange={(e) => {
-                    setInputValue(e.target.value);
-                    // Auto-resize
-                    e.target.style.height = 'auto';
-                    e.target.style.height = Math.min(e.target.scrollHeight, 120) + 'px';
-                  }}
-                  onKeyDown={handleKeyPress}
-                  placeholder={imageGenerationMode ? "Descreva a imagem..." : "Digite sua pergunta..."}
-                  className={`w-full bg-gray-800 border border-gray-700 rounded-2xl ${imageGenerationMode ? 'pl-28 sm:pl-32' : 'pl-6'} pr-14 py-4 text-white placeholder-gray-500 focus:outline-none focus:border-brand-pink focus:ring-2 focus:ring-brand-pink/20 transition-all resize-none overflow-y-auto`}
-                  disabled={isLoading}
-                  style={{ minHeight: '56px', maxHeight: '120px' }}
-                />
-
-                {/* Badge de modo de geração de imagem - posicionado dentro do input */}
-                {imageGenerationMode && (
-                  <div className="absolute left-3 top-4 flex items-center space-x-1 px-2 py-1 bg-gradient-to-r from-orange-500/30 to-yellow-500/30 border border-orange-500/40 rounded-md">
-                    <Flame className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-orange-400" />
-                    <span className="text-xs sm:text-sm font-medium text-orange-300 hidden sm:inline">Imagem</span>
-                    <button
-                      onClick={() => setImageGenerationMode(false)}
-                      className="p-0.5 hover:bg-orange-500/30 rounded transition-colors"
-                      title="Remover modo de imagem"
-                    >
-                      <X className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-orange-400" />
-                    </button>
-                  </div>
-                )}
-              </div>
+            <div className="flex-1 relative">
+              <textarea
+                rows={1}
+                value={inputValue}
+                onChange={(e) => {
+                  setInputValue(e.target.value);
+                  // Auto-resize
+                  e.target.style.height = 'auto';
+                  e.target.style.height = Math.min(e.target.scrollHeight, 120) + 'px';
+                }}
+                onKeyDown={handleKeyPress}
+                placeholder="Digite sua pergunta..."
+                className="w-full bg-gray-800 border border-gray-700 rounded-2xl pl-6 pr-14 py-4 text-white placeholder-gray-500 focus:outline-none focus:border-brand-pink focus:ring-2 focus:ring-brand-pink/20 transition-all resize-none overflow-y-auto"
+                disabled={isLoading}
+                style={{ minHeight: '56px', maxHeight: '120px' }}
+              />
             </div>
             <button
               onClick={() => handleSendMessage()}
@@ -370,20 +325,6 @@ const AIHelpPage = () => {
         }
         .overflow-y-auto::-webkit-scrollbar-thumb:hover {
           background-color: #64748b;
-        }
-        
-        @keyframes gradient-shift {
-          0%, 100% {
-            background-position: 0% 50%;
-          }
-          50% {
-            background-position: 100% 50%;
-          }
-        }
-        
-        .animate-gradient-shift {
-          background-size: 200% 200%;
-          animation: gradient-shift 3s ease infinite;
         }
       `}</style>
     </div>

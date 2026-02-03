@@ -12,7 +12,7 @@ interface CourseCardProps {
 
 export default function CourseCard({ curso, viewMode = 'grid' }: CourseCardProps) {
   const isListMode = viewMode === 'list';
-  
+
   return (
     <Link href={`/franqueado/academy/${curso.slug}`} className="group">
       <div className={`bg-gray-800 rounded-xl border border-gray-700 overflow-hidden hover:border-pink-400/30 transition-all h-full ${isListMode ? 'flex' : 'flex-col'}`}>

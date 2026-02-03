@@ -197,7 +197,7 @@ export default function RenderHome() {
               href="/franqueado/academy/cursos"
               className="text-pink-400 hover:text-pink-300 flex items-center space-x-1"
             >
-              <span> Ver todos</span>
+              <span>Meus Cursos</span>
               <ChevronRight className="w-4 h-4" />
             </Link>
           </div>
@@ -271,17 +271,6 @@ export default function RenderHome() {
           </div>
         </div>
       )}
-
-      {/* Quick Stats */}
-      <div className='flex justify-end'>
-        <Link
-          href="/franqueado/academy/cursos"
-          className="text-pink-400 hover:text-pink-300 flex items-center space-x-1"
-        >
-          <span>Meus Cursos</span>
-          <ChevronRight className="w-4 h-4" />
-        </Link>
-      </div>
       <div className="bg-gray-800 rounded-xl border border-gray-700 p-6">
         <h3 className="text-lg font-semibold text-white mb-4">Seu Progresso</h3>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">

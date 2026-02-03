@@ -106,22 +106,20 @@ export default function CourseView({
         <div className="inline-flex rounded-xl border border-gray-700/50 p-1 bg-gray-800/50 backdrop-blur-sm shadow-lg">
           <button
             onClick={() => setViewMode("grid")}
-            className={`p-2.5 rounded-lg transition-all duration-200 ${
-              viewMode === "grid"
-                ? "bg-gradient-to-br from-pink-500 to-purple-500 text-white shadow-lg shadow-pink-500/25"
-                : "text-gray-400 hover:text-white hover:bg-gray-700/50"
-            }`}
+            className={`p-2.5 rounded-lg transition-all duration-200 ${viewMode === "grid"
+              ? "bg-gradient-to-br from-pink-500 to-purple-500 text-white shadow-lg shadow-pink-500/25"
+              : "text-gray-400 hover:text-white hover:bg-gray-700/50"
+              }`}
             aria-label="Visualização em grade"
           >
             <Grid3X3 className="w-5 h-5" />
           </button>
           <button
             onClick={() => setViewMode("list")}
-            className={`p-2.5 rounded-lg transition-all duration-200 ${
-              viewMode === "list"
-                ? "bg-gradient-to-br from-pink-500 to-purple-500 text-white shadow-lg shadow-pink-500/25"
-                : "text-gray-400 hover:text-white hover:bg-gray-700/50"
-            }`}
+            className={`p-2.5 rounded-lg transition-all duration-200 ${viewMode === "list"
+              ? "bg-gradient-to-br from-pink-500 to-purple-500 text-white shadow-lg shadow-pink-500/25"
+              : "text-gray-400 hover:text-white hover:bg-gray-700/50"
+              }`}
             aria-label="Visualização em lista"
           >
             <List className="w-5 h-5" />
@@ -179,11 +177,10 @@ export default function CourseView({
                 <button
                   key={page}
                   onClick={() => handlePageChange(page)}
-                  className={`w-10 h-10 text-sm font-medium rounded-xl transition-all shadow-lg ${
-                    currentPage === page
-                      ? "bg-gradient-to-br from-pink-500 to-purple-500 text-white shadow-pink-500/25 scale-110"
-                      : "text-gray-400 hover:text-white hover:bg-gray-700/50 border border-gray-700/50"
-                  }`}
+                  className={`w-10 h-10 text-sm font-medium rounded-xl transition-all shadow-lg ${currentPage === page
+                    ? "bg-gradient-to-br from-pink-500 to-purple-500 text-white shadow-pink-500/25 scale-110"
+                    : "text-gray-400 hover:text-white hover:bg-gray-700/50 border border-gray-700/50"
+                    }`}
                 >
                   {page}
                 </button>
@@ -287,9 +284,8 @@ interface CourseCardProps {
 function CourseCard({ curso, categoryName, viewMode, onEdit, onDelete }: CourseCardProps) {
   return (
     <div
-      className={`group relative bg-gradient-to-br from-gray-800/80 to-gray-900/80 backdrop-blur-sm rounded-2xl border border-gray-700/50 overflow-hidden hover:border-gray-600/50 transition-all duration-300 hover:shadow-2xl hover:shadow-pink-500/10 ${
-        viewMode === "list" ? "flex items-center" : ""
-      }`}
+      className={`group relative bg-gradient-to-br from-gray-800/80 to-gray-900/80 backdrop-blur-sm rounded-2xl border border-gray-700/50 overflow-hidden hover:border-gray-600/50 transition-all duration-300 hover:shadow-2xl hover:shadow-pink-500/10 ${viewMode === "list" ? "flex items-center" : ""
+        }`}
     >
       {/* Gradient overlay on hover */}
       <div className="absolute inset-0 bg-gradient-to-br from-pink-500/5 to-purple-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
@@ -315,11 +311,10 @@ function CourseCard({ curso, categoryName, viewMode, onEdit, onDelete }: CourseC
           {/* Badge de status */}
           <div className="absolute top-3 right-3">
             <span
-              className={`px-3 py-1 rounded-full text-xs font-semibold backdrop-blur-sm ${
-                curso.status === "Livre"
-                  ? "bg-emerald-500/20 text-emerald-300 border border-emerald-500/30"
-                  : "bg-amber-500/20 text-amber-300 border border-amber-500/30"
-              }`}
+              className={`px-3 py-1 rounded-full text-xs font-semibold backdrop-blur-sm ${curso.status === "Livre"
+                ? "bg-emerald-500/20 text-emerald-300 border border-emerald-500/30"
+                : "bg-amber-500/20 text-amber-300 border border-amber-500/30"
+                }`}
             >
               {curso.status}
             </span>

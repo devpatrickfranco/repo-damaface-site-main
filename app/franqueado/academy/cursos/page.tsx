@@ -4,6 +4,7 @@ import { useState, useEffect } from "react"
 import { useAuth } from "@/context/AuthContext"
 import { useRouter } from "next/navigation"
 import { useMeusCursos, useCategorias } from "@/hooks/useApi"
+import { getMediaUrl } from "@/lib/api-backend"
 
 import Link from "next/link"
 
@@ -116,7 +117,7 @@ export default function CursosPage() {
       >
         <div className={`relative ${viewMode === "list" ? "w-56 h-36" : "w-full h-52"} flex-shrink-0 overflow-hidden`}>
           <img
-            src={curso.capa || "/placeholder.svg"}
+            src={getMediaUrl(curso.capa)}
             alt={curso.titulo}
             className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
           />

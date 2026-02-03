@@ -155,3 +155,24 @@ export async function getBlob(path: string): Promise<Blob> {
 
   return await response.blob();
 }
+
+/**
+ * Helper function to build full media URL from backend
+ * @param mediaPath - Path to media file (e.g., "/media/cursos/capa.jpg" or "media/cursos/capa.jpg")
+ * @returns Full URL to media file
+ */
+export function getMediaUrl(mediaPath: string | null | undefined): string {
+  if (!mediaPath) return '/placeholder.svg';
+
+  const BASE_URL = process.env.NEXT_PUBLIC_API_BACKEND_URL;
+
+  // If it's already a full URL, return it
+  if (mediaPath.startsWith('http://') || mediaPath.startsWith('https://')) {
+    return mediaPath;
+  }
+
+  // Remove leading slash if present to avoid double slashes
+  const cleanPath = mediaPath.startsWith('/') ? mediaPath.slice(1) : mediaPath;
+
+  return `${BASE_URL}/${cleanPath}`;
+}
