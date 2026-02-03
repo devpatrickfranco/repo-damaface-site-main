@@ -51,10 +51,10 @@ export default function CourseDetail({ cursoSlug }: CourseDetailProps) {
     try {
       setEnrolling(true);
       setEnrollError(null);
-      
+
       await enrollCourse(cursoSlug);
       await refetch();
-      
+
       alert("Inscrição realizada com sucesso! Você agora é um aluno deste curso.");
     } catch (error: any) {
       const errorMessage = error.response?.data?.detail || "Erro ao se inscrever no curso. Tente novamente.";
@@ -66,50 +66,50 @@ export default function CourseDetail({ cursoSlug }: CourseDetailProps) {
   };
 
   // Função para baixar certificado
-const handleDownloadCertificado = async () => {
-  if (!curso || !curso.progresso?.inscricao_id) {
-    alert("Não foi possível encontrar sua inscrição.");
-    return;
-  }
+  const handleDownloadCertificado = async () => {
+    if (!curso || !curso.progresso?.inscricao_id) {
+      alert("Não foi possível encontrar sua inscrição.");
+      return;
+    }
 
-  try {
-    setDownloadingCertificate(true);
+    try {
+      setDownloadingCertificate(true);
 
-    // Gera o certificado usando o inscricao_id do progresso
-    const response = await gerarCertificado(curso.progresso.inscricao_id);
-    
-    // Extrai o ID do certificado da resposta
-    const certificadoUuid = response.certificado.codigo_validacao;
+      // Gera o certificado usando o inscricao_id do progresso
+      const response = await gerarCertificado(curso.progresso.inscricao_id);
 
-    // Faz o download do PDF
-    const blobResponse = await downloadCertificado(certificadoUuid);
-    
-    // Cria um link temporário para download
-    const blob = new Blob([blobResponse], { type: 'application/pdf' });
-    const url = window.URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = `certificado-${curso.titulo.replace(/\s+/g, '-').toLowerCase()}.pdf`;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    window.URL.revokeObjectURL(url);
+      // Extrai o ID do certificado da resposta
+      const certificadoUuid = response.certificado.codigo_validacao;
 
-    // Recarrega o curso para atualizar o status do certificado
-    await refetch();
-    
-    alert("Certificado baixado com sucesso!");
-  } catch (error: any) {
-    console.error("Erro ao baixar certificado:", error);
-    
-    const errorMessage = error.response?.data?.error || 
-                        error.response?.data?.detail || 
-                        "Erro ao baixar certificado. Tente novamente.";
-    alert(errorMessage);
-  } finally {
-    setDownloadingCertificate(false);
-  }
-};
+      // Faz o download do PDF
+      const blobResponse = await downloadCertificado(certificadoUuid);
+
+      // Cria um link temporário para download
+      const blob = new Blob([blobResponse], { type: 'application/pdf' });
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `certificado-${curso.titulo.replace(/\s+/g, '-').toLowerCase()}.pdf`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
+
+      // Recarrega o curso para atualizar o status do certificado
+      await refetch();
+
+      alert("Certificado baixado com sucesso!");
+    } catch (error: any) {
+      console.error("Erro ao baixar certificado:", error);
+
+      const errorMessage = error.response?.data?.error ||
+        error.response?.data?.detail ||
+        "Erro ao baixar certificado. Tente novamente.";
+      alert(errorMessage);
+    } finally {
+      setDownloadingCertificate(false);
+    }
+  };
 
   // Loading state
   if (cursoLoading) {
@@ -165,7 +165,7 @@ const handleDownloadCertificado = async () => {
 
   const getProximaAula = () => {
     if (!curso.modulos || curso.modulos.length === 0) return null;
-    
+
     // Se há ultima_aula_id no progresso, buscar a próxima
     if (curso.progresso?.ultima_aula_id) {
       let encontrouUltima = false;
@@ -178,13 +178,13 @@ const handleDownloadCertificado = async () => {
         }
       }
     }
-    
+
     // Buscar primeira aula não concluída
     for (const modulo of curso.modulos) {
       const aulaIncompleta = modulo.aulas.find((aula: Aula) => !aula.concluida);
       if (aulaIncompleta) return aulaIncompleta;
     }
-    
+
     // Retornar primeira aula se nenhuma incompleta for encontrada
     return curso.modulos[0]?.aulas[0] || null;
   };
@@ -197,7 +197,7 @@ const handleDownloadCertificado = async () => {
 
     try {
       setSubmitingComentario(true);
-      
+
       await postAvaliacao({
         curso: curso.id,
         tipo: "COMENTARIO",
@@ -257,7 +257,7 @@ const handleDownloadCertificado = async () => {
   // Funções para avaliações
   async function handleAddAvaliacao() {
     if (!user) return;
-    
+
     if (novaAvaliacao.nota === 0) {
       alert("Por favor, selecione uma nota de 1 a 5 estrelas.");
       return;
@@ -269,7 +269,7 @@ const handleDownloadCertificado = async () => {
 
     try {
       setSubmitingAvaliacao(true);
-      
+
       await postAvaliacao({
         curso: curso.id,
         tipo: "AVALIACAO",
@@ -339,11 +339,10 @@ const handleDownloadCertificado = async () => {
             disabled={!interactive}
           >
             <Star
-              className={`w-5 h-5 ${
-                star <= rating
-                  ? "text-yellow-400 fill-current"
-                  : "text-gray-400"
-              }`}
+              className={`w-5 h-5 ${star <= rating
+                ? "text-yellow-400 fill-current"
+                : "text-gray-400"
+                }`}
             />
           </button>
         ))}
@@ -352,9 +351,9 @@ const handleDownloadCertificado = async () => {
   };
 
   const imageUrl =
-  user && user.imgProfile
-    ? `${process.env.NEXT_PUBLIC_API_BACKEND_URL}${user.imgProfile}`
-    : null
+    user && user.imgProfile
+      ? `${process.env.NEXT_PUBLIC_API_BACKEND_URL}${user.imgProfile}`
+      : null
 
   return (
     <div className="bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900">
@@ -387,7 +386,7 @@ const handleDownloadCertificado = async () => {
                   </div>
                   <h1 className="text-4xl lg:text-5xl font-bold text-white mb-4 text-balance">{curso.titulo}</h1>
                   <p className="whitespace-pre-wrap text-xl text-gray-300 mb-6 text-pretty">{curso.descricao}</p>
-                  
+
                   {/* Course Stats */}
                   <div className="flex flex-wrap gap-6 mb-8">
                     <div className="flex items-center gap-2 text-gray-300">
@@ -407,7 +406,7 @@ const handleDownloadCertificado = async () => {
                       <span>{curso.rating || "5.0"} ({avaliacoes.length} avaliações)</span>
                     </div>
                   </div>
-                  
+
                   {/* Action Buttons */}
                   <div className="flex flex-wrap gap-4">
                     {!curso.is_enrolled && (
@@ -427,8 +426,8 @@ const handleDownloadCertificado = async () => {
                           {progresso === 0
                             ? "Iniciar Curso"
                             : cursoCompleto
-                            ? "Revisar Curso"
-                            : "Continuar Curso"}
+                              ? "Revisar Curso"
+                              : "Continuar Curso"}
                         </button>
                       </Link>
                     )}
@@ -440,7 +439,7 @@ const handleDownloadCertificado = async () => {
                     )}
                   </div>
                 </div>
-                
+
                 {/* Course Image */}
                 <div className="relative">
                   <div className="aspect-video rounded-xl overflow-hidden shadow-2xl">
@@ -490,7 +489,7 @@ const handleDownloadCertificado = async () => {
                             <span>Parabéns! Você concluiu todas as {totalAulas} aulas</span>
                           </div>
                         </div>
-                        
+
                         {/* Seção de Certificado - Condicional baseada no quiz */}
                         {quizConcluido ? (
                           <button
@@ -511,17 +510,19 @@ const handleDownloadCertificado = async () => {
                             )}
                           </button>
                         ) : (
-                          <div className="bg-yellow-500/10 border border-yellow-500/20 rounded-xl p-4 max-w-md mx-auto">
-                            <div className="flex items-center gap-3 text-yellow-400">
-                              <AlertCircle className="w-6 h-6 flex-shrink-0" />
-                              <p className="text-sm font-medium">
-                                Faça o quiz para obter seu certificado
-                              </p>
+                          curso.certificado && (
+                            <div className="bg-yellow-500/10 border border-yellow-500/20 rounded-xl p-4 max-w-md mx-auto">
+                              <div className="flex items-center gap-3 text-yellow-400">
+                                <AlertCircle className="w-6 h-6 flex-shrink-0" />
+                                <p className="text-sm font-medium">
+                                  Faça o quiz para obter seu certificado
+                                </p>
+                              </div>
                             </div>
-                          </div>
+                          )
                         )}
                       </div>
-                      
+
                       {/* Seção de Avaliação do Curso */}
                       {!minhaAvaliacao && (
                         <div className="border-t border-white/10 pt-6 mt-6">
@@ -614,7 +615,7 @@ const handleDownloadCertificado = async () => {
                     )}
                     <div className="flex items-center justify-center gap-6 mt-6 text-sm text-gray-400">
                       <div className="flex items-center gap-2">
-                         <Clock className="w-4 h-4" />
+                        <Clock className="w-4 h-4" />
                         <span>{curso.duracao}</span>
                       </div>
                       {totalAulas > 0 ? (
@@ -657,7 +658,7 @@ const handleDownloadCertificado = async () => {
                   </button>
                 </div>
               )}
-  
+
               {/* Course Modules */}
               <div className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-xl p-6">
                 <h3 className="text-2xl font-semibold text-white mb-6">Conteúdo do Curso</h3>
@@ -706,10 +707,10 @@ const handleDownloadCertificado = async () => {
                 ) : (curso.materiais?.length ?? 0) > 0 ? (
                   <div className="divide-y divide-white/10 border border-white/10 rounded-lg overflow-hidden">
                     {(curso.materiais ?? []).map((material: materiais) => (
-                      <a 
-                        key={material.id} 
-                        href={material.arquivo || material.url || "#"} 
-                        target="_blank" 
+                      <a
+                        key={material.id}
+                        href={material.arquivo || material.url || "#"}
+                        target="_blank"
                         rel="noopener noreferrer"
                         className="block"
                       >
@@ -794,7 +795,7 @@ const handleDownloadCertificado = async () => {
                                 </span>
                               </div>
                               <p className="text-gray-300 mb-3">{avaliacao.comentario}</p>
-                              
+
                               {/* Botões só aparecem para o autor */}
                               {user && avaliacao.autorId === user.aluno_id && (
                                 <div className="flex gap-3 text-sm">
@@ -826,7 +827,7 @@ const handleDownloadCertificado = async () => {
                 <h3 className="text-2xl font-semibold text-white mb-6">Comentários</h3>
 
                 {/* Formulário para adicionar comentário - só aparece se não tiver comentário */}
-                {user &&  (
+                {user && (
                   <div className="flex gap-3 mb-6">
                     {imageUrl ? (
                       <Image
@@ -852,7 +853,7 @@ const handleDownloadCertificado = async () => {
                         disabled={submitingComentario}
                         className="mt-2 flex items-center gap-2 px-4 py-2 rounded-lg bg-brand-pink hover:bg-brand-pink/90 text-white font-medium transition-all disabled:opacity-50 disabled:cursor-not-allowed"
                       >
-                        <Send className="w-4 h-4" /> 
+                        <Send className="w-4 h-4" />
                         {submitingComentario ? "Enviando..." : "Enviar"}
                       </button>
                     </div>
@@ -889,17 +890,17 @@ const handleDownloadCertificado = async () => {
                               rows={3}
                             />
                             <div className="flex gap-2">
-                              <button 
-                                onClick={() => handleSaveEditComentario(coment.id)} 
+                              <button
+                                onClick={() => handleSaveEditComentario(coment.id)}
                                 className="px-3 py-1 bg-green-600 hover:bg-green-700 text-white rounded text-sm"
                               >
                                 Salvar
                               </button>
-                              <button 
+                              <button
                                 onClick={() => {
                                   setEditandoComentarioId(null);
                                   setComentarioEditando("");
-                                }} 
+                                }}
                                 className="px-3 py-1 bg-gray-600 hover:bg-gray-700 text-white rounded text-sm"
                               >
                                 Cancelar
@@ -912,14 +913,14 @@ const handleDownloadCertificado = async () => {
 
                         {user && coment.autorId === user.aluno_id && editandoComentarioId !== coment.id && (
                           <div className="flex gap-3 mt-2 text-sm">
-                            <button 
-                              onClick={() => handleEditComentario(coment)} 
+                            <button
+                              onClick={() => handleEditComentario(coment)}
                               className="flex items-center gap-1 text-blue-400 hover:text-blue-300"
                             >
                               <Edit2 className="w-4 h-4" /> Editar
                             </button>
-                            <button 
-                              onClick={() => handleDeleteComentario(coment.id)} 
+                            <button
+                              onClick={() => handleDeleteComentario(coment.id)}
                               className="flex items-center gap-1 text-red-400 hover:text-red-300"
                             >
                               <Trash2 className="w-4 h-4" /> Apagar
@@ -929,7 +930,7 @@ const handleDownloadCertificado = async () => {
                       </div>
                     </div>
                   ))}
-                  
+
                   {comentarios.length === 0 && (
                     <div className="text-center py-8">
                       <p className="text-gray-400">Nenhum comentário ainda. Seja o primeiro!</p>
@@ -999,9 +1000,8 @@ const handleDownloadCertificado = async () => {
                   <div className="flex items-center justify-between">
                     <span className="text-gray-400">Status</span>
                     <span
-                      className={`px-2 py-1 rounded-full text-xs font-medium ${
-                        curso.status === "Livre" ? "bg-green-500/20 text-green-400" : "bg-yellow-500/20 text-yellow-400"
-                      }`}
+                      className={`px-2 py-1 rounded-full text-xs font-medium ${curso.status === "Livre" ? "bg-green-500/20 text-green-400" : "bg-yellow-500/20 text-yellow-400"
+                        }`}
                     >
                       {curso.status}
                     </span>
