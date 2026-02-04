@@ -70,7 +70,7 @@ const Sidebar = ({ isOpen, onClose }: SidebarProps) => {
 
   return (
     <>
-      <aside className={`fixed left-0 top-16 h-[calc(100vh-4rem)] w-64 bg-gray-900 border-r border-gray-700 z-30 transform transition-transform lg:translate-x-0 ${isOpen ? 'translate-x-0' : '-translate-x-full'} overflow-y-auto shadow-lg`}>
+      <aside className={`sidebar-custom fixed left-0 top-16 h-[calc(100vh-4rem)] w-64 bg-gray-900 border-r border-gray-700 z-30 transform transition-transform lg:translate-x-0 ${isOpen ? 'translate-x-0' : '-translate-x-full'} overflow-y-auto shadow-lg`}>
 
         {/* Botão fechar mobile */}
         <div className="lg:hidden flex justify-end p-4">
@@ -150,6 +150,48 @@ const Sidebar = ({ isOpen, onClose }: SidebarProps) => {
           onClick={onClose}
         />
       )}
+
+      {/* Estilos customizados da scrollbar */}
+      <style jsx>{`
+        /* Scrollbar customizada para desktop */
+        @media (min-width: 1024px) {
+          .sidebar-custom::-webkit-scrollbar {
+            width: 6px;
+          }
+          
+          .sidebar-custom::-webkit-scrollbar-track {
+            background: transparent;
+          }
+          
+          .sidebar-custom::-webkit-scrollbar-thumb {
+            background-color: #475569;
+            border-radius: 9999px;
+            transition: background-color 0.2s;
+          }
+          
+          .sidebar-custom::-webkit-scrollbar-thumb:hover {
+            background-color: #64748b;
+          }
+
+          /* Firefox */
+          .sidebar-custom {
+            scrollbar-width: thin;
+            scrollbar-color: #475569 transparent;
+          }
+        }
+
+        /* Ocultar scrollbar no mobile */
+        @media (max-width: 1023px) {
+          .sidebar-custom::-webkit-scrollbar {
+            display: none;
+          }
+          
+          .sidebar-custom {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+          }
+        }
+      `}</style>
     </>
   )
 }
