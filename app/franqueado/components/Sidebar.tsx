@@ -14,7 +14,9 @@ import {
   ChevronRight,
   Image,
   TrendingUp,
-  FolderOpen
+  FolderOpen,
+  Film,
+  Edit
 } from 'lucide-react'
 import { useRouter, usePathname } from 'next/navigation'
 import { useAuth } from '@/context/AuthContext'
@@ -41,6 +43,8 @@ const Sidebar = ({ isOpen, onClose }: SidebarProps) => {
   const marketingSubModules: SubModule[] = [
     { id: 'drive', name: 'Drive', icon: FolderOpen, route: '/franqueado/marketing/drive' },
     { id: 'gerar-imagem', name: 'Gerar Imagem', icon: Image, route: '/franqueado/marketing/gerar-imagem' },
+    { id: 'gerar-reels', name: 'Gerar Reels', icon: Film, route: '/franqueado/marketing/gerar-reels' },
+    { id: 'editar-imagem', name: 'Editar Imagem', icon: Edit, route: '/franqueado/marketing/editar-imagem' },
     { id: 'trafego', name: 'Tráfego', icon: TrendingUp, route: '/franqueado/marketing/trafego' }
   ]
 
