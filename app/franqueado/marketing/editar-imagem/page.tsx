@@ -37,8 +37,47 @@ const EditarImagemPage = () => {
     // Image gallery states
     const [images, setImages] = useState<ImageItem[]>([]);
     const [selectedImage, setSelectedImage] = useState<ImageItem | null>(null);
-    const [loadingImages, setLoadingImages] = useState(true);
+    const [loadingImages, setLoadingImages] = useState(false);
     const [errorImages, setErrorImages] = useState<string | null>(null);
+
+    // Filter states
+    const [selectedCategory, setSelectedCategory] = useState<string>('');
+    const [selectedProcedure, setSelectedProcedure] = useState<string>('');
+
+    // Pagination states
+    const [page, setPage] = useState(1);
+    const [hasMore, setHasMore] = useState(false);
+    const ITEMS_PER_PAGE = 20;
+
+    const categories: Record<string, string[]> = {
+        "facial": [
+            "botox",
+            "Full-Face",
+            "bioestimulador",
+            "preenchimento-labial",
+            "bigode-chines",
+            "olheiras",
+            "queixo",
+            "mandibula",
+            "Fios de pdo",
+            "skinbooster",
+            "lipo-de-papada",
+            "peeling-quimico",
+            "microagulhamento"
+        ],
+        "corporal": [
+            "bioestimulador",
+            "peim",
+            "preenchimento-de-gluteo",
+            "enzimas-gordura-localizada"
+        ],
+        "dia-de": [
+            "ultraformer",
+            "lavieen",
+            "criolipolise",
+            "depilacao-laser"
+        ]
+    };
 
     useEffect(() => {
         if (!loading && !isAuthenticated) {
@@ -46,24 +85,48 @@ const EditarImagemPage = () => {
         }
     }, [isAuthenticated, loading, router]);
 
-    // Fetch images on mount
+    // Handle filter changes
+    const handleCategoryChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+        setSelectedCategory(e.target.value);
+        setSelectedProcedure(''); // Reset procedure
+        setImages([]); // Clear images
+        setPage(1);
+        setErrorImages(null);
+    };
+
+    const handleProcedureChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+        setSelectedProcedure(e.target.value);
+        setPage(1); // Reset page to 1 when changing procedure
+    };
+
+    // Fetch images when procedure or page changes
     useEffect(() => {
         const fetchImages = async () => {
+            if (!selectedCategory || !selectedProcedure) return;
+
             try {
                 setLoadingImages(true);
+                setErrorImages(null);
+
+                const prefix = `${selectedCategory}/${selectedProcedure}/`;
                 const params = new URLSearchParams({
                     bucket: 'canva',
-                    prefix: 'Feed Franqueadora DamaFace'
+                    prefix: prefix,
+                    page: page.toString(),
+                    page_size: ITEMS_PER_PAGE.toString()
                 });
 
                 const response = await apiBackend.get(`/marketing/editar-imagem/listar/?${params}`);
 
                 if (response.items) {
                     setImages(response.items);
+                    const totalItems = response.count || 0;
+                    const loadedItems = (page - 1) * ITEMS_PER_PAGE + response.items.length;
+                    setHasMore(loadedItems < totalItems);
                 } else {
                     setImages([]);
+                    setHasMore(false);
                 }
-                setErrorImages(null);
             } catch (err) {
                 console.error('Erro ao carregar imagens:', err);
                 setErrorImages('Não foi possível carregar as imagens. Tente novamente mais tarde.');
@@ -72,10 +135,10 @@ const EditarImagemPage = () => {
             }
         };
 
-        if (isAuthenticated) {
-            fetchImages();
-        }
-    }, [isAuthenticated]);
+        fetchImages();
+    }, [selectedCategory, selectedProcedure, page]);
+
+
 
     const suggestedQuestions = [
         {
@@ -244,19 +307,59 @@ const EditarImagemPage = () => {
     // Renderiza a galeria de imagens se nenhuma imagem foi selecionada
     const renderGallery = () => (
         <div className="flex-1 overflow-y-auto animate-fade-in">
-            <div className="mb-8 text-center space-y-3">
-                <div className="w-16 h-16 bg-brand-pink/20 rounded-full flex items-center justify-center mx-auto mb-4">
-                    <ImageIcon className="w-8 h-8 text-brand-pink" />
+            <div className="mb-8 space-y-6">
+                {/* Seção de Filtros */}
+                <div className="bg-gray-800 border border-gray-700 rounded-xl p-6">
+                    <h2 className="text-xl font-semibold text-white mb-4">O que você está buscando?</h2>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div className="space-y-2">
+                            <label htmlFor="category" className="text-sm font-medium text-gray-400">Categoria</label>
+                            <select
+                                id="category"
+                                value={selectedCategory}
+                                onChange={handleCategoryChange}
+                                className="w-full bg-gray-900 border border-gray-700 text-white text-sm rounded-lg focus:ring-brand-pink focus:border-brand-pink block p-2.5"
+                            >
+                                <option value="">Selecione uma categoria</option>
+                                {Object.keys(categories).map((cat) => (
+                                    <option key={cat} value={cat}>
+                                        {cat.charAt(0).toUpperCase() + cat.slice(1).replace('-', ' ')}
+                                    </option>
+                                ))}
+                            </select>
+                        </div>
+                        <div className="space-y-2">
+                            <label htmlFor="procedure" className="text-sm font-medium text-gray-400">Procedimento</label>
+                            <select
+                                id="procedure"
+                                value={selectedProcedure}
+                                onChange={handleProcedureChange}
+                                disabled={!selectedCategory}
+                                className="w-full bg-gray-900 border border-gray-700 text-white text-sm rounded-lg focus:ring-brand-pink focus:border-brand-pink block p-2.5 disabled:opacity-50 disabled:cursor-not-allowed"
+                            >
+                                <option value="">
+                                    {!selectedCategory ? 'Selecione uma categoria primeiro' : 'Selecione um procedimento'}
+                                </option>
+                                {selectedCategory && categories[selectedCategory]?.map((proc) => (
+                                    <option key={proc} value={proc}>
+                                        {proc}
+                                    </option>
+                                ))}
+                            </select>
+                        </div>
+                    </div>
                 </div>
-                <h2 className="text-2xl font-semibold text-white">
-                    Selecione uma imagem para editar
-                </h2>
-                <p className="text-gray-400 max-w-md mx-auto">
-                    Escolha uma das imagens disponíveis na biblioteca da franquia para começar a edição com IA
-                </p>
             </div>
 
-            {loadingImages ? (
+            {/* Estado Inicial ou Carregando */}
+            {!selectedProcedure ? (
+                <div className="text-center py-20 text-gray-500">
+                    <div className="w-16 h-16 bg-gray-800 rounded-full flex items-center justify-center mx-auto mb-4">
+                        <ImageIcon className="w-8 h-8 text-gray-600" />
+                    </div>
+                    <p>Selecione uma categoria e procedimento para ver as imagens.</p>
+                </div>
+            ) : loadingImages ? (
                 <div className="flex justify-center items-center py-20">
                     <Loader2 className="w-10 h-10 text-brand-pink animate-spin" />
                 </div>
@@ -272,32 +375,59 @@ const EditarImagemPage = () => {
                 </div>
             ) : images.length === 0 ? (
                 <div className="text-center py-20 text-gray-500">
-                    <p>Nenhuma imagem encontrada.</p>
+                    <p>Nenhuma imagem encontrada para este procedimento.</p>
                 </div>
             ) : (
-                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 pb-8">
-                    {images.map((img) => (
-                        <div
-                            key={img.path}
-                            onClick={() => setSelectedImage(img)}
-                            className="group relative aspect-square rounded-xl overflow-hidden border border-gray-700 hover:border-brand-pink cursor-pointer transition-all duration-300 hover:shadow-lg hover:shadow-brand-pink/10 bg-gray-800"
+                <>
+                    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 pb-8">
+                        {images.map((img) => (
+                            <div
+                                key={img.path}
+                                onClick={() => setSelectedImage(img)}
+                                className="group relative aspect-square rounded-xl overflow-hidden border border-gray-700 hover:border-brand-pink cursor-pointer transition-all duration-300 hover:shadow-lg hover:shadow-brand-pink/10 bg-gray-800"
+                            >
+                                <img
+                                    src={img.url}
+                                    alt={img.name}
+                                    className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                                    loading="lazy"
+                                />
+                                <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-gray-900 to-transparent p-3 pt-8 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                                    <p className="text-white text-sm font-medium truncate">{img.name}</p>
+                                    <p className="text-gray-300 text-xs">{formatFileSize(img.size)}</p>
+                                </div>
+                                <div className="absolute top-2 right-2 bg-brand-pink rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity duration-300 transform translate-y-2 group-hover:translate-y-0">
+                                    <CheckCircle className="w-4 h-4 text-white" />
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+
+                    {/* Paginação */}
+                    <div className="flex justify-between items-center py-4 border-t border-gray-800">
+                        <button
+                            onClick={() => setPage(p => Math.max(1, p - 1))}
+                            disabled={page === 1}
+                            className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${page === 1
+                                    ? 'bg-gray-800 text-gray-600 cursor-not-allowed'
+                                    : 'bg-gray-800 text-white hover:bg-gray-700'
+                                }`}
                         >
-                            <img
-                                src={img.url}
-                                alt={img.name}
-                                className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
-                                loading="lazy"
-                            />
-                            <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-gray-900 to-transparent p-3 pt-8 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                                <p className="text-white text-sm font-medium truncate">{img.name}</p>
-                                <p className="text-gray-300 text-xs">{formatFileSize(img.size)}</p>
-                            </div>
-                            <div className="absolute top-2 right-2 bg-brand-pink rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity duration-300 transform translate-y-2 group-hover:translate-y-0">
-                                <CheckCircle className="w-4 h-4 text-white" />
-                            </div>
-                        </div>
-                    ))}
-                </div>
+                            Anterior
+                        </button>
+                        <span className="text-gray-400 text-sm">Página {page}</span>
+                        <button
+                            onClick={() => setPage(p => p + 1)}
+                            disabled={!hasMore}
+                            className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${!hasMore
+                                    ? 'bg-gray-800 text-gray-600 cursor-not-allowed'
+                                    : 'bg-gray-800 text-white hover:bg-gray-700'
+                                }`}
+                        >
+                            Próxima
+                        </button>
+                    </div>
+                </>
             )}
         </div>
     );
