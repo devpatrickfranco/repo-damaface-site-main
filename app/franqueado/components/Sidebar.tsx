@@ -42,9 +42,9 @@ const Sidebar = ({ isOpen, onClose }: SidebarProps) => {
 
   const marketingSubModules: SubModule[] = [
     { id: 'drive', name: 'Drive', icon: FolderOpen, route: '/franqueado/marketing/drive' },
-    { id: 'gerar-imagem', name: 'Gerar Imagem', icon: Image, route: '/franqueado/marketing/gerar-imagem' },
-    { id: 'gerar-reels', name: 'Gerar Reels', icon: Film, route: '/franqueado/marketing/gerar-reels' },
-    { id: 'editar-imagem', name: 'Editar Imagem', icon: Edit, route: '/franqueado/marketing/editar-imagem' },
+    //  { id: 'gerar-imagem', name: 'Gerar Imagem', icon: Image, route: '/franqueado/marketing/gerar-imagem' },
+    //  { id: 'gerar-reels', name: 'Gerar Reels', icon: Film, route: '/franqueado/marketing/gerar-reels' },
+    //  { id: 'editar-imagem', name: 'Editar Imagem', icon: Edit, route: '/franqueado/marketing/editar-imagem' },
     { id: 'trafego', name: 'Tráfego', icon: TrendingUp, route: '/franqueado/marketing/trafego' }
   ]
 
@@ -53,9 +53,11 @@ const Sidebar = ({ isOpen, onClose }: SidebarProps) => {
     { id: 'academy', name: 'Academy', icon: GraduationCap, route: '/franqueado/academy', roles: ['SUPERADMIN', 'ADMIN', 'FRANQUEADO', 'FUNCIONARIO'] },
     { id: 'ajuda', name: 'Ajuda', icon: HelpCircle, route: '/franqueado/ajuda', roles: ['SUPERADMIN', 'ADMIN', 'FRANQUEADO', 'FUNCIONARIO'] },
     { id: 'suporte', name: 'Suporte', icon: LifeBuoy, route: '/franqueado/suporte', roles: ['SUPERADMIN', 'ADMIN', 'FRANQUEADO', 'FUNCIONARIO'] },
+    { id: 'consultoria', name: 'Consultoria', icon: LifeBuoy, route: '/franqueado/consultoria', roles: ['SUPERADMIN', 'ADMIN', 'FRANQUEADO', 'FUNCIONARIO'] },
     { id: 'comunicados', name: 'Comunicados', icon: Newspaper, route: '/franqueado/comunicados', roles: ['SUPERADMIN', 'ADMIN', 'FRANQUEADO', 'FUNCIONARIO'] },
     { id: 'damaai', name: 'Dama.ai', icon: BrainCircuit, route: '/franqueado/damaai', roles: ['SUPERADMIN', 'ADMIN', 'FRANQUEADO', 'FUNCIONARIO'] },
     { id: 'marketing', name: 'Marketing', icon: Megaphone, route: '/franqueado/marketing', roles: ['SUPERADMIN', 'ADMIN', 'FRANQUEADO', 'FUNCIONARIO'], hasSubModules: true },
+    { id: 'excelencia', name: 'Programa de Excelência', icon: TrendingUp, route: '/franqueado/excelencia', roles: ['SUPERADMIN', 'ADMIN', 'FRANQUEADO', 'FUNCIONARIO'] },
     { id: 'usuarios', name: 'Usuarios', icon: Users2, route: '/franqueado/usuarios', roles: ['SUPERADMIN'] }
   ]
 
