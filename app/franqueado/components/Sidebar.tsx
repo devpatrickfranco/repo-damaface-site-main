@@ -18,6 +18,7 @@ import {
   Award,
   ClipboardCheck,
   Search,
+  Trophy,
   LucideIcon
 } from 'lucide-react'
 import { useRouter, usePathname } from 'next/navigation'
@@ -42,7 +43,6 @@ interface NavItem {
 
 const ALL_ROLES = ['SUPERADMIN', 'ADMIN', 'FRANQUEADO', 'FUNCIONARIO']
 const ADMIN_ROLES = ['SUPERADMIN']
-const FRANQUEADO_ROLES = ['FRANQUEADO']
 
 const MARKETING_SUBMODULES: NavItem[] = [
   { id: 'drive', name: 'Drive', icon: FolderOpen, route: '/franqueado/marketing/drive' },
@@ -50,9 +50,9 @@ const MARKETING_SUBMODULES: NavItem[] = [
 ]
 
 const EXCELENCIA_SUBMODULES: NavItem[] = [
-  { id: 'auto-avaliacao', name: 'Auto Avaliação', icon: ClipboardCheck, route: '/franqueado/excelencia/auto-avaliacao', roles: FRANQUEADO_ROLES },
+  { id: 'auto-avaliacao', name: 'Auto Avaliação', icon: ClipboardCheck, route: '/franqueado/excelencia/auto-avaliacao', roles: ['FRANQUEADO', 'SUPERADMIN'] },
   { id: 'auditoria', name: 'Auditoria', icon: Search, route: '/franqueado/excelencia/auditoria', roles: ADMIN_ROLES },
-  { id: 'ranking', name: 'Ranking', icon: Award, route: '/franqueado/excelencia/ranking', roles: ALL_ROLES }
+  { id: 'ranking', name: 'Ranking', icon: Trophy, route: '/franqueado/excelencia/ranking', roles: ALL_ROLES }
 ]
 
 const NAV_LINKS: NavItem[] = [
