@@ -3,16 +3,12 @@
 import { Card, CardContent } from "@/components/ui/card"
 import { Ticket, GraduationCap, Bell } from "lucide-react"
 
-interface CardDashboardProps {
-  chamadosAbertos: number
-  cursosAndamento: number
-  comunicadosNaoLidos: number
-}
+import type { CardDashboardProps } from "@/types/dashboard"
 
-export default function CardDashboard({ 
-  chamadosAbertos, 
-  cursosAndamento, 
-  comunicadosNaoLidos 
+export default function CardDashboard({
+  chamadosAbertos,
+  cursosAndamento,
+  comunicadosNaoLidos
 }: CardDashboardProps) {
   const cards = [
     {
@@ -28,13 +24,13 @@ export default function CardDashboard({
       value: cursosAndamento.toString(),
       description: cursosAndamento === 1 ? "Curso em andamento" : "Cursos em andamento",
       icon: GraduationCap,
-      color: "text-green-500",
-      bgColor: "bg-green-500/10",
+      color: "text-emerald-400",
+      bgColor: "bg-emerald-500/10",
     },
     {
       title: "Avisos",
       value: comunicadosNaoLidos.toString(),
-      description: comunicadosNaoLidos === 1 ? "Aviso não lido" : "Avisos não lidos",
+      description: comunicadosNaoLidos === 1 ? "Aviso nao lido" : "Avisos nao lidos",
       icon: Bell,
       color: "text-brand-pink",
       bgColor: "bg-brand-pink/10",
@@ -46,13 +42,13 @@ export default function CardDashboard({
       {cards.map((card) => {
         const Icon = card.icon
         return (
-          <Card key={card.title} className="bg-dark-base border-border hover:border-brand-pink/50 transition-colors">
+          <Card key={card.title} className="bg-secondary border-border hover:border-brand-pink/50 transition-colors">
             <CardContent className="p-6">
               <div className="flex items-start justify-between">
                 <div className="space-y-2">
-                  <p className="text-sm text-gray-400">{card.title}</p>
-                  <p className="text-3xl font-bold text-white">{card.value}</p>
-                  <p className="text-xs text-gray-500">{card.description}</p>
+                  <p className="text-sm text-muted-foreground">{card.title}</p>
+                  <p className="text-3xl font-bold text-foreground">{card.value}</p>
+                  <p className="text-xs text-muted-foreground">{card.description}</p>
                 </div>
                 <div className={`p-3 rounded-lg ${card.bgColor}`}>
                   <Icon className={`w-6 h-6 ${card.color}`} />
