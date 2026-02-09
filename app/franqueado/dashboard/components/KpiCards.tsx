@@ -76,7 +76,7 @@ function KpiCard({
                                         vs mes anterior
                                     </span>
                                 </div>
-                                <div className="flex items-center gap-1.5">
+                                <div className="flex items-center gap-1.5 whitespace-nowrap">
                                     <span className="text-xs text-muted-foreground">
                                         {metaLabel}
                                     </span>
@@ -87,7 +87,7 @@ function KpiCard({
                                         {metaFormatted}
                                     </span>
                                     <span
-                                        className={`text-[10px] font-medium px-1.5 py-0.5 rounded-full ${aboveMeta
+                                        className={`text-[10px] font-medium px-1.5 py-0.5 rounded-full shrink-0 ${aboveMeta
                                             ? "bg-emerald-500/15 text-emerald-400"
                                             : "bg-red-500/15 text-red-400"
                                             }`}
@@ -97,8 +97,9 @@ function KpiCard({
                                 </div>
 
                                 {/* Projection line - only for agendamentos, vendas, faturamento */}
+                                {/* Projection line - only for agendamentos, vendas, faturamento */}
                                 {cardMode === "projection" && (
-                                    <div className="flex items-center gap-1.5 pt-1 border-t border-border/50 mt-1">
+                                    <div className="flex items-center gap-1.5 pt-1 border-t border-border/50 mt-1 whitespace-nowrap">
                                         <span className="text-xs text-muted-foreground">
                                             {"Projecao dia "}{diaAtual}{":"}
                                         </span>
@@ -109,7 +110,7 @@ function KpiCard({
                                             {projecaoFormatted}
                                         </span>
                                         <span
-                                            className={`text-[10px] font-medium px-1.5 py-0.5 rounded-full ${onTrack
+                                            className={`text-[10px] font-medium px-2 py-0.5 rounded-full shrink-0 ${onTrack
                                                 ? "bg-emerald-500/15 text-emerald-400"
                                                 : "bg-red-500/15 text-red-400"
                                                 }`}
