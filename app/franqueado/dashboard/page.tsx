@@ -1,8 +1,14 @@
 "use client"
 
+import { useEffect, useState, useCallback } from "react"
+import { useAuth } from "@/context/AuthContext"
+import { apiBackend } from "@/lib/api-backend"
+import { useMetricas } from "@/hooks/useApi"
+
 import type { KpiData } from "@/types/dashboard"
-import type { ChartDataPoint } from "@/types/dashboard"
+import type { ChartDataPoint, ChartData } from "@/types/dashboard"
 import type { RankingEntry } from "@/types/dashboard"
+import type { Comunicado, Activity } from "@/types/dashboard"
 
 import PerformanceHeader from "./components/PerformanceHeader"
 import KpiCards from "./components/KpiCards"
@@ -14,11 +20,9 @@ import ChartDashboard from "./components/ChartDashboard"
 import RecentActivitiesDashboard from "./components/RecentActivitiesDashboard"
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { TrendingUp, Trophy, BarChart3, Clock } from "lucide-react"
+import { TrendingUp, Trophy, BarChart3, Clock, Loader2 } from "lucide-react"
 
-// ========= MOCK DATA =========
-
-const mockUser = { nome: "Carlos Silva" }
+// ========= MOCK DATA (Remanescentes que não possuem API clara ainda) =========
 
 const mockKpi: KpiData = {
   agendamentos: 100,
@@ -52,91 +56,6 @@ const mockRanking: RankingEntry[] = [
   { nome: "Unidade Norte", posicao: 3 },
 ]
 
-const mockDashboardStats = {
-  chamados_abertos: 3,
-  cursos_andamento: 2,
-  comunicados_nao_lidos: 5,
-  comunicados_recentes: [
-    {
-      id: 1,
-      titulo: "Nova politica de atendimento",
-      conteudo:
-        "A partir do proximo mes, todas as unidades deverao seguir o novo protocolo de atendimento ao cliente conforme manual atualizado.",
-      tipo: "informativo",
-      tipo_display: "Informativo",
-      data_publicacao: new Date().toISOString(),
-      urgente: false,
-    },
-    {
-      id: 2,
-      titulo: "Manutencao programada no sistema",
-      conteudo:
-        "O sistema ficara indisponivel no sabado, das 02h as 06h, para atualizacoes de seguranca e melhorias de desempenho.",
-      tipo: "alerta",
-      tipo_display: "Alerta",
-      data_publicacao: new Date(Date.now() - 86400000).toISOString(),
-      urgente: true,
-    },
-    {
-      id: 3,
-      titulo: "Treinamento obrigatorio - Vendas 2026",
-      conteudo:
-        "Todos os colaboradores devem completar o curso de tecnicas de venda ate o final do mes. Acesse pela plataforma de cursos.",
-      tipo: "treinamento",
-      tipo_display: "Treinamento",
-      data_publicacao: new Date(Date.now() - 172800000).toISOString(),
-      urgente: false,
-    },
-  ],
-  grafico_uso: [
-    { day: "Seg", atividades: 12, data: "2026-02-02" },
-    { day: "Ter", atividades: 19, data: "2026-02-03" },
-    { day: "Qua", atividades: 8, data: "2026-02-04" },
-    { day: "Qui", atividades: 15, data: "2026-02-05" },
-    { day: "Sex", atividades: 22, data: "2026-02-06" },
-    { day: "Sab", atividades: 6, data: "2026-02-07" },
-    { day: "Dom", atividades: 3, data: "2026-02-08" },
-  ],
-  atividades_recentes: [
-    {
-      id: "1",
-      tipo: "ticket",
-      titulo: "Ticket #1247 - Problema no caixa",
-      descricao: "Erro ao processar pagamento com cartao de credito",
-      tempo: "Ha 2h",
-      status: "aberto",
-      icon: "ticket",
-    },
-    {
-      id: "2",
-      tipo: "curso",
-      titulo: "Curso de Atendimento Avancado",
-      descricao: "Modulo 3 concluido com sucesso",
-      tempo: "Ha 5h",
-      status: "completed",
-      icon: "graduation-cap",
-    },
-    {
-      id: "3",
-      tipo: "ticket",
-      titulo: "Ticket #1243 - Atualizacao de cardapio",
-      descricao: "Novos itens adicionados ao sistema",
-      tempo: "Ontem",
-      status: "resolvido",
-      icon: "ticket",
-    },
-    {
-      id: "4",
-      tipo: "comunicado",
-      titulo: "Comunicado lido - Ferias coletivas",
-      descricao: "Periodo de recesso confirmado",
-      tempo: "2 dias",
-      status: "fechado",
-      icon: "bell",
-    },
-  ],
-}
-
 // ========= HELPERS =========
 
 function getGreeting() {
@@ -149,11 +68,79 @@ function getGreeting() {
 // ========= PAGE =========
 
 export default function Dashboard() {
-  const user = mockUser
-  const dashboardData = mockDashboardStats
+  const { user } = useAuth()
 
-  const totalItensAtencao =
-    dashboardData.chamados_abertos + dashboardData.comunicados_nao_lidos
+  // Estados para dados da API
+  const [chamadosAbertos, setChamadosAbertos] = useState(0)
+  const [comunicados, setComunicados] = useState<Comunicado[]>([])
+  const [recentActivities, setRecentActivities] = useState<Activity[]>([])
+  const [activityData, setActivityData] = useState<ChartData[]>([])
+  const [loading, setLoading] = useState(true)
+  const [cursosAndamentoState, setCursosAndamento] = useState(0)
+  const [comunicadosNaoLidosState, setComunicadosNaoLidos] = useState(0)
+
+
+  // Hook existente para métricas (Academy) - mantendo para dados específicos se necessário, 
+  // mas priorizando o stats se disponível
+  const { data: metricas } = useMetricas()
+
+  // Buscar dados
+  const fetchData = useCallback(async () => {
+    try {
+      setLoading(true)
+
+      const response = await apiBackend.get<any>("/dashboard/stats/")
+      // O backend pode retornar os dados diretamente ou dentro de 'data' dependendo da estrutura
+      const data = response.data || response
+
+      // 1. Atualizar contadores
+      setChamadosAbertos(data.chamados_abertos || 0)
+      setCursosAndamento(data.cursos_andamento || 0)
+      setComunicadosNaoLidos(data.comunicados_nao_lidos || 0)
+
+      // 2. Gráfico de atividades
+      if (Array.isArray(data.grafico_uso)) {
+        setActivityData(data.grafico_uso)
+      }
+
+      // 3. Atividades Recentes
+      if (Array.isArray(data.atividades_recentes)) {
+        setRecentActivities(data.atividades_recentes)
+      }
+
+      // 4. Comunicados Recentes (para o componente CommuniqueDashboard)
+      if (Array.isArray(data.comunicados_recentes)) {
+        setComunicados(data.comunicados_recentes)
+      } else if (Array.isArray(data.comunicados)) {
+        setComunicados(data.comunicados) // Fallback se o nome do campo for diferente
+      }
+
+    } catch (error) {
+      console.error("Erro ao carregar dashboard:", error)
+    } finally {
+      setLoading(false)
+    }
+  }, [])
+
+  useEffect(() => {
+    fetchData()
+  }, [fetchData])
+
+  // Valores Computados (prioriza do backend consolidado, fallback para hook ou 0)
+  const cursosAndamento = cursosAndamentoState || (metricas ? parseInt(metricas.cursos_iniciados) : 0)
+  const comunicadosNaoLidos = comunicadosNaoLidosState || comunicados.length
+
+  const totalItensAtencao = chamadosAbertos + comunicadosNaoLidos
+
+
+
+  if (loading || !user) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <Loader2 className="w-12 h-12 text-brand-pink animate-spin" />
+      </div>
+    )
+  }
 
   return (
     <main className="min-h-screen bg-background">
@@ -161,7 +148,7 @@ export default function Dashboard() {
         {/* Greeting */}
         <div className="bg-gradient-to-br from-brand-pink/10 to-brand-pink/5 border border-brand-pink/20 rounded-xl p-6">
           <h1 className="text-2xl md:text-3xl font-bold text-foreground mb-2">
-            {getGreeting()}, {user.nome.split(" ")[0]}!
+            {getGreeting()}, {user.nome?.split(" ")[0]}!
           </h1>
           <p className="text-muted-foreground text-lg">
             {totalItensAtencao > 0 ? (
@@ -192,24 +179,25 @@ export default function Dashboard() {
           </CardHeader>
           <CardContent>
             <CardDashboard
-              chamadosAbertos={dashboardData.chamados_abertos}
-              cursosAndamento={dashboardData.cursos_andamento}
-              comunicadosNaoLidos={dashboardData.comunicados_nao_lidos}
+              chamadosAbertos={chamadosAbertos}
+              cursosAndamento={cursosAndamento}
+              comunicadosNaoLidos={comunicadosNaoLidos}
             />
           </CardContent>
         </Card>
 
         {/* Comunicados - right after Visao Rapida */}
         <CommuniqueDashboard
-          comunicados={dashboardData.comunicados_recentes}
+          comunicados={comunicados}
         />
 
         {/* ======= PERFORMANCE SECTION ======= */}
         <PerformanceHeader />
+        {/* KPI Cards (Mockados pois não a user não solicitou alteração nestes e não há API clara) */}
         <KpiCards data={mockKpi} />
 
         <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
-          {/* Evolution chart */}
+          {/* Evolution chart (Mockado) */}
           <Card className="lg:col-span-3 bg-card border-border">
             <CardHeader className="pb-2">
               <CardTitle className="flex items-center gap-2 text-foreground text-lg">
@@ -222,7 +210,7 @@ export default function Dashboard() {
             </CardContent>
           </Card>
 
-          {/* Podium + sua unidade */}
+          {/* Podium + sua unidade (Mockado) */}
           <Card className="lg:col-span-2 bg-card border-border">
             <CardHeader className="pb-2">
               <CardTitle className="flex items-center gap-2 text-foreground text-lg">
@@ -251,7 +239,7 @@ export default function Dashboard() {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <ChartDashboard data={dashboardData.grafico_uso} />
+              <ChartDashboard data={activityData} />
             </CardContent>
           </Card>
 
@@ -264,7 +252,7 @@ export default function Dashboard() {
             </CardHeader>
             <CardContent>
               <RecentActivitiesDashboard
-                activities={dashboardData.atividades_recentes}
+                activities={recentActivities}
               />
             </CardContent>
           </Card>
