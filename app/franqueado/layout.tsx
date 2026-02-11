@@ -12,7 +12,7 @@ export default function FranqueadoLayout({
   children: React.ReactNode
 }) {
   const pathname = usePathname()
-  const [isSidebarOpen, setIsSidebarOpen] = useState(false)
+  const [isSidebarOpen, setIsSidebarOpen] = useState(true)
 
   // Páginas que NÃO devem mostrar Header/Sidebar
   const publicPages = ['/franqueado', '/franqueado/reset_password']
@@ -27,12 +27,15 @@ export default function FranqueadoLayout({
         </div>
       ) : (
         // Página autenticada - COM Header e Sidebar
-        <div className="min-h-screen bg-gray-900">
+        <div className="min-h-screen bg-gray-900 text-gray-100">
           <HeaderFranqueado onMenuClick={() => setIsSidebarOpen(!isSidebarOpen)} />
           <Sidebar isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} />
 
           {/* Main Content - com padding para não ficar atrás do header/sidebar */}
-          <main className="lg:ml-64 pt-16 min-h-screen">
+          <main
+            className={`pt-16 min-h-screen transition-all duration-300 ease-in-out ${isSidebarOpen ? 'lg:ml-64' : 'lg:ml-0'
+              }`}
+          >
             <div className="p-6">
               {children}
             </div>

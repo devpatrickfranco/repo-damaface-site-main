@@ -18,6 +18,7 @@ import {
   LogOut,
   Settings,
   HelpCircle,
+  PanelLeft,
   Loader2, // Ícone de loading opcional
 } from 'lucide-react'
 
@@ -177,8 +178,12 @@ const HeaderDashboard = ({ onMenuClick }: HeaderDashboardProps) => {
           <Image src={Logo} alt="Logo" className="w-auto h-8 sm:h-10 object-contain" priority />
         </div>
         <div className="flex items-center space-x-4">
-          <button onClick={onMenuClick} className="md:hidden p-2 rounded-lg hover:bg-gray-700">
-            <Menu className="w-5 h-5 text-gray-300" />
+          <button
+            onClick={onMenuClick}
+            className="p-2 rounded-lg hover:bg-gray-700/50 transition-all duration-200 group"
+            aria-label="Toggle sidebar"
+          >
+            <PanelLeft className="w-5 h-5 text-gray-400 group-hover:text-white transition-colors" />
           </button>
         </div>
         <div className="absolute left-1/2 transform -translate-x-1/2 flex md:hidden items-center">

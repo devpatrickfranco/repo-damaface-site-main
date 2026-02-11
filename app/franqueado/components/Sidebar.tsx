@@ -19,6 +19,9 @@ import {
   ClipboardCheck,
   Search,
   Trophy,
+  ClipboardList,
+  Wrench,
+  Store,
   LucideIcon
 } from 'lucide-react'
 import { useRouter, usePathname } from 'next/navigation'
@@ -43,6 +46,7 @@ interface NavItem {
 
 const ALL_ROLES = ['SUPERADMIN', 'ADMIN', 'FRANQUEADO', 'FUNCIONARIO']
 const ADMIN_ROLES = ['SUPERADMIN']
+const FRANQUEADO_ROLES = ['SUPERADMIN', 'FRANQUEADO']
 
 const MARKETING_SUBMODULES: NavItem[] = [
   { id: 'drive', name: 'Drive', icon: FolderOpen, route: '/franqueado/marketing/drive' },
@@ -55,33 +59,23 @@ const EXCELENCIA_SUBMODULES: NavItem[] = [
   { id: 'ranking', name: 'Ranking', icon: Trophy, route: '/franqueado/excelencia/ranking', roles: ALL_ROLES }
 ]
 
+const CONSULTORIA_SUBMODULES: NavItem[] = [
+  { id: 'gestao', name: 'Gestão', icon: ClipboardList, route: '/franqueado/consultoria/gestao', roles: FRANQUEADO_ROLES },
+  { id: 'comercial', name: 'Comercial', icon: Store, route: '/franqueado/consultoria/comercial', roles: ALL_ROLES },
+  { id: 'tecnico', name: 'Técnico', icon: Wrench, route: '/franqueado/consultoria/tecnico', roles: ALL_ROLES }
+]
+
 const NAV_LINKS: NavItem[] = [
   { id: 'dashboard', name: 'Dashboard', icon: Home, route: '/franqueado/dashboard', roles: ALL_ROLES },
   { id: 'academy', name: 'Academy', icon: GraduationCap, route: '/franqueado/academy', roles: ALL_ROLES },
   { id: 'ajuda', name: 'Ajuda', icon: HelpCircle, route: '/franqueado/ajuda', roles: ALL_ROLES },
   { id: 'suporte', name: 'Suporte', icon: LifeBuoy, route: '/franqueado/suporte', roles: ALL_ROLES },
-  { id: 'consultoria', name: 'Consultoria', icon: BriefcaseBusiness, route: '/franqueado/consultoria', roles: ALL_ROLES },
+  { id: 'consultoria', name: 'Consultoria', icon: BriefcaseBusiness, route: '/franqueado/consultoria', roles: ALL_ROLES, hasSubModules: true, subModules: CONSULTORIA_SUBMODULES },
   { id: 'comunicados', name: 'Comunicados', icon: Newspaper, route: '/franqueado/comunicados', roles: ALL_ROLES },
-  { id: 'damaai', name: 'Dama.ai', icon: BrainCircuit, route: '/franqueado/damaai', roles: ALL_ROLES },
-  {
-    id: 'marketing',
-    name: 'Marketing',
-    icon: Megaphone,
-    route: '/franqueado/marketing',
-    roles: ALL_ROLES,
-    hasSubModules: true,
-    subModules: MARKETING_SUBMODULES
-  },
-  {
-    id: 'excelencia',
-    name: 'Programa de Excelência',
-    icon: Award,
-    route: '/franqueado/excelencia',
-    roles: ['SUPERADMIN', 'FRANQUEADO'],
-    hasSubModules: true,
-    subModules: EXCELENCIA_SUBMODULES
-  },
-  { id: 'usuarios', name: 'Usuarios', icon: Users2, route: '/franqueado/usuarios', roles: ADMIN_ROLES }
+  //{ id: 'damaai', name: 'Dama.ai', icon: BrainCircuit, route: '/franqueado/damaai', roles: ALL_ROLES },
+  { id: 'marketing', name: 'Marketing', icon: Megaphone, route: '/franqueado/marketing', roles: ALL_ROLES, hasSubModules: true, subModules: MARKETING_SUBMODULES },
+  { id: 'excelencia', name: 'Programa de Excelência', icon: Award, route: '/franqueado/excelencia', roles: ['SUPERADMIN', 'FRANQUEADO'], hasSubModules: true, subModules: EXCELENCIA_SUBMODULES },
+  { id: 'usuarios', name: 'Usuarios', icon: Users2, route: '/franqueado/usuarios', roles: ADMIN_ROLES },
 ]
 
 const Sidebar = ({ isOpen, onClose }: SidebarProps) => {
@@ -110,7 +104,7 @@ const Sidebar = ({ isOpen, onClose }: SidebarProps) => {
     <>
       <aside
         className={clsx(
-          'sidebar-custom fixed left-0 top-16 h-[calc(100vh-4rem)] w-64 bg-gray-900 border-r border-gray-700 z-30 transform transition-transform lg:translate-x-0 overflow-y-auto shadow-lg',
+          'sidebar-custom fixed left-0 top-16 h-[calc(100vh-4rem)] w-64 bg-gray-900 border-r border-gray-700 z-30 transform transition-transform duration-300 ease-in-out overflow-y-auto shadow-lg',
           { 'translate-x-0': isOpen, '-translate-x-full': !isOpen }
         )}
       >
