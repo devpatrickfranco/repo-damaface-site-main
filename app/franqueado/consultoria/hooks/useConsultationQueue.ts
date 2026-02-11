@@ -26,7 +26,7 @@ export function useConsultationQueue({
     const checkQueueStatus = useCallback(async () => {
         try {
             const response = await apiBackend.get<QueueStatusResponse>(
-                '/api/consultoria/queue/status/'
+                '/consultoria/queue/status/'
             );
 
             setQueueStatus(response);
@@ -76,7 +76,7 @@ export function useConsultationQueue({
     const joinQueue = useCallback(async () => {
         setIsJoining(true);
         try {
-            const response = await apiBackend.post('/api/consultoria/queue/join/', {
+            const response = await apiBackend.post('/consultoria/queue/join/', {
                 agent_type: agentType,
             });
 
@@ -96,7 +96,7 @@ export function useConsultationQueue({
     const leaveQueue = useCallback(async () => {
         setIsLeaving(true);
         try {
-            await apiBackend.post('/api/consultoria/queue/leave/');
+            await apiBackend.post('/consultoria/queue/leave/');
             setQueueStatus({ status: 'not_queued', position: 0 });
             setIsPolling(false);
         } catch (error: any) {

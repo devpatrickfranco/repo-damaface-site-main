@@ -33,7 +33,7 @@ export function useConsultationSession({
 
         const sendHeartbeat = async () => {
             try {
-                await apiBackend.post('/api/consultoria/session/heartbeat/', {
+                await apiBackend.post('/consultoria/session/heartbeat/', {
                     session_id: session.heygen_data.session_id,
                 });
             } catch (error: any) {
@@ -69,7 +69,7 @@ export function useConsultationSession({
         setIsInitializing(true);
         try {
             const response = await apiBackend.post<SessionResponse>(
-                '/api/consultoria/session/initialize/',
+                '/consultoria/session/initialize/',
                 {
                     agent_type: agentType,
                     ...options,
@@ -94,7 +94,7 @@ export function useConsultationSession({
         }
 
         try {
-            const response = await apiBackend.post('/api/consultoria/session/connect/', {
+            const response = await apiBackend.post('/consultoria/session/connect/', {
                 session_id: session.heygen_data.session_id,
                 sdp,
             });
@@ -114,7 +114,7 @@ export function useConsultationSession({
         }
 
         try {
-            await apiBackend.post('/api/consultoria/session/ice/', {
+            await apiBackend.post('/consultoria/session/ice/', {
                 session_id: session.heygen_data.session_id,
                 candidate: {
                     candidate: candidate.candidate,
@@ -134,7 +134,7 @@ export function useConsultationSession({
 
         setIsTerminating(true);
         try {
-            await apiBackend.post('/api/consultoria/session/terminate/', {
+            await apiBackend.post('/consultoria/session/terminate/', {
                 session_id: session.heygen_data.session_id,
             });
 
