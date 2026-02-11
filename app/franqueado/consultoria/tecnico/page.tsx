@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useMemo } from "react"
 import { ConsultantVideo } from "../components/consultant-video"
 import {
     SessionControls,
@@ -64,33 +64,35 @@ export default function ConsultantPage() {
         },
     })
 
-    // Hook WebRTC
+    // Hook WebRTC - Memoizar config para evitar re-criação infinita de RTCPeerConnection
+    const webrtcConfig = useMemo(() => {
+        if (!session) return null;
+
+        return {
+            sessionId: session.heygen_data.session_id,
+            sessionToken: session.heygen_data.session_token,
+            iceServers: session.heygen_data.ice_servers,
+            onIceCandidate: (candidate: RTCIceCandidate) => {
+                sendIceCandidate(candidate)
+            },
+            onConnectionStateChange: (state: RTCPeerConnectionState) => {
+                if (state === "connected") {
+                    setPhase("active")
+                    setConsultantStatus("speaking")
+                    setTimeRemaining(TOTAL_SESSION_TIME)
+                } else if (state === "failed" || state === "disconnected") {
+                    console.error("Conexão WebRTC perdida")
+                }
+            },
+        };
+    }, [session?.heygen_data.session_id]); // Só recria quando session_id mudar
+
     const {
         connectionState,
         videoRef,
         startLocalMedia,
         createAnswer,
-    } = useWebRTC(
-        session
-            ? {
-                sessionId: session.heygen_data.session_id,
-                sessionToken: session.heygen_data.session_token,
-                iceServers: session.heygen_data.ice_servers,
-                onIceCandidate: (candidate) => {
-                    sendIceCandidate(candidate)
-                },
-                onConnectionStateChange: (state) => {
-                    if (state === "connected") {
-                        setPhase("active")
-                        setConsultantStatus("speaking")
-                        setTimeRemaining(TOTAL_SESSION_TIME)
-                    } else if (state === "failed" || state === "disconnected") {
-                        console.error("Conexão WebRTC perdida")
-                    }
-                },
-            }
-            : null
-    )
+    } = useWebRTC(webrtcConfig)
 
     // Entrar na fila automaticamente
     useEffect(() => {
