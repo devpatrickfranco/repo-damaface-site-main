@@ -51,9 +51,10 @@ export default function ConsultantComercialPage() {
             setJoinCountdown((prev) => {
                 if (prev <= 1) {
                     clearInterval(interval)
-                    setPhase("cooldown")
-                    setConsultantStatus("disconnected")
-                    setCooldownRemaining(COOLDOWN_TIME)
+                    setPhase("queue")
+                    setQueuePosition(5)
+                    setConsultantStatus("waiting")
+                    setTimeRemaining(TOTAL_SESSION_TIME)
                     return 0
                 }
                 return prev - 1
@@ -122,7 +123,7 @@ export default function ConsultantComercialPage() {
     const isSessionActive = phase === "active" || phase === "ending"
 
     return (
-        <div className="flex flex-col h-[calc(100vh-8rem)] gap-4">
+        <div className="flex flex-col min-h-[calc(100vh-8rem)] gap-4">
             {/* Header */}
             <header className="shrink-0">
                 <div className="flex items-center justify-between">
