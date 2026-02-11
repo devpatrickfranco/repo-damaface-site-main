@@ -1,6 +1,7 @@
 "use client"
 
 import { Mic, MicOff, Video } from "lucide-react"
+import { RefObject } from "react"
 
 type ConsultantStatus = "available" | "waiting" | "speaking" | "disconnected"
 
@@ -10,6 +11,7 @@ interface ConsultantVideoProps {
     isMicOn: boolean
     isSessionActive: boolean
     iframeUrl?: string
+    videoRef?: RefObject<HTMLVideoElement | null>
     title?: string
 }
 
@@ -45,6 +47,7 @@ export function ConsultantVideo({
     isMicOn,
     isSessionActive,
     iframeUrl,
+    videoRef,
     title = "Consultor Virtual",
 }: ConsultantVideoProps) {
     const config = statusConfig[status]
@@ -59,6 +62,13 @@ export function ConsultantVideo({
                     className="w-full h-full border-0 absolute inset-0"
                     allow="microphone; camera; autoplay; encrypted-media"
                     allowFullScreen
+                />
+            ) : isSessionActive && videoRef ? (
+                <video
+                    ref={videoRef}
+                    autoPlay
+                    playsInline
+                    className="w-full h-full border-0 absolute inset-0 object-cover"
                 />
             ) : (
                 <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-b from-gray-900 via-gray-800 to-gray-900">
