@@ -133,9 +133,9 @@ export function SessionControls({
     }
 
     return (
-        <div className="bg-neutral-950 rounded-2xl border border-neutral-800 overflow-hidden shrink-0">
+        <div className="bg-gray-800/50 rounded-2xl border border-gray-700/50 overflow-hidden shrink-0">
             {/* Phase indicator bar */}
-            <div className="px-5 py-4 flex items-center justify-between border-b border-neutral-800">
+            <div className="px-5 py-4 flex items-center justify-between border-b border-gray-700/50">
                 <div className="flex items-center gap-3">
                     <div className={`${config.accent}`}>{config.icon}</div>
                     <div>
@@ -143,7 +143,7 @@ export function SessionControls({
                             {config.title}
                             {phase === "queue" && dots}
                         </h3>
-                        <p className="text-xs text-neutral-500 mt-0.5">
+                        <p className="text-xs text-gray-400 mt-0.5">
                             {config.description}
                         </p>
                     </div>
@@ -153,7 +153,7 @@ export function SessionControls({
                 {(phase === "active" || phase === "ending") && (
                     <div className="flex items-center gap-2">
                         <Clock
-                            className={`w-4 h-4 ${phase === "ending" ? "text-amber-400" : "text-neutral-500"}`}
+                            className={`w-4 h-4 ${phase === "ending" ? "text-amber-400" : "text-gray-400"}`}
                         />
                         <span
                             className={`text-lg font-mono font-bold tabular-nums ${phase === "ending" ? "text-amber-400" : "text-white"
@@ -292,12 +292,12 @@ export function SessionControls({
             </div>
 
             {/* Action buttons */}
-            <div className="px-5 py-3 border-t border-neutral-800">
+            <div className="px-5 py-3 border-t border-gray-700/50">
                 {phase === "queue" && (
                     <button
                         type="button"
                         onClick={onEnd}
-                        className="w-full flex items-center justify-center gap-2 bg-neutral-900 border border-neutral-700 text-neutral-400 text-sm font-medium py-3 rounded-xl hover:bg-neutral-800 hover:text-neutral-300 transition-colors"
+                        className="w-full flex items-center justify-center gap-2 bg-gray-900 border border-gray-700 text-gray-400 text-sm font-medium py-3 rounded-xl hover:bg-gray-800 hover:text-gray-300 transition-colors"
                     >
                         Sair da fila
                     </button>

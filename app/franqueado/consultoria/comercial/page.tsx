@@ -122,19 +122,19 @@ export default function ConsultantComercialPage() {
     const isSessionActive = phase === "active" || phase === "ending"
 
     return (
-        <div className="min-h-screen bg-dark-solid text-white flex flex-col">
+        <div className="flex flex-col h-[calc(100vh-8rem)] gap-4">
             {/* Header */}
-            <header className="border-b border-neutral-800/60 bg-neutral-950/80 backdrop-blur-sm shrink-0">
-                <div className="max-w-6xl mx-auto px-4 lg:px-6 py-3 flex items-center justify-between">
+            <header className="shrink-0">
+                <div className="flex items-center justify-between">
                     <div className="flex items-center gap-3">
                         <div className="w-9 h-9 rounded-lg bg-brand-pink flex items-center justify-center shadow-lg shadow-brand-pink/20">
                             <Headphones className="w-4.5 h-4.5 text-white" />
                         </div>
                         <div>
-                            <h1 className="text-sm font-bold text-white tracking-tight">
+                            <h1 className="text-sm font-bold text-gray-100 tracking-tight">
                                 DamaFace
                             </h1>
-                            <p className="text-[11px] text-neutral-500">
+                            <p className="text-[11px] text-gray-400">
                                 Consultoria Comercial
                             </p>
                         </div>
@@ -146,7 +146,7 @@ export default function ConsultantComercialPage() {
                                 <span className="text-xs font-medium">Conectado</span>
                             </div>
                         )}
-                        <div className="flex items-center gap-1.5 text-neutral-500">
+                        <div className="flex items-center gap-1.5 text-gray-500">
                             <Lock className="w-3.5 h-3.5" />
                             <span className="text-xs hidden sm:inline">Sessao criptografada</span>
                             <Shield className="w-3.5 h-3.5 sm:hidden" />
@@ -156,7 +156,7 @@ export default function ConsultantComercialPage() {
             </header>
 
             {/* Main */}
-            <main className="flex-1 flex flex-col max-w-6xl w-full mx-auto px-4 lg:px-6 py-5 gap-4">
+            <main className="flex-1 flex flex-col gap-4 min-h-0">
                 {/* Video area */}
                 <ConsultantVideo
                     status={consultantStatus}
@@ -184,12 +184,12 @@ export default function ConsultantComercialPage() {
             </main>
 
             {/* Footer */}
-            <footer className="shrink-0 border-t border-neutral-800/40 py-3">
-                <div className="max-w-6xl mx-auto px-4 lg:px-6 flex items-center justify-between">
-                    <span className="text-[11px] text-neutral-700">
+            <footer className="shrink-0 py-2 border-t border-gray-800">
+                <div className="flex items-center justify-between">
+                    <span className="text-[11px] text-gray-500">
                         DamaFace Consultoria Virtual
                     </span>
-                    <span className="text-[11px] text-neutral-700">
+                    <span className="text-[11px] text-gray-500">
                         Atendimento seguro e profissional
                     </span>
                 </div>

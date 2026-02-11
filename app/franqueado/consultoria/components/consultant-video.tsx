@@ -50,7 +50,7 @@ export function ConsultantVideo({
     const config = statusConfig[status]
 
     return (
-        <div className="relative flex-1 rounded-2xl overflow-hidden border border-neutral-800 bg-neutral-950 min-h-[360px] lg:min-h-[480px]">
+        <div className="relative flex-1 rounded-2xl overflow-hidden border border-gray-700/50 bg-gray-800/50 min-h-[360px] lg:min-h-[480px]">
             {/* Main content */}
             {isSessionActive && iframeUrl ? (
                 <iframe
@@ -61,20 +61,20 @@ export function ConsultantVideo({
                     allowFullScreen
                 />
             ) : (
-                <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-b from-neutral-950 via-neutral-900 to-neutral-950">
+                <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-b from-gray-900 via-gray-800 to-gray-900">
                     {/* Decorative rings */}
                     <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                        <div className="w-48 h-48 rounded-full border border-neutral-800/40 animate-pulse-ring" />
-                        <div className="absolute w-64 h-64 rounded-full border border-neutral-800/20 animate-pulse-ring [animation-delay:0.5s]" />
-                        <div className="absolute w-80 h-80 rounded-full border border-neutral-800/10 animate-pulse-ring [animation-delay:1s]" />
+                        <div className="w-48 h-48 rounded-full border border-gray-700/40 animate-pulse-ring" />
+                        <div className="absolute w-64 h-64 rounded-full border border-gray-700/20 animate-pulse-ring [animation-delay:0.5s]" />
+                        <div className="absolute w-80 h-80 rounded-full border border-gray-700/10 animate-pulse-ring [animation-delay:1s]" />
                     </div>
 
                     {/* Center avatar */}
                     <div className="relative z-10 flex flex-col items-center gap-5">
                         <div
-                            className={`w-24 h-24 rounded-full bg-neutral-800 border-2 border-neutral-700 flex items-center justify-center shadow-2xl ${config.bgGlow}`}
+                            className={`w-24 h-24 rounded-full bg-gray-700 border-2 border-gray-600 flex items-center justify-center shadow-2xl ${config.bgGlow}`}
                         >
-                            <Video className="w-10 h-10 text-neutral-500" />
+                            <Video className="w-10 h-10 text-gray-400" />
                         </div>
                         <div className="text-center">
                             <p className="text-sm font-medium text-neutral-300">
