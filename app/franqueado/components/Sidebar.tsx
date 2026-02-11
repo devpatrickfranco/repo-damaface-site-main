@@ -22,7 +22,9 @@ import {
   ClipboardList,
   Wrench,
   Store,
-  LucideIcon
+  LucideIcon,
+  PanelLeft,
+  PanelRight
 } from 'lucide-react'
 import { useRouter, usePathname } from 'next/navigation'
 import { useAuth } from '@/context/AuthContext'
@@ -32,6 +34,7 @@ import clsx from 'clsx'
 interface SidebarProps {
   isOpen: boolean
   onClose: () => void
+  onToggle: () => void
 }
 
 interface NavItem {
@@ -78,7 +81,7 @@ const NAV_LINKS: NavItem[] = [
   { id: 'usuarios', name: 'Usuarios', icon: Users2, route: '/franqueado/usuarios', roles: ADMIN_ROLES },
 ]
 
-const Sidebar = ({ isOpen, onClose }: SidebarProps) => {
+const Sidebar = ({ isOpen, onClose, onToggle }: SidebarProps) => {
   const { user } = useAuth()
   const router = useRouter()
   const pathname = usePathname()
@@ -96,12 +99,27 @@ const Sidebar = ({ isOpen, onClose }: SidebarProps) => {
       setExpandedMenu(prev => (prev === item.id ? null : item.id))
     } else {
       router.push(item.route)
-      onClose()
+      // On mobile, close sidebar after navigation
+      if (window.innerWidth < 1024) {
+        onClose()
+      }
     }
   }
 
   return (
     <>
+      {/* Toggle Button - Premium Floating Style */}
+      <button
+        onClick={onToggle}
+        className={clsx(
+          'fixed top-20 z-40 p-2 bg-gray-800 border-y border-r border-gray-700 rounded-r-lg shadow-lg text-gray-400 hover:text-white hover:bg-gray-700 transition-all duration-300 ease-in-out',
+          isOpen ? 'left-64' : 'left-0'
+        )}
+        aria-label={isOpen ? "Fechar menu" : "Abrir menu"}
+      >
+        {isOpen ? <PanelLeft className="w-5 h-5" /> : <PanelRight className="w-5 h-5" />}
+      </button>
+
       <aside
         className={clsx(
           'sidebar-custom fixed left-0 top-16 h-[calc(100vh-4rem)] w-64 bg-gray-900 border-r border-gray-700 z-30 transform transition-transform duration-300 ease-in-out overflow-y-auto shadow-lg',
@@ -195,4 +213,4 @@ const Sidebar = ({ isOpen, onClose }: SidebarProps) => {
   )
 }
 
-export default Sidebar
+export default Sidebar;

@@ -28,8 +28,12 @@ export default function FranqueadoLayout({
       ) : (
         // Página autenticada - COM Header e Sidebar
         <div className="min-h-screen bg-gray-900 text-gray-100">
-          <HeaderFranqueado onMenuClick={() => setIsSidebarOpen(!isSidebarOpen)} />
-          <Sidebar isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} />
+          <HeaderFranqueado />
+          <Sidebar
+            isOpen={isSidebarOpen}
+            onClose={() => setIsSidebarOpen(false)}
+            onToggle={() => setIsSidebarOpen(!isSidebarOpen)}
+          />
 
           {/* Main Content - com padding para não ficar atrás do header/sidebar */}
           <main
