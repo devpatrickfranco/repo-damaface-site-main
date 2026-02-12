@@ -189,25 +189,35 @@ export default function ConsultantPage() {
             const sessionData = await initializeSession()
             console.log("✅ [handleJoin] Sessão inicializada:", sessionData)
 
-            // 2. Obter mídia local (microfone)
-            console.log("🎤 [handleJoin] Passo 2: Obtendo mídia local (microfone)...")
+            // 2. Aguardar um pouco para o webrtcConfig ser criado e o peerConnection ser inicializado
+            console.log("⏳ [handleJoin] Aguardando peer connection ser criada...")
+            await new Promise(resolve => setTimeout(resolve, 500))
+
+            // Verificar se peerConnection foi criada
+            if (!peerConnection) {
+                throw new Error("Peer connection não foi criada após inicializar sessão. Verifique se o backend está retornando os dados corretos do HeyGen.")
+            }
+            console.log("✅ [handleJoin] Peer connection pronta:", peerConnection.connectionState)
+
+            // 3. Obter mídia local (microfone)
+            console.log("🎤 [handleJoin] Passo 3: Obtendo mídia local (microfone)...")
             await startLocalMedia()
             console.log("✅ [handleJoin] Mídia local obtida")
 
-            // 3. Criar oferta WebRTC
-            console.log("📞 [handleJoin] Passo 3: Criando oferta WebRTC...")
+            // 4. Criar oferta WebRTC
+            console.log("📞 [handleJoin] Passo 4: Criando oferta WebRTC...")
             const offer = await createOffer()
             console.log("✅ [handleJoin] Oferta criada:", offer)
 
-            // 4. Enviar oferta ao backend (que encaminha para HeyGen)
+            // 5. Enviar oferta ao backend (que encaminha para HeyGen)
             // HeyGen retorna um answer que o backend repassa
-            console.log("📤 [handleJoin] Passo 4: Enviando oferta ao backend...")
+            console.log("📤 [handleJoin] Passo 5: Enviando oferta ao backend...")
             const response = await connectSession(offer)
             console.log("✅ [handleJoin] Resposta recebida do backend:", response)
 
-            // 5. Aplicar answer do HeyGen (se houver)
+            // 6. Aplicar answer do HeyGen (se houver)
             if (response?.sdp) {
-                console.log("🔗 [handleJoin] Passo 5: Aplicando answer do HeyGen...")
+                console.log("🔗 [handleJoin] Passo 6: Aplicando answer do HeyGen...")
                 await peerConnection?.setRemoteDescription(
                     new RTCSessionDescription(response.sdp)
                 )
