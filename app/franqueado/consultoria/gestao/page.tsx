@@ -104,7 +104,7 @@ export default function ConsultantPage() {
         connectionState,
         videoRef,
         startLocalMedia,
-        createOffer,
+        createAnswer,
     } = useWebRTC(webrtcConfig)
 
     // Entrar na fila automaticamente
@@ -184,47 +184,47 @@ export default function ConsultantPage() {
         try {
             console.log("🚀 [handleJoin] Iniciando processo de entrada na sessão...")
 
-            // 1. Inicializar sessão no backend (cria sessão no HeyGen)
+            // 1. Inicializar sessão no backend (cria sessão no HeyGen e recebe SDP offer)
             console.log("📡 [handleJoin] Passo 1: Inicializando sessão no backend...")
             const sessionData = await initializeSession()
             console.log("✅ [handleJoin] Sessão inicializada:", sessionData)
 
-            // 2. Aguardar um pouco para o webrtcConfig ser criado e o peerConnection ser inicializado
+            // 2. Verificar se recebemos ICE servers
+            if (!sessionData.heygen_data.ice_servers || sessionData.heygen_data.ice_servers.length === 0) {
+                throw new Error("Backend não retornou ICE servers. Verifique se o endpoint /v1/streaming.new está sendo usado corretamente.")
+            }
+            console.log(`✅ [handleJoin] ICE servers recebidos: ${sessionData.heygen_data.ice_servers.length} servidores`)
+
+            // 3. Verificar se recebemos SDP offer do HeyGen
+            if (!sessionData.heygen_data.sdp) {
+                throw new Error("Backend não retornou SDP offer do HeyGen. Verifique a resposta da API.")
+            }
+            console.log("✅ [handleJoin] SDP offer recebido do HeyGen")
+
+            // 4. Aguardar um pouco para o webrtcConfig ser criado e o peerConnection ser inicializado
             console.log("⏳ [handleJoin] Aguardando peer connection ser criada...")
             await new Promise(resolve => setTimeout(resolve, 500))
 
             // Verificar se peerConnection foi criada
             if (!peerConnection) {
-                throw new Error("Peer connection não foi criada após inicializar sessão. Verifique se o backend está retornando os dados corretos do HeyGen.")
+                throw new Error("Peer connection não foi criada após inicializar sessão. Verifique se os ICE servers estão sendo configurados corretamente.")
             }
             console.log("✅ [handleJoin] Peer connection pronta:", peerConnection.connectionState)
 
-            // 3. Obter mídia local (microfone)
-            console.log("🎤 [handleJoin] Passo 3: Obtendo mídia local (microfone)...")
+            // 5. Obter mídia local (microfone)
+            console.log("🎤 [handleJoin] Passo 5: Obtendo mídia local (microfone)...")
             await startLocalMedia()
             console.log("✅ [handleJoin] Mídia local obtida")
 
-            // 4. Criar oferta WebRTC
-            console.log("📞 [handleJoin] Passo 4: Criando oferta WebRTC...")
-            const offer = await createOffer()
-            console.log("✅ [handleJoin] Oferta criada:", offer)
+            // 6. Criar resposta (answer) para o offer do HeyGen
+            console.log("📞 [handleJoin] Passo 6: Criando answer para o offer do HeyGen...")
+            const answer = await createAnswer(sessionData.heygen_data.sdp)
+            console.log("✅ [handleJoin] Answer criado:", answer)
 
-            // 5. Enviar oferta ao backend (que encaminha para HeyGen)
-            // HeyGen retorna um answer que o backend repassa
-            console.log("📤 [handleJoin] Passo 5: Enviando oferta ao backend...")
-            const response = await connectSession(offer)
+            // 7. Enviar answer ao backend (que encaminha para HeyGen)
+            console.log("📤 [handleJoin] Passo 7: Enviando answer ao backend...")
+            const response = await connectSession(answer)
             console.log("✅ [handleJoin] Resposta recebida do backend:", response)
-
-            // 6. Aplicar answer do HeyGen (se houver)
-            if (response?.sdp) {
-                console.log("🔗 [handleJoin] Passo 6: Aplicando answer do HeyGen...")
-                await peerConnection?.setRemoteDescription(
-                    new RTCSessionDescription(response.sdp)
-                )
-                console.log("✅ [handleJoin] Answer aplicado com sucesso")
-            } else {
-                console.warn("⚠️ [handleJoin] Resposta não contém SDP:", response)
-            }
 
             console.log("🎉 [handleJoin] Processo concluído com sucesso!")
         } catch (error: any) {
