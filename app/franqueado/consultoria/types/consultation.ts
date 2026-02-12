@@ -34,8 +34,8 @@ export interface SessionResponse {
   heygen_data: {
     session_id: string;
     session_token: string;
+    url: string; // WebSocket URL
     ice_servers?: RTCIceServer[];
-    sdp?: RTCSessionDescriptionInit;
     [key: string]: any;
   };
 }
@@ -43,6 +43,7 @@ export interface SessionResponse {
 export interface WebRTCConfig {
   sessionId: string;
   sessionToken: string;
+  websocketUrl: string;
   iceServers?: RTCIceServer[];
   onTrack?: (event: RTCTrackEvent) => void;
   onIceCandidate?: (candidate: RTCIceCandidate) => void;
