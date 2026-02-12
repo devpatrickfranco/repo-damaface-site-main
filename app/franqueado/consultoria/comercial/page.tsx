@@ -71,9 +71,25 @@ export default function ConsultantPage() {
         return {
             sessionId: session.heygen_data.session_id,
             sessionToken: session.heygen_data.session_token,
-            websocketUrl: session.heygen_data.url,
             iceServers: session.heygen_data.ice_servers,
             enabled: true,
+            sendOffer: async (offer: RTCSessionDescriptionInit) => {
+                console.log("📤 [page] Enviando Offer para o backend...");
+                const response = await connectSession(offer);
+                console.log("📥 [page] Resposta recebida do backend:", response);
+
+                // Extrair SDP Answer da resposta
+                // Adapte conforme a estrutura real retornada pelo seu backend/HeyGen
+                const sdp = response.sdp || response.data?.sdp;
+                if (!sdp) {
+                    throw new Error("Backend não retornou SDP Answer");
+                }
+                return sdp;
+            },
+            sendIceCandidate: async (candidate: RTCIceCandidate) => {
+                console.log("🧊 [page] Enviando ICE Candidate...");
+                await sendIceCandidate(candidate);
+            },
             onConnectionStateChange: (state: RTCPeerConnectionState) => {
                 if (state === "connected") {
                     setPhase("active")
@@ -92,7 +108,6 @@ export default function ConsultantPage() {
         videoRef,
         startLocalMedia,
         createAndSendOffer,
-        wsConnected,
         isReady,
     } = useWebRTC(webrtcConfig)
 
@@ -175,24 +190,22 @@ export default function ConsultantPage() {
             const sessionData = await initializeSession()
 
             // 2. Verificar dados recebidos
+            // 2. Verificar dados recebidos
             if (!sessionData.heygen_data.session_token) {
                 throw new Error("Backend não retornou session_token")
             }
-            if (!sessionData.heygen_data.url) {
-                throw new Error("Backend não retornou WebSocket URL")
-            }
 
-            // 3. Aguardar WebRTC e WebSocket serem inicializados
+            // 3. Aguardar WebRTC ser inicializado
             await new Promise(resolve => setTimeout(resolve, 1000))
 
-            if (!isReady || !wsConnected) {
-                throw new Error("WebRTC ou WebSocket ainda não estão prontos")
+            if (!isReady) {
+                throw new Error("WebRTC ainda não está pronto")
             }
 
             // 4. Obter mídia local (microfone)
             await startLocalMedia()
 
-            // 5. Criar e enviar Offer via WebSocket
+            // 5. Criar e enviar Offer via REST
             await createAndSendOffer()
         } catch (error: any) {
             console.error("Erro ao entrar na sessão:", error)

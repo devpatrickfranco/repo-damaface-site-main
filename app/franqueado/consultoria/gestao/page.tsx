@@ -74,7 +74,6 @@ export default function ConsultantPage() {
         console.log("🔌 [webrtcConfig] Criando configuração WebRTC:", {
             sessionId: session.heygen_data.session_id,
             sessionToken: session.heygen_data.session_token?.substring(0, 20) + '...',
-            websocketUrl: session.heygen_data.url,
             hasIceServers: !!session.heygen_data.ice_servers,
             iceServersCount: session.heygen_data.ice_servers?.length || 0
         })
@@ -82,9 +81,25 @@ export default function ConsultantPage() {
         return {
             sessionId: session.heygen_data.session_id,
             sessionToken: session.heygen_data.session_token,
-            websocketUrl: session.heygen_data.url,
             iceServers: session.heygen_data.ice_servers,
             enabled: true,
+            sendOffer: async (offer: RTCSessionDescriptionInit) => {
+                console.log("📤 [page] Enviando Offer para o backend...");
+                const response = await connectSession(offer);
+                console.log("📥 [page] Resposta recebida do backend:", response);
+
+                // Extrair SDP Answer da resposta
+                // Adapte conforme a estrutura real retornada pelo seu backend/HeyGen
+                const sdp = response.sdp || response.data?.sdp;
+                if (!sdp) {
+                    throw new Error("Backend não retornou SDP Answer");
+                }
+                return sdp;
+            },
+            sendIceCandidate: async (candidate: RTCIceCandidate) => {
+                console.log("🧊 [page] Enviando ICE Candidate...");
+                await sendIceCandidate(candidate);
+            },
             onConnectionStateChange: (state: RTCPeerConnectionState) => {
                 console.log("🔄 [webrtcConfig] Estado da conexão mudou:", state)
                 if (state === "connected") {
@@ -105,7 +120,6 @@ export default function ConsultantPage() {
         videoRef,
         startLocalMedia,
         createAndSendOffer,
-        wsConnected,
         isReady,
     } = useWebRTC(webrtcConfig)
 
@@ -195,41 +209,37 @@ export default function ConsultantPage() {
             if (!sessionData.heygen_data.session_token) {
                 throw new Error("Backend não retornou session_token")
             }
-            if (!sessionData.heygen_data.url) {
-                throw new Error("Backend não retornou WebSocket URL")
-            }
             if (!sessionData.heygen_data.ice_servers || sessionData.heygen_data.ice_servers.length === 0) {
                 console.warn("⚠️ Backend não retornou ICE servers, usando STUN padrão")
             }
 
             console.log(`✅ [handleJoin] Dados da sessão:`)
             console.log(`   - Session Token: ${sessionData.heygen_data.session_token.substring(0, 20)}...`)
-            console.log(`   - WebSocket URL: ${sessionData.heygen_data.url}`)
             console.log(`   - ICE Servers: ${sessionData.heygen_data.ice_servers?.length || 0} servidores`)
 
-            // 3. Aguardar peer connection e WebSocket serem criados
-            console.log("⏳ [handleJoin] Aguardando WebRTC e WebSocket serem inicializados...")
+            // 3. Aguardar peer connection ser criada
+            console.log("⏳ [handleJoin] Aguardando WebRTC ser inicializado...")
             await new Promise(resolve => setTimeout(resolve, 1000))
 
             // Verificar se WebRTC está pronto
-            if (!isReady || !wsConnected) {
-                console.log(`⏳ [handleJoin] Ainda não pronto... isReady: ${isReady}, wsConnected: ${wsConnected}`)
-                throw new Error("WebRTC ou WebSocket ainda não estão prontos. Aguarde alguns segundos.")
+            if (!isReady) {
+                console.log(`⏳ [handleJoin] Ainda não pronto... isReady: ${isReady}`)
+                throw new Error("WebRTC ainda não está pronto. Aguarde alguns segundos.")
             }
 
-            console.log("✅ [handleJoin] WebRTC e WebSocket prontos!")
+            console.log("✅ [handleJoin] WebRTC pronto!")
 
             // 4. Obter mídia local (microfone)
             console.log("🎤 [handleJoin] Passo 4: Obtendo mídia local (microfone)...")
             await startLocalMedia()
             console.log("✅ [handleJoin] Mídia local obtida")
 
-            // 5. Criar e enviar Offer via WebSocket
-            console.log("📞 [handleJoin] Passo 5: Criando e enviando Offer via WebSocket...")
+            // 5. Criar e enviar Offer via REST
+            console.log("📞 [handleJoin] Passo 5: Criando e enviando Offer via REST...")
             await createAndSendOffer()
             console.log("✅ [handleJoin] Offer enviado, aguardando Answer do LiveAvatar...")
 
-            // O Answer virá automaticamente via WebSocket e será processado pelo hook
+            // O Answer será processado automaticamente pelo hook
             console.log("🎉 [handleJoin] Processo concluído! Aguardando conexão WebRTC...")
 
         } catch (error: any) {

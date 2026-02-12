@@ -1,12 +1,12 @@
 // hooks/useWebRTC.ts
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { useWebSocketLiveAvatar } from './useWebSocketLiveAvatar';
 
 interface UseWebRTCConfig {
     sessionToken?: string;
-    websocketUrl?: string;
     iceServers?: RTCIceServer[];
     onConnectionStateChange?: (state: RTCPeerConnectionState) => void;
+    sendOffer?: (offer: RTCSessionDescriptionInit) => Promise<RTCSessionDescriptionInit>;
+    sendIceCandidate?: (candidate: RTCIceCandidate) => Promise<void>;
     enabled?: boolean;
 }
 
@@ -18,42 +18,6 @@ export function useWebRTC(config: UseWebRTCConfig | null) {
     const videoRef = useRef<HTMLVideoElement | null>(null);
     const [isReady, setIsReady] = useState(false);
 
-    // WebSocket connection
-    const {
-        isConnected: wsConnected,
-        sendOffer,
-        sendIceCandidate: wsSendIceCandidate,
-    } = useWebSocketLiveAvatar({
-        websocketUrl: config?.websocketUrl,
-        sessionToken: config?.sessionToken,
-        enabled: config?.enabled && !!config?.websocketUrl && !!config?.sessionToken,
-        onAnswer: async (sdp) => {
-            if (!peerConnection) return;
-
-            console.log('📞 [WebRTC] Recebendo Answer do LiveAvatar');
-            try {
-                await peerConnection.setRemoteDescription(new RTCSessionDescription(sdp));
-                console.log('✅ [WebRTC] Remote Description configurado');
-            } catch (error) {
-                console.error('❌ [WebRTC] Erro ao configurar remote description:', error);
-            }
-        },
-        onIceCandidate: async (candidate) => {
-            if (!peerConnection) return;
-
-            console.log('🧊 [WebRTC] Recebendo ICE Candidate do LiveAvatar');
-            try {
-                await peerConnection.addIceCandidate(new RTCIceCandidate(candidate));
-                console.log('✅ [WebRTC] ICE Candidate adicionado');
-            } catch (error) {
-                console.error('❌ [WebRTC] Erro ao adicionar ICE candidate:', error);
-            }
-        },
-        onError: (error) => {
-            console.error('❌ [WebSocket] Erro:', error);
-        },
-    });
-
     // Criar PeerConnection
     useEffect(() => {
         if (!config || !config.enabled) {
@@ -61,6 +25,9 @@ export function useWebRTC(config: UseWebRTCConfig | null) {
                 console.log('🔌 [WebRTC] Fechando peer connection');
                 peerConnection.close();
                 setPeerConnection(null);
+                setLocalStream(null);
+                setRemoteStream(null);
+                setIsReady(false);
             }
             return;
         }
@@ -83,11 +50,13 @@ export function useWebRTC(config: UseWebRTCConfig | null) {
             }
         };
 
-        // ICE Candidate local → enviar via WebSocket
+        // ICE Candidate local → enviar via callback
         pc.onicecandidate = (event) => {
-            if (event.candidate) {
+            if (event.candidate && config.sendIceCandidate) {
                 console.log('🧊 [WebRTC] ICE Candidate local gerado');
-                wsSendIceCandidate(event.candidate);
+                config.sendIceCandidate(event.candidate).catch(err =>
+                    console.error('❌ [WebRTC] Erro ao enviar ICE candidate:', err)
+                );
             }
         };
 
@@ -109,7 +78,7 @@ export function useWebRTC(config: UseWebRTCConfig | null) {
             console.log('🔌 [WebRTC] Limpando peer connection');
             pc.close();
         };
-    }, [config?.enabled]);
+    }, [config?.enabled, config?.sessionToken]); // Recria se sessionToken mudar
 
     // Obter mídia local (microfone)
     const startLocalMedia = useCallback(async () => {
@@ -148,8 +117,8 @@ export function useWebRTC(config: UseWebRTCConfig | null) {
             throw new Error('Peer connection não inicializada');
         }
 
-        if (!wsConnected) {
-            throw new Error('WebSocket não conectado');
+        if (!config?.sendOffer) {
+            throw new Error('Callback sendOffer não configurado');
         }
 
         console.log('📞 [WebRTC] Criando SDP Offer...');
@@ -162,16 +131,20 @@ export function useWebRTC(config: UseWebRTCConfig | null) {
             await peerConnection.setLocalDescription(offer);
             console.log('✅ [WebRTC] Local Description configurado');
 
-            // Enviar offer via WebSocket
-            console.log('📤 [WebRTC] Enviando Offer via WebSocket');
-            sendOffer(offer);
+            // Enviar offer via callback e aguardar answer
+            console.log('📤 [WebRTC] Enviando Offer via REST...');
+            const answer = await config.sendOffer(offer);
+
+            console.log('📥 [WebRTC] Resposta (Answer) recebida');
+            await peerConnection.setRemoteDescription(new RTCSessionDescription(answer));
+            console.log('✅ [WebRTC] Remote Description configurado');
 
             return offer;
         } catch (error) {
-            console.error('❌ [WebRTC] Erro ao criar offer:', error);
+            console.error('❌ [WebRTC] Erro ao negocia WebRTC:', error);
             throw error;
         }
-    }, [peerConnection, wsConnected, sendOffer]);
+    }, [peerConnection, config?.sendOffer]);
 
     // Parar mídia local
     const stopLocalMedia = useCallback(() => {
@@ -188,7 +161,6 @@ export function useWebRTC(config: UseWebRTCConfig | null) {
         localStream,
         remoteStream,
         videoRef,
-        wsConnected,
         isReady,
         startLocalMedia,
         stopLocalMedia,
