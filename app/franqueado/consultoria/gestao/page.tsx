@@ -88,10 +88,11 @@ export default function ConsultantPage() {
     }, [session?.heygen_data.session_id]); // Só recria quando session_id mudar
 
     const {
+        peerConnection,
         connectionState,
         videoRef,
         startLocalMedia,
-        createAnswer,
+        createOffer,
     } = useWebRTC(webrtcConfig)
 
     // Entrar na fila automaticamente
@@ -169,18 +170,24 @@ export default function ConsultantPage() {
         }
 
         try {
-            // 1. Inicializar sessão
+            // 1. Inicializar sessão no backend (cria sessão no HeyGen)
             const sessionData = await initializeSession()
 
-            // 2. Obter mídia local
+            // 2. Obter mídia local (microfone)
             await startLocalMedia()
 
-            // 3. Criar SDP answer se o backend enviar oferta
-            if (sessionData.heygen_data.sdp) {
-                const answer = await createAnswer(sessionData.heygen_data.sdp)
+            // 3. Criar oferta WebRTC
+            const offer = await createOffer()
 
-                // 4. Enviar SDP ao backend
-                await connectSession(answer)
+            // 4. Enviar oferta ao backend (que encaminha para HeyGen)
+            // HeyGen retorna um answer que o backend repassa
+            const response = await connectSession(offer)
+
+            // 5. Aplicar answer do HeyGen (se houver)
+            if (response?.sdp) {
+                await peerConnection?.setRemoteDescription(
+                    new RTCSessionDescription(response.sdp)
+                )
             }
         } catch (error: any) {
             console.error("Erro ao entrar na sessão:", error)
