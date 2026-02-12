@@ -34,6 +34,8 @@ export interface SessionResponse {
   heygen_data: {
     session_id: string;
     session_token: string;
+    livekit_url?: string;
+    livekit_token?: string;
     url?: string; // WebSocket URL (optional, may not be present in REST flow)
     ice_servers?: RTCIceServer[];
     [key: string]: any;

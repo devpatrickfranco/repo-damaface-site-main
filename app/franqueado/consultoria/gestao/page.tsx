@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect, useMemo } from "react"
+import { useState, useEffect } from "react"
 import { ConsultantVideo } from "../components/consultant-video"
 import {
     SessionControls,
@@ -8,8 +8,10 @@ import {
 } from "../components/session-controls"
 import { useConsultationQueue } from "../hooks/useConsultationQueue"
 import { useConsultationSession } from "../hooks/useConsultationSession"
-import { useWebRTC } from "../hooks/useWebRTC"
 import { Headphones, Shield, Lock } from "lucide-react"
+
+import { LiveKitRoom, VideoConference } from "@livekit/components-react"
+import "@livekit/components-styles"
 
 const AGENT_TYPE = "gestao"
 const TOTAL_SESSION_TIME = 900 // 15 minutes
@@ -49,8 +51,6 @@ export default function ConsultantPage() {
         session,
         isInitializing,
         initializeSession,
-        connectSession,
-        sendIceCandidate,
         terminateSession,
     } = useConsultationSession({
         agentType: AGENT_TYPE,
@@ -63,65 +63,6 @@ export default function ConsultantPage() {
             console.error("Erro na sessão:", error)
         },
     })
-
-    // Hook WebRTC - Memoizar config para evitar re-criação infinita de RTCPeerConnection
-    const webrtcConfig = useMemo(() => {
-        if (!session) {
-            console.log("🔌 [webrtcConfig] Sessão não existe, retornando null")
-            return null;
-        }
-
-        console.log("🔌 [webrtcConfig] Criando configuração WebRTC:", {
-            sessionId: session.heygen_data.session_id,
-            sessionToken: session.heygen_data.session_token?.substring(0, 20) + '...',
-            hasIceServers: !!session.heygen_data.ice_servers,
-            iceServersCount: session.heygen_data.ice_servers?.length || 0
-        })
-
-        return {
-            sessionId: session.heygen_data.session_id,
-            sessionToken: session.heygen_data.session_token,
-            iceServers: session.heygen_data.ice_servers,
-            enabled: true,
-            sendOffer: async (offer: RTCSessionDescriptionInit) => {
-                console.log("📤 [page] Enviando Offer para o backend...");
-                const response = await connectSession(offer);
-                console.log("📥 [page] Resposta recebida do backend:", response);
-
-                // Extrair SDP Answer da resposta
-                // Adapte conforme a estrutura real retornada pelo seu backend/HeyGen
-                const sdp = response.sdp || response.data?.sdp;
-                if (!sdp) {
-                    throw new Error("Backend não retornou SDP Answer");
-                }
-                return sdp;
-            },
-            sendIceCandidate: async (candidate: RTCIceCandidate) => {
-                console.log("🧊 [page] Enviando ICE Candidate...");
-                await sendIceCandidate(candidate);
-            },
-            onConnectionStateChange: (state: RTCPeerConnectionState) => {
-                console.log("🔄 [webrtcConfig] Estado da conexão mudou:", state)
-                if (state === "connected") {
-                    console.log("✅ [webrtcConfig] WebRTC conectado! Mudando para fase 'active'")
-                    setPhase("active")
-                    setConsultantStatus("speaking")
-                    setTimeRemaining(TOTAL_SESSION_TIME)
-                } else if (state === "failed" || state === "disconnected") {
-                    console.error("❌ [webrtcConfig] Conexão WebRTC perdida:", state)
-                }
-            },
-        };
-    }, [session?.heygen_data.session_id]); // Só recria quando session_id mudar
-
-    const {
-        peerConnection,
-        connectionState,
-        videoRef,
-        startLocalMedia,
-        createAndSendOffer,
-        isReady,
-    } = useWebRTC(webrtcConfig)
 
     // Entrar na fila automaticamente
     useEffect(() => {
@@ -198,53 +139,21 @@ export default function ConsultantPage() {
         }
 
         try {
-            console.log("🚀 [handleJoin] Iniciando processo de entrada na sessão...")
-
             // 1. Inicializar sessão no backend
-            console.log("📡 [handleJoin] Passo 1: Inicializando sessão no backend...")
             const sessionData = await initializeSession()
-            console.log("✅ [handleJoin] Sessão inicializada:", sessionData)
 
             // 2. Verificar dados recebidos
-            if (!sessionData.heygen_data.session_token) {
-                throw new Error("Backend não retornou session_token")
-            }
-            if (!sessionData.heygen_data.ice_servers || sessionData.heygen_data.ice_servers.length === 0) {
-                console.warn("⚠️ Backend não retornou ICE servers, usando STUN padrão")
+            if (!sessionData.heygen_data.livekit_token) {
+                throw new Error("Backend não retornou livekit_token")
             }
 
-            console.log(`✅ [handleJoin] Dados da sessão:`)
-            console.log(`   - Session Token: ${sessionData.heygen_data.session_token.substring(0, 20)}...`)
-            console.log(`   - ICE Servers: ${sessionData.heygen_data.ice_servers?.length || 0} servidores`)
-
-            // 3. Aguardar peer connection ser criada
-            console.log("⏳ [handleJoin] Aguardando WebRTC ser inicializado...")
-            await new Promise(resolve => setTimeout(resolve, 1000))
-
-            // Verificar se WebRTC está pronto
-            if (!isReady) {
-                console.log(`⏳ [handleJoin] Ainda não pronto... isReady: ${isReady}`)
-                throw new Error("WebRTC ainda não está pronto. Aguarde alguns segundos.")
-            }
-
-            console.log("✅ [handleJoin] WebRTC pronto!")
-
-            // 4. Obter mídia local (microfone)
-            console.log("🎤 [handleJoin] Passo 4: Obtendo mídia local (microfone)...")
-            await startLocalMedia()
-            console.log("✅ [handleJoin] Mídia local obtida")
-
-            // 5. Criar e enviar Offer via REST
-            console.log("📞 [handleJoin] Passo 5: Criando e enviando Offer via REST...")
-            await createAndSendOffer()
-            console.log("✅ [handleJoin] Offer enviado, aguardando Answer do LiveAvatar...")
-
-            // O Answer será processado automaticamente pelo hook
-            console.log("🎉 [handleJoin] Processo concluído! Aguardando conexão WebRTC...")
+            // 3. Atualizar estado para conectar ao LiveKit
+            setPhase("active")
+            setConsultantStatus("speaking")
+            setTimeRemaining(TOTAL_SESSION_TIME)
 
         } catch (error: any) {
-            console.error("❌ [handleJoin] Erro ao entrar na sessão:", error)
-            console.error("❌ [handleJoin] Stack trace:", error.stack)
+            console.error("Erro ao entrar na sessão:", error)
             // Em caso de erro, volta para a fila
             setPhase("queue")
             setConsultantStatus("waiting")
@@ -299,14 +208,29 @@ export default function ConsultantPage() {
             {/* Main */}
             <main className="flex-1 flex flex-col gap-4 min-h-0">
                 {/* Video area */}
-                <ConsultantVideo
-                    status={consultantStatus}
-                    onToggleMic={() => setIsMicOn(!isMicOn)}
-                    isMicOn={isMicOn}
-                    isSessionActive={isSessionActive}
-                    videoRef={videoRef}
-                    title="Consultor de Gestão"
-                />
+                {isSessionActive && session?.heygen_data.livekit_token ? (
+                    <div className="relative flex-1 rounded-2xl overflow-hidden border border-gray-700/50 bg-gray-800/50 min-h-[360px] lg:min-h-[480px]">
+                        <LiveKitRoom
+                            video={isMicOn}
+                            audio={isMicOn}
+                            token={session.heygen_data.livekit_token}
+                            serverUrl={session.heygen_data.livekit_url || "wss://heygen-feapbkvq.livekit.cloud"}
+                            data-lk-theme="default"
+                            style={{ height: '100%' }}
+                            onDisconnected={handleEnd}
+                        >
+                            <VideoConference />
+                        </LiveKitRoom>
+                    </div>
+                ) : (
+                    <ConsultantVideo
+                        status={consultantStatus}
+                        onToggleMic={() => setIsMicOn(!isMicOn)}
+                        isMicOn={isMicOn}
+                        isSessionActive={false}
+                        title="Consultor de Gestão"
+                    />
+                )}
 
                 {/* Controls */}
                 <SessionControls
