@@ -71,10 +71,9 @@ export default function ConsultantPage() {
         return {
             sessionId: session.heygen_data.session_id,
             sessionToken: session.heygen_data.session_token,
+            websocketUrl: session.heygen_data.url,
             iceServers: session.heygen_data.ice_servers,
-            onIceCandidate: (candidate: RTCIceCandidate) => {
-                sendIceCandidate(candidate)
-            },
+            enabled: true,
             onConnectionStateChange: (state: RTCPeerConnectionState) => {
                 if (state === "connected") {
                     setPhase("active")
@@ -92,7 +91,9 @@ export default function ConsultantPage() {
         connectionState,
         videoRef,
         startLocalMedia,
-        createOffer,
+        createAndSendOffer,
+        wsConnected,
+        isReady,
     } = useWebRTC(webrtcConfig)
 
     // Entrar na fila automaticamente
@@ -170,25 +171,29 @@ export default function ConsultantPage() {
         }
 
         try {
-            // 1. Inicializar sessão no backend (cria sessão no HeyGen)
+            // 1. Inicializar sessão no backend
             const sessionData = await initializeSession()
 
-            // 2. Obter mídia local (microfone)
+            // 2. Verificar dados recebidos
+            if (!sessionData.heygen_data.session_token) {
+                throw new Error("Backend não retornou session_token")
+            }
+            if (!sessionData.heygen_data.url) {
+                throw new Error("Backend não retornou WebSocket URL")
+            }
+
+            // 3. Aguardar WebRTC e WebSocket serem inicializados
+            await new Promise(resolve => setTimeout(resolve, 1000))
+
+            if (!isReady || !wsConnected) {
+                throw new Error("WebRTC ou WebSocket ainda não estão prontos")
+            }
+
+            // 4. Obter mídia local (microfone)
             await startLocalMedia()
 
-            // 3. Criar oferta WebRTC
-            const offer = await createOffer()
-
-            // 4. Enviar oferta ao backend (que encaminha para HeyGen)
-            // HeyGen retorna um answer que o backend repassa
-            const response = await connectSession(offer)
-
-            // 5. Aplicar answer do HeyGen (se houver)
-            if (response?.sdp) {
-                await peerConnection?.setRemoteDescription(
-                    new RTCSessionDescription(response.sdp)
-                )
-            }
+            // 5. Criar e enviar Offer via WebSocket
+            await createAndSendOffer()
         } catch (error: any) {
             console.error("Erro ao entrar na sessão:", error)
             // Em caso de erro, volta para a fila
