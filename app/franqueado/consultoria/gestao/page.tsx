@@ -66,22 +66,34 @@ export default function ConsultantPage() {
 
     // Hook WebRTC - Memoizar config para evitar re-criação infinita de RTCPeerConnection
     const webrtcConfig = useMemo(() => {
-        if (!session) return null;
+        if (!session) {
+            console.log("🔌 [webrtcConfig] Sessão não existe, retornando null")
+            return null;
+        }
+
+        console.log("🔌 [webrtcConfig] Criando configuração WebRTC:", {
+            sessionId: session.heygen_data.session_id,
+            hasIceServers: !!session.heygen_data.ice_servers,
+            iceServersCount: session.heygen_data.ice_servers?.length || 0
+        })
 
         return {
             sessionId: session.heygen_data.session_id,
             sessionToken: session.heygen_data.session_token,
             iceServers: session.heygen_data.ice_servers,
             onIceCandidate: (candidate: RTCIceCandidate) => {
+                console.log("🧊 [webrtcConfig] ICE candidate gerado:", candidate)
                 sendIceCandidate(candidate)
             },
             onConnectionStateChange: (state: RTCPeerConnectionState) => {
+                console.log("🔄 [webrtcConfig] Estado da conexão mudou:", state)
                 if (state === "connected") {
+                    console.log("✅ [webrtcConfig] WebRTC conectado! Mudando para fase 'active'")
                     setPhase("active")
                     setConsultantStatus("speaking")
                     setTimeRemaining(TOTAL_SESSION_TIME)
                 } else if (state === "failed" || state === "disconnected") {
-                    console.error("Conexão WebRTC perdida")
+                    console.error("❌ [webrtcConfig] Conexão WebRTC perdida:", state)
                 }
             },
         };
@@ -170,27 +182,44 @@ export default function ConsultantPage() {
         }
 
         try {
+            console.log("🚀 [handleJoin] Iniciando processo de entrada na sessão...")
+
             // 1. Inicializar sessão no backend (cria sessão no HeyGen)
+            console.log("📡 [handleJoin] Passo 1: Inicializando sessão no backend...")
             const sessionData = await initializeSession()
+            console.log("✅ [handleJoin] Sessão inicializada:", sessionData)
 
             // 2. Obter mídia local (microfone)
+            console.log("🎤 [handleJoin] Passo 2: Obtendo mídia local (microfone)...")
             await startLocalMedia()
+            console.log("✅ [handleJoin] Mídia local obtida")
 
             // 3. Criar oferta WebRTC
+            console.log("📞 [handleJoin] Passo 3: Criando oferta WebRTC...")
             const offer = await createOffer()
+            console.log("✅ [handleJoin] Oferta criada:", offer)
 
             // 4. Enviar oferta ao backend (que encaminha para HeyGen)
             // HeyGen retorna um answer que o backend repassa
+            console.log("📤 [handleJoin] Passo 4: Enviando oferta ao backend...")
             const response = await connectSession(offer)
+            console.log("✅ [handleJoin] Resposta recebida do backend:", response)
 
             // 5. Aplicar answer do HeyGen (se houver)
             if (response?.sdp) {
+                console.log("🔗 [handleJoin] Passo 5: Aplicando answer do HeyGen...")
                 await peerConnection?.setRemoteDescription(
                     new RTCSessionDescription(response.sdp)
                 )
+                console.log("✅ [handleJoin] Answer aplicado com sucesso")
+            } else {
+                console.warn("⚠️ [handleJoin] Resposta não contém SDP:", response)
             }
+
+            console.log("🎉 [handleJoin] Processo concluído com sucesso!")
         } catch (error: any) {
-            console.error("Erro ao entrar na sessão:", error)
+            console.error("❌ [handleJoin] Erro ao entrar na sessão:", error)
+            console.error("❌ [handleJoin] Stack trace:", error.stack)
             // Em caso de erro, volta para a fila
             setPhase("queue")
             setConsultantStatus("waiting")
