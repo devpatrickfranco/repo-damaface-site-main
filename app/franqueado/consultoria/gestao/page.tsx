@@ -10,7 +10,7 @@ import { useConsultationQueue } from "../hooks/useConsultationQueue"
 import { useConsultationSession } from "../hooks/useConsultationSession"
 import { Headphones, Shield, Lock } from "lucide-react"
 import { useMemo } from "react"
-import { Room } from "livekit-client"
+import { Room, createLocalAudioTrack, LocalAudioTrack } from "livekit-client"
 import { LiveKitRoom } from "@livekit/components-react"
 import { HeyGenAvatar } from "../components/HeyGenAvatar"
 import "@livekit/components-styles"
@@ -30,7 +30,10 @@ export default function ConsultantPage() {
     >("waiting")
 
     // Instância fixa do LiveKit Room
-    const room = useMemo(() => new Room(), [])
+    const room = useMemo(() => new Room({
+        adaptiveStream: true,
+        dynacast: true,
+    }), [])
 
     // Hook de fila
     const {
@@ -154,18 +157,36 @@ export default function ConsultantPage() {
         }
 
         try {
-            // 1. Inicializar sessão no backend
+            // 1. Solicitar permissão de áudio agora (preservar gesto do usuário)
+            let audioTrack: LocalAudioTrack | undefined;
+            try {
+                audioTrack = await createLocalAudioTrack({
+                    echoCancellation: true,
+                    noiseSuppression: true,
+                    autoGainControl: true,
+                });
+            } catch (err) {
+                console.warn("⚠️ Permissão de microfone negada ou erro:", err);
+            }
+
+            // 2. Inicializar sessão no backend
             const sessionData = await initializeSession()
 
-            // 2. Verificar dados recebidos
+            // 3. Verificar dados recebidos
             if (!sessionData.heygen_data.livekit_token) {
+                audioTrack?.stop();
                 throw new Error("Backend não retornou livekit_token")
             }
 
-            // 3. Atualizar estado para conectar ao LiveKit
+            // 4. Atualizar estado para conectar ao LiveKit
             setPhase("active")
             setConsultantStatus("speaking")
             setTimeRemaining(TOTAL_SESSION_TIME)
+
+            // 5. Iniciar voice chat com o track já criado
+            if (audioTrack) {
+                startVoiceChat(audioTrack);
+            }
 
         } catch (error: any) {
             console.error("Erro ao entrar na sessão:", error)
@@ -231,9 +252,7 @@ export default function ConsultantPage() {
                             serverUrl={session.heygen_data.livekit_url || "wss://heygen-feapbkvq.livekit.cloud"}
                             style={{ height: '100%' }}
                             onConnected={() => {
-                                console.log("🎤 [Session] Conectado! Ativando Voice Chat...");
-                                startVoiceChat();
-                                startListening();
+                                console.log("🎤 [Session] Conectado! Aguardando voz...");
                             }}
                             onDisconnected={handleEnd}
                         >

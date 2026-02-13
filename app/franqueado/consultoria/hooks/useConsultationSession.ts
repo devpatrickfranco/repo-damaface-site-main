@@ -129,27 +129,65 @@ export function useConsultationSession({
         }
     }, [agentType, onError]);
 
+    // Comandos do Avatar via Data Channel
+    const sendAvatarCommand = useCallback(async (eventType: string, data?: any) => {
+        if (!room) {
+            console.warn('⚠️ [useConsultationSession] Room não definida. Não foi possível enviar comando.');
+            return;
+        }
+
+        try {
+            const encoder = new TextEncoder();
+            const payload = { event_type: eventType, ...data };
+            const encodedData = encoder.encode(JSON.stringify(payload));
+
+            await room.localParticipant.publishData(encodedData, {
+                topic: 'agent-control',
+                reliable: true,
+            });
+            console.log(`📤 [useConsultationSession] Comando enviado: ${eventType}`, payload);
+        } catch (error) {
+            console.error(`❌ [useConsultationSession] Erro ao enviar comando ${eventType}:`, error);
+        }
+    }, [room]);
+
+    const startListening = useCallback(() => sendAvatarCommand('avatar.start_listening'), [sendAvatarCommand]);
+    const stopListening = useCallback(() => sendAvatarCommand('avatar.stop_listening'), [sendAvatarCommand]);
+    const interrupt = useCallback(() => sendAvatarCommand('avatar.interrupt'), [sendAvatarCommand]);
+
     // Iniciar Voice Chat (Publicar Microfone)
-    const startVoiceChat = useCallback(async () => {
+    const startVoiceChat = useCallback(async (existingTrack?: LocalAudioTrack) => {
         if (!room) return;
 
         try {
             console.log('🎤 [useConsultationSession] Iniciando Voice Chat...');
-            const track = await createLocalAudioTrack({
-                echoCancellation: true,
-                noiseSuppression: true,
-                autoGainControl: true,
-            });
+            let track = existingTrack;
 
+            if (!track) {
+                track = await createLocalAudioTrack({
+                    echoCancellation: true,
+                    noiseSuppression: true,
+                    autoGainControl: true,
+                });
+            }
+
+            // Publicar o track
             await room.localParticipant.publishTrack(track);
             audioTrackRef.current = track;
             setIsMicOn(true);
-            console.log('✅ [useConsultationSession] Microfone publicado com sucesso');
+            console.log('✅ [useConsultationSession] Microfone publicado. Ativando escuta do avatar...');
+
+            // IMPORTANTE: Enviar comando APÓS publicar o track e com um pequeno delay 
+            // para garantir que o agente perceba o stream de áudio
+            setTimeout(() => {
+                sendAvatarCommand('avatar.start_listening');
+            }, 800);
+
         } catch (error) {
             console.error('❌ [useConsultationSession] Erro ao iniciar Voice Chat:', error);
             onError?.('Erro ao acessar microfone');
         }
-    }, [room, onError]);
+    }, [room, sendAvatarCommand, onError]);
 
     // Parar Voice Chat (Despublicar Microfone)
     const stopVoiceChat = useCallback(async () => {
@@ -161,6 +199,9 @@ export function useConsultationSession({
             audioTrackRef.current.stop();
             audioTrackRef.current = null;
             setIsMicOn(false);
+
+            // Também avisar o avatar para parar de ouvir se o mic for desligado?
+            // De acordo com o SDK, start_listening põe em modo conversacional.
         } catch (error) {
             console.error('❌ [useConsultationSession] Erro ao parar Voice Chat:', error);
         }
@@ -195,29 +236,6 @@ export function useConsultationSession({
             setIsTerminating(false);
         }
     }, [session, onSessionEnd, onError]);
-
-    // Comandos do Avatar via Data Channel
-    const sendAvatarCommand = useCallback(async (eventType: string) => {
-        if (!room) {
-            console.warn('⚠️ [useConsultationSession] Room não definida. Não foi possível enviar comando.');
-            return;
-        }
-
-        try {
-            const encoder = new TextEncoder();
-            const data = encoder.encode(JSON.stringify({ event_type: eventType }));
-            await room.localParticipant.publishData(data, {
-                topic: 'agent-control',
-            });
-            console.log(`📤 [useConsultationSession] Comando enviado: ${eventType}`);
-        } catch (error) {
-            console.error(`❌ [useConsultationSession] Erro ao enviar comando ${eventType}:`, error);
-        }
-    }, [room]);
-
-    const startListening = useCallback(() => sendAvatarCommand('avatar.start_listening'), [sendAvatarCommand]);
-    const stopListening = useCallback(() => sendAvatarCommand('avatar.stop_listening'), [sendAvatarCommand]);
-    const interrupt = useCallback(() => sendAvatarCommand('avatar.interrupt'), [sendAvatarCommand]);
 
     return {
         session,

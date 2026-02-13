@@ -1,6 +1,6 @@
 "use client"
 
-import { useTracks, VideoTrack } from "@livekit/components-react"
+import { useTracks, VideoTrack, AudioTrack } from "@livekit/components-react"
 import { Track } from "livekit-client"
 import { Mic, MicOff, Activity, ShieldCheck } from "lucide-react"
 
@@ -11,20 +11,32 @@ interface HeyGenAvatarProps {
 }
 
 export function HeyGenAvatar({ status, onToggleMic, isMicOn }: HeyGenAvatarProps) {
-    const tracks = useTracks([Track.Source.Camera])
+    const tracks = useTracks([
+        Track.Source.Camera,
+        Track.Source.Microphone,
+    ]).filter(t => t.participant.identity === 'heygen')
 
-    // Find heygen participant track
-    const heygenTrack = tracks.find(t => t.participant.identity === 'heygen')
+    const videoTrack = tracks.find(t => t.source === Track.Source.Camera)
+    const audioTrack = tracks.find(t => t.source === Track.Source.Microphone)
+
+    const isVideoTrackReference = (track: any): track is { participant: any; source: any; publication: any } => {
+        return track && 'publication' in track;
+    }
+
+    // Define heygenTrack to fix the "missing 'heygenTrack' reference" issue
+    const heygenTrack = videoTrack || audioTrack;
 
     return (
         <div className="relative flex-1 rounded-2xl overflow-hidden border border-gray-700/50 bg-gray-900/80 min-h-[400px] lg:min-h-[520px] shadow-2xl group transition-all duration-500">
-            {/* Main Video Content */}
-            {heygenTrack ? (
+            {/* Main Video & Audio Content */}
+            {videoTrack && isVideoTrackReference(videoTrack) ? (
                 <div className="absolute inset-0 w-full h-full">
                     <VideoTrack
-                        trackRef={heygenTrack}
+                        trackRef={videoTrack}
                         className="w-full h-full object-cover scale-105"
                     />
+
+                    {audioTrack && isVideoTrackReference(audioTrack) && <AudioTrack trackRef={audioTrack} />}
 
                     {/* Glassmorphism Overlay for status - Vignette effect */}
                     <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-black/30 pointer-events-none" />
@@ -75,9 +87,9 @@ export function HeyGenAvatar({ status, onToggleMic, isMicOn }: HeyGenAvatarProps
                                 key={i}
                                 className="w-1 bg-brand-pink rounded-full transition-all duration-300"
                                 style={{
-                                    height: heygenTrack ? `${40 + Math.random() * 60}%` : '20%',
+                                    height: videoTrack ? `${40 + Math.random() * 60}%` : '20%',
                                     opacity: 0.6 + (i * 0.1),
-                                    animation: heygenTrack ? `audioBars 0.8s ease-in-out infinite alternate ${i * 0.1}s` : 'none'
+                                    animation: videoTrack ? `audioBars 0.8s ease-in-out infinite alternate ${i * 0.1}s` : 'none'
                                 }}
                             />
                         ))}
