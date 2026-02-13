@@ -25,7 +25,6 @@ export default function ConsultantPage() {
     const [timeRemaining, setTimeRemaining] = useState(TOTAL_SESSION_TIME)
     const [joinCountdown, setJoinCountdown] = useState(JOIN_TIMEOUT)
     const [cooldownRemaining, setCooldownRemaining] = useState(0)
-    const [isMicOn, setIsMicOn] = useState(true)
     const [consultantStatus, setConsultantStatus] = useState<
         "available" | "waiting" | "speaking" | "disconnected"
     >("waiting")
@@ -58,7 +57,11 @@ export default function ConsultantPage() {
         initializeSession,
         terminateSession,
         setRoom,
+        startVoiceChat,
+        toggleMic,
         startListening,
+        agentStatus,
+        isMicOn: isSessionMicOn,
     } = useConsultationSession({
         agentType: AGENT_TYPE,
         onSessionEnd: () => {
@@ -228,23 +231,24 @@ export default function ConsultantPage() {
                             serverUrl={session.heygen_data.livekit_url || "wss://heygen-feapbkvq.livekit.cloud"}
                             style={{ height: '100%' }}
                             onConnected={() => {
-                                console.log("🎤 [Session] Conectado! Ativando start_listening...");
+                                console.log("🎤 [Session] Conectado! Ativando Voice Chat...");
+                                startVoiceChat();
                                 startListening();
                             }}
                             onDisconnected={handleEnd}
                         >
                             <HeyGenAvatar
-                                status={consultantStatus}
-                                isMicOn={isMicOn}
-                                onToggleMic={() => setIsMicOn(!isMicOn)}
+                                status={agentStatus === 'speaking' ? 'speaking' : agentStatus === 'listening' ? 'available' : 'waiting'}
+                                isMicOn={isSessionMicOn}
+                                onToggleMic={toggleMic}
                             />
                         </LiveKitRoom>
                     </div>
                 ) : (
                     <ConsultantVideo
                         status={consultantStatus}
-                        onToggleMic={() => setIsMicOn(!isMicOn)}
-                        isMicOn={isMicOn}
+                        onToggleMic={toggleMic}
+                        isMicOn={isSessionMicOn}
                         isSessionActive={false}
                         title="Consultor Técnico"
                     />

@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { apiBackend } from '@/lib/api-backend';
-import { Room } from 'livekit-client';
+import { Room, createLocalAudioTrack, LocalAudioTrack, RoomEvent } from 'livekit-client';
 import type { SessionResponse } from '../types/consultation';
 
 const HEARTBEAT_INTERVAL = 10000; // 10 segundos
@@ -20,7 +20,48 @@ export function useConsultationSession({
     const [isInitializing, setIsInitializing] = useState(false);
     const [isTerminating, setIsTerminating] = useState(false);
     const [room, setRoom] = useState<Room | null>(null);
+    const [isMicOn, setIsMicOn] = useState(false);
+    const [agentStatus, setAgentStatus] = useState<'waiting' | 'listening' | 'speaking'>('waiting');
+    const audioTrackRef = useRef<LocalAudioTrack | null>(null);
     const heartbeatIntervalRef = useRef<NodeJS.Timeout | null>(null);
+
+    // Listen for room events
+    useEffect(() => {
+        if (!room) return;
+
+        const handleDataReceived = (payload: Uint8Array, participant: any, kind: any, topic?: string) => {
+            if (topic !== 'agent-response') return;
+
+            try {
+                const decoder = new TextDecoder();
+                const data = JSON.parse(decoder.decode(payload));
+                console.log('📥 [useConsultationSession] Evento recebido:', data.event_type);
+
+                switch (data.event_type) {
+                    case 'user.speak_started':
+                        setAgentStatus('listening');
+                        break;
+                    case 'user.speak_ended':
+                        setAgentStatus('waiting');
+                        break;
+                    case 'avatar.speak_started':
+                        setAgentStatus('speaking');
+                        break;
+                    case 'avatar.speak_ended':
+                        setAgentStatus('waiting');
+                        break;
+                }
+            } catch (error) {
+                console.error('❌ [useConsultationSession] Erro ao processar evento:', error);
+            }
+        };
+
+        room.on(RoomEvent.DataReceived, handleDataReceived);
+
+        return () => {
+            room.off(RoomEvent.DataReceived, handleDataReceived);
+        };
+    }, [room]);
 
     // Heartbeat automático
     useEffect(() => {
@@ -88,46 +129,51 @@ export function useConsultationSession({
         }
     }, [agentType, onError]);
 
-    // Conectar sessão (enviar SDP)
-    const connectSession = useCallback(async (sdp: RTCSessionDescriptionInit) => {
-        if (!session) {
-            throw new Error('Sessão não inicializada');
-        }
+    // Iniciar Voice Chat (Publicar Microfone)
+    const startVoiceChat = useCallback(async () => {
+        if (!room) return;
 
         try {
-            const response = await apiBackend.post('/consultoria/session/connect/', {
-                session_id: session.heygen_data.session_id,
-                sdp,
+            console.log('🎤 [useConsultationSession] Iniciando Voice Chat...');
+            const track = await createLocalAudioTrack({
+                echoCancellation: true,
+                noiseSuppression: true,
+                autoGainControl: true,
             });
 
-            return response;
-        } catch (error: any) {
-            const errorMessage = error.message || 'Erro ao conectar sessão';
-            onError?.(errorMessage);
-            throw error;
+            await room.localParticipant.publishTrack(track);
+            audioTrackRef.current = track;
+            setIsMicOn(true);
+            console.log('✅ [useConsultationSession] Microfone publicado com sucesso');
+        } catch (error) {
+            console.error('❌ [useConsultationSession] Erro ao iniciar Voice Chat:', error);
+            onError?.('Erro ao acessar microfone');
         }
-    }, [session, onError]);
+    }, [room, onError]);
 
-    // Enviar ICE candidate
-    const sendIceCandidate = useCallback(async (candidate: RTCIceCandidate) => {
-        if (!session) {
-            throw new Error('Sessão não inicializada');
-        }
+    // Parar Voice Chat (Despublicar Microfone)
+    const stopVoiceChat = useCallback(async () => {
+        if (!room || !audioTrackRef.current) return;
 
         try {
-            await apiBackend.post('/consultoria/session/ice/', {
-                session_id: session.heygen_data.session_id,
-                candidate: {
-                    candidate: candidate.candidate,
-                    sdpMid: candidate.sdpMid,
-                    sdpMLineIndex: candidate.sdpMLineIndex,
-                },
-            });
-        } catch (error: any) {
-            console.error('Erro ao enviar ICE candidate:', error);
-            // Não propaga erro de ICE candidate para não interromper a sessão
+            console.log('🎤 [useConsultationSession] Parando Voice Chat...');
+            await room.localParticipant.unpublishTrack(audioTrackRef.current);
+            audioTrackRef.current.stop();
+            audioTrackRef.current = null;
+            setIsMicOn(false);
+        } catch (error) {
+            console.error('❌ [useConsultationSession] Erro ao parar Voice Chat:', error);
         }
-    }, [session]);
+    }, [room]);
+
+    // Alternar Mudo (Mute/Unmute sem despublicar se preferir, ou apenas usar start/stop)
+    const toggleMic = useCallback(async () => {
+        if (isMicOn) {
+            await stopVoiceChat();
+        } else {
+            await startVoiceChat();
+        }
+    }, [isMicOn, startVoiceChat, stopVoiceChat]);
 
     // Terminar sessão
     const terminateSession = useCallback(async () => {
@@ -178,11 +224,14 @@ export function useConsultationSession({
         isInitializing,
         isTerminating,
         room,
+        isMicOn,
+        agentStatus,
         setRoom,
         initializeSession,
-        connectSession,
-        sendIceCandidate,
         terminateSession,
+        startVoiceChat,
+        stopVoiceChat,
+        toggleMic,
         startListening,
         stopListening,
         interrupt,
