@@ -16,7 +16,7 @@ export default function CursoPage({ params }: PageProps) {
   const { user, loading: authLoading, isAuthenticated } = useAuth();
   const router = useRouter();
   const { data: curso, loading: cursoLoading, error } = useCurso(params.courseSlug);
-  
+
   useEffect(() => {
     if (!authLoading && !isAuthenticated) {
       router.push("/franqueado");
@@ -51,6 +51,25 @@ export default function CursoPage({ params }: PageProps) {
         <div className="text-center">
           <h2 className="text-2xl font-bold text-white mb-2">Curso não encontrado</h2>
           <p className="text-gray-400">O curso solicitado não está disponível.</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Verifica permissão de visualização
+  const isAuthorized = user?.role === 'SUPERADMIN' || user?.role === 'FRANQUEADO';
+  if (curso.privado_franqueado && !isAuthorized) {
+    return (
+      <div className="bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 flex items-center justify-center pt-20">
+        <div className="text-center bg-gray-800/50 p-8 rounded-xl border border-gray-700 max-w-md mx-auto">
+          <h2 className="text-2xl font-bold text-red-500 mb-2">Acesso Restrito</h2>
+          <p className="text-gray-300 mb-4">Este curso é exclusivo para franqueados.</p>
+          <button
+            onClick={() => router.push('/franqueado/academy')}
+            className="bg-brand-pink text-white px-6 py-2 rounded-lg hover:bg-brand-pink/90 transition-colors"
+          >
+            Voltar para a Academia
+          </button>
         </div>
       </div>
     );

@@ -191,13 +191,12 @@ export default function Dashboard() {
           comunicados={comunicados}
         />
 
-        {/* ======= PERFORMANCE SECTION ======= */}
+        {/* ======= PERFORMANCE SECTION (Oculto temporariamente) ======= */}
+        {/*
         <PerformanceHeader />
-        {/* KPI Cards (Mockados pois não a user não solicitou alteração nestes e não há API clara) */}
         <KpiCards data={mockKpi} />
 
         <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
-          {/* Evolution chart (Mockado) */}
           <Card className="lg:col-span-3 bg-card border-border">
             <CardHeader className="pb-2">
               <CardTitle className="flex items-center gap-2 text-foreground text-lg">
@@ -210,7 +209,6 @@ export default function Dashboard() {
             </CardContent>
           </Card>
 
-          {/* Podium + sua unidade (Mockado) */}
           <Card className="lg:col-span-2 bg-card border-border">
             <CardHeader className="pb-2">
               <CardTitle className="flex items-center gap-2 text-foreground text-lg">
@@ -228,6 +226,7 @@ export default function Dashboard() {
             </CardContent>
           </Card>
         </div>
+        */}
 
         {/* Activity chart + Recent activities */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">

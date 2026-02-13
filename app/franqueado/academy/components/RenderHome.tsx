@@ -4,6 +4,7 @@ import DynamicIcon from '@/app/franqueado/academy/components/DynamicIcon';
 import { useState, useEffect } from 'react';
 import { apiBackend } from '@/lib/api-backend';
 import { useCategorias /*, useTrilhas */, useCursos, useMetricas } from '@/hooks/useApi';
+import { useAuth } from "@/context/AuthContext"
 
 import type { Categoria /*, Trilha */, Curso } from '@/types/academy'
 
@@ -27,6 +28,8 @@ interface Estatisticas {
 }
 
 export default function RenderHome() {
+  const { user } = useAuth();
+
   // Estados para dados da API
   const {
     data: categorias = [],
@@ -47,7 +50,17 @@ export default function RenderHome() {
     loading: loadingCursos,
     error: errorCursos,
     refetch: refetchCursos,
-  } = useCursos({ destaque: true, page_size: 2 });
+  } = useCursos({ destaque: true, page_size: 10 });
+
+  // Filtra cursos privados se o usuário não for Franqueado ou Superadmin
+  const isAuthorized = user?.role === 'SUPERADMIN' || user?.role === 'FRANQUEADO';
+
+  const filteredCursosDestaque = (cursosDestaque || []).filter((curso: Curso) => {
+    if (curso.privado_franqueado && !isAuthorized) {
+      return false;
+    }
+    return true;
+  }).slice(0, 2);
 
   // Buscar métricas do aluno
   const {
@@ -188,7 +201,7 @@ export default function RenderHome() {
         </div>
       )} */}
       {/* Cursos em Destaq  ue Section */}
-      {cursosDestaque && cursosDestaque.length > 0 && (
+      {filteredCursosDestaque && filteredCursosDestaque.length > 0 && (
 
         <div>
           <div className="flex items-center justify-between mb-6">
@@ -202,7 +215,7 @@ export default function RenderHome() {
             </Link>
           </div>
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            {cursosDestaque.map((curso) => (
+            {filteredCursosDestaque.map((curso) => (
               <Link
                 key={curso.id}
                 href={`/franqueado/academy/cursos/${curso.slug}`}

@@ -40,12 +40,12 @@ export interface PerguntaQuiz {
 }
 
 export interface Quiz {
-  id: string; 
+  id: string;
   titulo: string;
   concluido: boolean;
   nota?: number;
   perguntas: PerguntaQuiz[];
-} 
+}
 
 
 export interface AvaliacaoAluno {
@@ -59,10 +59,10 @@ export interface AvaliacaoAluno {
 }
 
 export interface Progresso {
-    concluida: boolean;
-    tempo_assistido: number;
-    ultima_posicao: number;
-    progresso_percentual: number;
+  concluida: boolean;
+  tempo_assistido: number;
+  ultima_posicao: number;
+  progresso_percentual: number;
 }
 
 export interface Curso {
@@ -88,10 +88,11 @@ export interface Curso {
   progresso?: Progresso; // Adjusted to reflect the expected structure
   destaque?: boolean;
   certificado?: boolean;
+  privado_franqueado?: boolean;
   modulos: Modulo[];
   avaliacoesAlunos: AvaliacaoAluno[];
   materiais?: materiais[];
-  quizzes?: Quiz;  
+  quizzes?: Quiz;
 }
 
 export interface Categoria {
@@ -144,7 +145,7 @@ export interface CursoProgresso {
   dataUltimoacesso?: string;
   dataTermino?: string; // quando progresso = 100
   status: 'Não Iniciado' | 'Em Andamento' | 'Concluído' | 'Pausado';
-  
+
   // Progresso por módulo/aula
   modulosProgresso: {
     moduloId: string;
@@ -167,8 +168,8 @@ export interface CursoProgresso {
 export interface HistoricoAtividade {
   id: string;
   data: string;
-  tipo: 'CURSO_INICIADO' | 'AULA_ASSISTIDA' | 'MODULO_CONCLUIDO' | 'CURSO_CONCLUIDO' | 
-        'QUIZ_REALIZADO' | 'QUIZ_APROVADO' | 'CERTIFICADO_EMITIDO';
+  tipo: 'CURSO_INICIADO' | 'AULA_ASSISTIDA' | 'MODULO_CONCLUIDO' | 'CURSO_CONCLUIDO' |
+  'QUIZ_REALIZADO' | 'QUIZ_APROVADO' | 'CERTIFICADO_EMITIDO';
   acao: string; // Descrição da ação realizada
   cursoId?: string;
   aulaId?: string;
@@ -212,22 +213,22 @@ export interface EstatisticasAluno {
 export interface Aluno {
   // Informações básicas do usuário (relacionamento)
   usuario: Usuario;
-  
+
   // Informações específicas da academy
   id: string; // ID específico do aluno na academy (pode ser diferente do Usuario.id)
   dataMatricula: string;
   status: 'ATIVO' | 'INATIVO' | 'SUSPENSO';
   telefone?: string;
-  
+
   // Progresso e cursos
   cursosProgresso: CursoProgresso[];
   historicoAtividade: HistoricoAtividade[];
   certificados: Certificado[];
-  
-  
+
+
   // Estatísticas calculadas
   estatisticas: EstatisticasAluno;
-  
+
   // Campos calculados (não armazenados no DB)
   engajamento?: 'Alto' | 'Médio' | 'Baixo';
   progressoGeral?: number; // 0-100

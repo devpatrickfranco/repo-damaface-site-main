@@ -14,7 +14,7 @@ interface CategoriaClientComponentProps {
 export default function CategoriaClientComponent({ params }: CategoriaClientComponentProps) {
   const { user, loading: authLoading, isAuthenticated } = useAuth()
   const router = useRouter()
-  
+
   const { data: categoria, loading: categoriaLoading, error: categoriaError } = useCategoria(params.categorySlug)
   const { data: cursosData, loading: cursosLoading, error: cursosError } = useCursos({
     categoria: params.categorySlug,
@@ -40,7 +40,12 @@ export default function CategoriaClientComponent({ params }: CategoriaClientComp
     )
   }
 
-  const cursosCategoria = cursosData || []
+  const cursosCategoria = (cursosData || []).filter((curso: any) => {
+    // Check visibility
+    const isAuthorized = user?.role === 'SUPERADMIN' || user?.role === 'FRANQUEADO';
+    const isVisible = !curso.privado_franqueado || isAuthorized;
+    return isVisible;
+  });
 
   return (
     <div className="space-y-8">
@@ -157,7 +162,7 @@ export default function CategoriaClientComponent({ params }: CategoriaClientComp
                   </div>
                 )}
 
-                <button 
+                <button
                   onClick={() => router.push(`/franqueado/academy/cursos/${curso.slug}`)}
                   className="w-full bg-gradient-to-r from-brand-pink to-brand-pink/80 hover:from-brand-pink/90 hover:to-brand-pink text-white font-semibold py-3 px-6 rounded-xl transition-all duration-300 hover:shadow-lg hover:shadow-brand-pink/25 group-hover:scale-[1.02]"
                 >

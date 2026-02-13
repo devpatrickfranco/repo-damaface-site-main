@@ -67,6 +67,10 @@ export default function CursosPage() {
 
       const matchesCategory = selectedCategory === "all" || String(curso.id) === selectedCategory
 
+      // Check visibility
+      const isAuthorized = user?.role === 'SUPERADMIN' || user?.role === 'FRANQUEADO';
+      const isVisible = !curso.privado_franqueado || isAuthorized;
+
       // Filter by status based on progress
       let matchesStatus = true
       if (filterStatus === "em-andamento") {
@@ -77,7 +81,7 @@ export default function CursosPage() {
         matchesStatus = !curso.progresso || curso.progresso.percentual === 0
       }
 
-      return matchesSearch && matchesCategory && matchesStatus
+      return matchesSearch && matchesCategory && matchesStatus && isVisible
     })
     .sort((a, b) => {
       switch (sortBy) {

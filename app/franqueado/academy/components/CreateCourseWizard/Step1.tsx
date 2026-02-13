@@ -229,7 +229,7 @@ const Step1: React.FC<Step1Props> = ({ formData, setFormData, categorias }) => {
           </div>
         )}
 
-        {/* Checkboxes: Destaque e Certificado */}
+        {/* Checkboxes: Destaque, Certificado e Franqueado */}
         <div className="md:col-span-2 flex flex-col sm:flex-row gap-4">
           <div className="flex items-center gap-3 p-4 bg-gray-900 border border-gray-600 rounded-lg hover:border-pink-500/50 transition-all cursor-pointer group" onClick={() => setFormData((prev) => ({ ...prev, destaque: !prev.destaque }))}>
             <input
@@ -251,6 +251,18 @@ const Step1: React.FC<Step1Props> = ({ formData, setFormData, categorias }) => {
             />
             <label className="text-sm font-medium text-gray-300 cursor-pointer group-hover:text-pink-400 transition-colors">
               Certificado
+            </label>
+          </div>
+          {/* Novo Campo: Privado Franqueado */}
+          <div className="flex items-center gap-3 p-4 bg-gray-900 border border-gray-600 rounded-lg hover:border-pink-500/50 transition-all cursor-pointer group" onClick={() => setFormData((prev) => ({ ...prev, privado_franqueado: !prev.privado_franqueado }))}>
+            <input
+              type="checkbox"
+              checked={formData.privado_franqueado ?? false}
+              onChange={(e) => setFormData((prev) => ({ ...prev, privado_franqueado: e.target.checked }))}
+              className="w-5 h-5 rounded border-gray-600 bg-gray-800 text-pink-500 focus:ring-2 focus:ring-pink-500/20 focus:ring-offset-0 cursor-pointer"
+            />
+            <label className="text-sm font-medium text-gray-300 cursor-pointer group-hover:text-pink-400 transition-colors">
+              Franqueado
             </label>
           </div>
         </div>

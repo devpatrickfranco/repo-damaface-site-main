@@ -167,6 +167,7 @@ export function useMeusCursos() {
         tempo_assistido: string;
       };
       avaliacao_usuario: number | null;
+      privado_franqueado?: boolean;
       data_inscricao: string;
       ultima_visualizacao: string;
     }>;
