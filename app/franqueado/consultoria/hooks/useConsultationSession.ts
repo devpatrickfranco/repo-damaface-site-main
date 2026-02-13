@@ -1,6 +1,6 @@
-// hooks/useConsultationSession.ts
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { apiBackend } from '@/lib/api-backend';
+import { Room } from 'livekit-client';
 import type { SessionResponse } from '../types/consultation';
 
 const HEARTBEAT_INTERVAL = 10000; // 10 segundos
@@ -19,6 +19,7 @@ export function useConsultationSession({
     const [session, setSession] = useState<SessionResponse | null>(null);
     const [isInitializing, setIsInitializing] = useState(false);
     const [isTerminating, setIsTerminating] = useState(false);
+    const [room, setRoom] = useState<Room | null>(null);
     const heartbeatIntervalRef = useRef<NodeJS.Timeout | null>(null);
 
     // Heartbeat automático
@@ -149,13 +150,41 @@ export function useConsultationSession({
         }
     }, [session, onSessionEnd, onError]);
 
+    // Comandos do Avatar via Data Channel
+    const sendAvatarCommand = useCallback(async (eventType: string) => {
+        if (!room) {
+            console.warn('⚠️ [useConsultationSession] Room não definida. Não foi possível enviar comando.');
+            return;
+        }
+
+        try {
+            const encoder = new TextEncoder();
+            const data = encoder.encode(JSON.stringify({ event_type: eventType }));
+            await room.localParticipant.publishData(data, {
+                topic: 'agent-control',
+            });
+            console.log(`📤 [useConsultationSession] Comando enviado: ${eventType}`);
+        } catch (error) {
+            console.error(`❌ [useConsultationSession] Erro ao enviar comando ${eventType}:`, error);
+        }
+    }, [room]);
+
+    const startListening = useCallback(() => sendAvatarCommand('avatar.start_listening'), [sendAvatarCommand]);
+    const stopListening = useCallback(() => sendAvatarCommand('avatar.stop_listening'), [sendAvatarCommand]);
+    const interrupt = useCallback(() => sendAvatarCommand('avatar.interrupt'), [sendAvatarCommand]);
+
     return {
         session,
         isInitializing,
         isTerminating,
+        room,
+        setRoom,
         initializeSession,
         connectSession,
         sendIceCandidate,
         terminateSession,
+        startListening,
+        stopListening,
+        interrupt,
     };
 }

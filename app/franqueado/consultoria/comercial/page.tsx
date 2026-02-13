@@ -9,8 +9,10 @@ import {
 import { useConsultationQueue } from "../hooks/useConsultationQueue"
 import { useConsultationSession } from "../hooks/useConsultationSession"
 import { Headphones, Shield, Lock } from "lucide-react"
-
-import { LiveKitRoom, VideoConference } from "@livekit/components-react"
+import { useMemo } from "react"
+import { Room } from "livekit-client"
+import { LiveKitRoom } from "@livekit/components-react"
+import { HeyGenAvatar } from "../components/HeyGenAvatar"
 import "@livekit/components-styles"
 
 const AGENT_TYPE = "comercial"
@@ -27,6 +29,9 @@ export default function ConsultantPage() {
     const [consultantStatus, setConsultantStatus] = useState<
         "available" | "waiting" | "speaking" | "disconnected"
     >("waiting")
+
+    // Instância fixa do LiveKit Room
+    const room = useMemo(() => new Room(), [])
 
     // Hook de fila
     const {
@@ -52,6 +57,8 @@ export default function ConsultantPage() {
         isInitializing,
         initializeSession,
         terminateSession,
+        setRoom,
+        startListening,
     } = useConsultationSession({
         agentType: AGENT_TYPE,
         onSessionEnd: () => {
@@ -63,6 +70,11 @@ export default function ConsultantPage() {
             console.error("Erro na sessão:", error)
         },
     })
+
+    // Vincular room ao hook de sessão
+    useEffect(() => {
+        setRoom(room)
+    }, [room, setRoom])
 
     // Entrar na fila automaticamente
     useEffect(() => {
@@ -211,15 +223,21 @@ export default function ConsultantPage() {
                 {isSessionActive && session?.heygen_data.livekit_token ? (
                     <div className="relative flex-1 rounded-2xl overflow-hidden border border-gray-700/50 bg-gray-800/50 min-h-[360px] lg:min-h-[480px]">
                         <LiveKitRoom
-                            video={isMicOn}
-                            audio={isMicOn}
+                            room={room}
                             token={session.heygen_data.livekit_token}
                             serverUrl={session.heygen_data.livekit_url || "wss://heygen-feapbkvq.livekit.cloud"}
-                            data-lk-theme="default"
                             style={{ height: '100%' }}
+                            onConnected={() => {
+                                console.log("🎤 [Session] Conectado! Ativando start_listening...");
+                                startListening();
+                            }}
                             onDisconnected={handleEnd}
                         >
-                            <VideoConference />
+                            <HeyGenAvatar
+                                status={consultantStatus}
+                                isMicOn={isMicOn}
+                                onToggleMic={() => setIsMicOn(!isMicOn)}
+                            />
                         </LiveKitRoom>
                     </div>
                 ) : (
