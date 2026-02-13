@@ -211,7 +211,7 @@ export default function ConsultantPage() {
                 {isSessionActive && session?.heygen_data.livekit_token ? (
                     <div className="relative flex-1 rounded-2xl overflow-hidden border border-gray-700/50 bg-gray-800/50 min-h-[360px] lg:min-h-[480px]">
                         <LiveKitRoom
-                            video={isMicOn}
+                            video={true}
                             audio={isMicOn}
                             token={session.heygen_data.livekit_token}
                             serverUrl={session.heygen_data.livekit_url || "wss://heygen-feapbkvq.livekit.cloud"}
