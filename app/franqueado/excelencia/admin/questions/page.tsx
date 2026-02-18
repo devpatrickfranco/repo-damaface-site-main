@@ -10,8 +10,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from '@/components/ui/dialog'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { Loader2, Plus, Pencil, Trash2, Save } from 'lucide-react'
-import { excelenciaApi } from '../api'
-import { Question, QuestionInput } from '../types'
+import { excelenciaApi } from '../../api'
+import { Question, QuestionInput } from '../../types'
 import { toast } from 'sonner'
 
 export default function AdminQuestionsPage() {
