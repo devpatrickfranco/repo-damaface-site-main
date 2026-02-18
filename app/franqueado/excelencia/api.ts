@@ -24,4 +24,17 @@ export const excelenciaApi = {
     getRanking: async (): Promise<RankingItem[]> => {
         return apiBackend.get<RankingItem[]>(`${BASE_URL}/ranking/`);
     },
+
+    // Admin methods
+    createQuestion: async (data: any): Promise<Question> => {
+        return apiBackend.post<Question>(`${BASE_URL}/questions/`, data);
+    },
+
+    updateQuestion: async (id: number, data: any): Promise<Question> => {
+        return apiBackend.put<Question>(`${BASE_URL}/questions/${id}/`, data);
+    },
+
+    deleteQuestion: async (id: number): Promise<void> => {
+        return apiBackend.delete(`${BASE_URL}/questions/${id}/`);
+    },
 };

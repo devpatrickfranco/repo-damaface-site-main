@@ -12,6 +12,14 @@ export interface Question {
     target_role: 'FRANQUEADO' | 'FUNCIONARIO' | 'ADMIN';
 }
 
+export interface QuestionInput {
+    text: string;
+    category: number | string; // ID or Name
+    weight: number;
+    target_role: 'FRANQUEADO' | 'FUNCIONARIO' | 'ADMIN';
+    is_active?: boolean;
+}
+
 export interface Submission {
     id: number;
     unit: number; // ID of the unit
