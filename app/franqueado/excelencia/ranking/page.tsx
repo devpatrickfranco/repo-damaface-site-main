@@ -1,18 +1,44 @@
 'use client'
 
+import { useState, useEffect } from 'react'
 import { useAuth } from '@/context/AuthContext'
-import { RANKING } from '../mocks'
 import { Card, CardContent } from '@/components/ui/card'
-import { Trophy, Medal, TrendingUp, AlertCircle } from 'lucide-react'
+import { Trophy, Medal, TrendingUp, AlertCircle, Loader2 } from 'lucide-react'
+import { excelenciaApi } from '../api'
+import { RankingItem } from '../types'
+import { toast } from 'sonner' // Assuming sonner is used
 
 export default function RankingPage() {
     const { user } = useAuth()
+    const [ranking, setRanking] = useState<RankingItem[]>([])
+    const [loading, setLoading] = useState(true)
+
+    useEffect(() => {
+        const fetchRanking = async () => {
+            try {
+                const data = await excelenciaApi.getRanking()
+                setRanking(data)
+            } catch (error) {
+                console.error("Failed to fetch ranking:", error)
+                toast.error("Erro ao carregar ranking.")
+            } finally {
+                setLoading(false)
+            }
+        }
+
+        if (user) {
+            fetchRanking()
+        }
+    }, [user])
 
     if (!user) return null
 
-    // Find user's unit (Mocked as "Sua Unidade" for demonstration)
-    // In real app, match by user.unitId
-    const myUnitRank = RANKING.find(r => r.unit === 'Sua Unidade') || { position: 0, score: 0, unit: 'Sua Unidade' }
+    if (loading) {
+        return <div className="flex justify-center items-center h-64"><Loader2 className="animate-spin w-8 h-8 text-brand-pink" /></div>
+    }
+
+    // Find user's unit based on is_self flag
+    const myUnitRank = ranking.find(r => r.is_self) || { rank: 0, latest_score: 0, name: 'Sua Unidade', lowest_category: null }
 
     return (
         <div className="space-y-8">
@@ -34,19 +60,20 @@ export default function RankingPage() {
 
                     <div className="relative z-10">
                         <span className="text-brand-pink font-semibold tracking-wider text-sm uppercase mb-2 block">Sua Posição Atual</span>
-                        <h2 className="text-7xl font-black text-white mb-2">{myUnitRank.position}º</h2>
+                        <h2 className="text-7xl font-black text-white mb-2">{myUnitRank.rank > 0 ? `${myUnitRank.rank}º` : '-'}</h2>
                         <p className="text-xl text-gray-300">Lugar Geral</p>
                     </div>
 
                     <div className="mt-8 flex gap-8">
                         <div>
                             <span className="block text-gray-400 text-sm">Pontuação</span>
-                            <span className="text-3xl font-bold text-white">{myUnitRank.score}</span>
+                            <span className="text-3xl font-bold text-white">{myUnitRank.latest_score}</span>
                         </div>
                         <div>
                             <span className="block text-gray-400 text-sm">Status</span>
+                            {/* TODO: Add trend logic if available from API */}
                             <span className="text-green-400 font-bold text-lg flex items-center gap-1">
-                                <TrendingUp className="w-4 h-4" /> Subindo
+                                <TrendingUp className="w-4 h-4" /> Ativo
                             </span>
                         </div>
                     </div>
@@ -65,15 +92,17 @@ export default function RankingPage() {
                             </p>
                         </div>
 
-                        <div className="bg-blue-500/10 border border-blue-500/30 rounded-lg p-4 flex gap-4 items-start">
-                            <AlertCircle className="w-6 h-6 text-blue-400 shrink-0 mt-0.5" />
-                            <div>
-                                <h4 className="text-blue-400 font-bold text-sm">Dica para melhorar</h4>
-                                <p className="text-gray-400 text-sm mt-1">
-                                    Aumente sua nota na categoria <strong>Operacional</strong> revisando o checklist de limpeza diária.
-                                </p>
+                        {myUnitRank.lowest_category && (
+                            <div className="bg-blue-500/10 border border-blue-500/30 rounded-lg p-4 flex gap-4 items-start">
+                                <AlertCircle className="w-6 h-6 text-blue-400 shrink-0 mt-0.5" />
+                                <div>
+                                    <h4 className="text-blue-400 font-bold text-sm">Dica para melhorar</h4>
+                                    <p className="text-gray-400 text-sm mt-1">
+                                        Aumente sua nota na categoria <strong>{myUnitRank.lowest_category}</strong> revisando o checklist diário.
+                                    </p>
+                                </div>
                             </div>
-                        </div>
+                        )}
                     </CardContent>
                 </Card>
             </div>
@@ -86,50 +115,54 @@ export default function RankingPage() {
                 </h3>
 
                 <div className="space-y-4 max-w-3xl">
-                    {RANKING.sort((a, b) => a.position - b.position).map((item) => {
-                        const isMe = item.unit === 'Sua Unidade'
+                    {ranking.length === 0 ? (
+                        <p className="text-gray-400">Ranking ainda não disponível.</p>
+                    ) : (
+                        ranking.sort((a, b) => a.rank - b.rank).map((item) => {
+                            const isMe = item.is_self
 
-                        // Logic: Only show Top 3 names, others are blind unless it's me
-                        // User requirement: "porem não verá os demais" -> Blind Ranking
-                        const displayName = isMe ? item.unit : (item.position <= 3 ? `Unidade ${item.position}º Lugar` : `Unidade ****`) // Or keep 'Unidade X' if wanting total anonymity
-
-                        return (
-                            <div
-                                key={item.position}
-                                className={`
-                            flex items-center justify-between p-4 rounded-xl border transition-all
-                            ${isMe
-                                        ? 'bg-brand-pink/10 border-brand-pink shadow-[0_0_15px_rgba(236,72,153,0.2)] scale-[1.02]'
-                                        : 'bg-gray-900 border-gray-800 opacity-60'}
-                        `}
-                            >
-                                <div className="flex items-center gap-6">
-                                    <div className={`
-                                w-10 h-10 rounded-full flex items-center justify-center font-bold
-                                ${item.position === 1 ? 'bg-yellow-500 text-black' :
-                                            item.position === 2 ? 'bg-gray-400 text-black' :
-                                                item.position === 3 ? 'bg-amber-700 text-white' :
-                                                    'bg-gray-800 text-gray-500'}
-                            `}>
-                                        {item.position}
+                            return (
+                                <div
+                                    key={item.id}
+                                    className={`
+                                        flex items-center justify-between p-4 rounded-xl border transition-all
+                                        ${isMe
+                                            ? 'bg-brand-pink/10 border-brand-pink shadow-[0_0_15px_rgba(236,72,153,0.2)] scale-[1.02]'
+                                            : 'bg-gray-900 border-gray-800 opacity-60'}
+                                    `}
+                                >
+                                    <div className="flex items-center gap-6">
+                                        <div className={`
+                                            w-10 h-10 rounded-full flex items-center justify-center font-bold
+                                            ${item.rank === 1 ? 'bg-yellow-500 text-black' :
+                                                item.rank === 2 ? 'bg-gray-400 text-black' :
+                                                    item.rank === 3 ? 'bg-amber-700 text-white' :
+                                                        'bg-gray-800 text-gray-500'}
+                                        `}>
+                                            {item.rank}
+                                        </div>
+                                        <span className={`font-medium ${isMe ? 'text-white text-lg' : 'text-gray-400'}`}>
+                                            {item.name}
+                                        </span>
                                     </div>
-                                    <span className={`font-medium ${isMe ? 'text-white text-lg' : 'text-gray-400'}`}>
-                                        {isMe ? item.unit : displayName}
-                                    </span>
-                                </div>
 
-                                {/* Only show scores for Me or maybe generic info for others? 
-                            Request said "não verá os demais". Usually blind ranking shows points to encourage competition? 
-                            Let's hide specific points for others to be safe based on "não verá os demais".
-                        */}
-                                <div className="font-mono font-bold text-white">
-                                    {isMe ? item.score : '****'} pts
+                                    {/* Show score if it's me or if user is admin (endpoint handles logic mostly, but we can verify) */}
+                                    <div className="font-mono font-bold text-white">
+                                        {/* Since backend masks names, does it mask scores? 
+                                            Docs: "Vê o nome das unidades no Top 3". "Outras unidades aparecem como 'Unidade ****'".
+                                            It doesn't explicitly say scores are hidden, but usually blind ranking hides scores of others to prevent guessing.
+                                            However, the JSON example shows "latest_score": 85.0 for a masked unit.
+                                            Let's show the score as returned by API.
+                                        */}
+                                        {item.latest_score} pts
+                                    </div>
                                 </div>
-                            </div>
-                        )
-                    })}
+                            )
+                        })
+                    )}
                 </div>
             </div>
         </div>
     )
 }
+

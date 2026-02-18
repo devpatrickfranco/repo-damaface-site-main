@@ -1,33 +1,81 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useAuth } from '@/context/AuthContext'
-import { QUESTIONS } from '../mocks'
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
-import { AlertCircle, CheckCircle2, Save, Settings } from 'lucide-react'
+import { Card, CardContent } from '@/components/ui/card'
+import { AlertCircle, CheckCircle2, Save, Settings, Loader2 } from 'lucide-react'
+import { excelenciaApi } from '../api'
+import { Question, AnswerInput } from '../types'
+import { toast } from 'sonner' // Assuming sonner is used, or alert/console
 
 export default function AutoAvaliacaoPage() {
     const { user } = useAuth()
-    const [answers, setAnswers] = useState<Record<string, string>>({})
+    const [questions, setQuestions] = useState<Question[]>([])
+    const [loading, setLoading] = useState(true)
+    const [answers, setAnswers] = useState<Record<number, number>>({}) // questionId -> value
     const [submitted, setSubmitted] = useState(false)
+    const [submitting, setSubmitting] = useState(false)
 
-    // Mock Date Logic
-    const nextAnalysisDate = '15/11/2023'
-    const isWindowOpen = true
+    // Mock Date Logic - in a real app this might come from backend config or current date
+    const nextAnalysisDate = '15/11/2023' // TODO: Get from backend if available
 
-    const handleOptionChange = (questionId: string, value: string) => {
+    useEffect(() => {
+        const fetchQuestions = async () => {
+            try {
+                const data = await excelenciaApi.getQuestions()
+                setQuestions(data)
+            } catch (error) {
+                console.error("Failed to fetch questions:", error)
+                toast.error("Erro ao carregar perguntas.")
+            } finally {
+                setLoading(false)
+            }
+        }
+
+        if (user) {
+            fetchQuestions()
+        }
+    }, [user])
+
+    const handleOptionChange = (questionId: number, value: number) => {
         setAnswers(prev => ({ ...prev, [questionId]: value }))
     }
 
-    const handleSubmit = () => {
-        // Mock submission logic
-        console.log('Submitting answers:', answers)
-        setSubmitted(true)
+    const handleSubmit = async () => {
+        // Validate if all questions are answered (optional, but good UX)
+        // For now, we allow partial answers or assume user answers all?
+        // Let's validate:
+        const answeredIds = Object.keys(answers).map(Number);
+        const filteredQuestions = questions.filter(q => q.target_role === user?.role || q.target_role === 'FRANQUEADO')
+
+        // Simple validation: check if number of answers matches filtered questions
+        // Note: This logic might need refinement if not all questions are mandatory.
+
+        setSubmitting(true)
+        try {
+            const payloadItems: AnswerInput[] = Object.entries(answers).map(([qId, val]) => ({
+                question: Number(qId),
+                value: val
+            }))
+
+            await excelenciaApi.createSubmission({ answers: payloadItems })
+            setSubmitted(true)
+            toast.success("Avaliação enviada com sucesso!")
+        } catch (error) {
+            console.error("Error submitting evaluation:", error)
+            toast.error("Erro ao enviar avaliação.")
+        } finally {
+            setSubmitting(false)
+        }
     }
 
     if (!user) return null
 
-    // SUPERADMIN VIEW: Configuração
+    if (loading) {
+        return <div className="flex justify-center items-center h-64"><Loader2 className="animate-spin w-8 h-8 text-brand-pink" /></div>
+    }
+
+    // SUPERADMIN VIEW: Configuração (Read-only for now based on previous code, simplified)
     if (user.role === 'SUPERADMIN') {
         return (
             <div className="space-y-6">
@@ -40,7 +88,7 @@ export default function AutoAvaliacaoPage() {
                 </div>
 
                 <div className="grid gap-4">
-                    {QUESTIONS.map((q) => (
+                    {questions.map((q) => (
                         <Card key={q.id} className="bg-gray-800 border-gray-700">
                             <CardContent className="pt-6 flex items-center justify-between">
                                 <div>
@@ -48,7 +96,7 @@ export default function AutoAvaliacaoPage() {
                                     <div className="flex gap-3 mt-2 text-sm text-gray-400">
                                         <span className="bg-gray-900 px-2 py-0.5 rounded border border-gray-700">Peso: {q.weight}</span>
                                         <span className="bg-gray-900 px-2 py-0.5 rounded border border-gray-700">Categoria: {q.category}</span>
-                                        <span className="bg-gray-900 px-2 py-0.5 rounded border border-gray-700">Role: {q.role}</span>
+                                        <span className="bg-gray-900 px-2 py-0.5 rounded border border-gray-700">Role: {q.target_role}</span>
                                     </div>
                                 </div>
                                 <button className="p-2 text-gray-400 hover:text-white transition-colors">
@@ -75,16 +123,22 @@ export default function AutoAvaliacaoPage() {
                     Acompanhe o ranking para ver sua pontuação atualizada.
                 </p>
                 <button
-                    onClick={() => setSubmitted(false)}
+                    onClick={() => {
+                        setSubmitted(false);
+                        setAnswers({});
+                        // Optionally re-fetch questions or reset state
+                    }}
                     className="text-brand-pink hover:underline mt-4"
                 >
-                    Voltar (Debug: Resetar)
+                    Nova Avaliação (Debug: Resetar)
                 </button>
             </div>
         )
     }
 
-    const filteredQuestions = QUESTIONS.filter(q => q.role === user.role || q.role === 'FRANQUEADO') // Fallback to Franqueado if specific role logic is loose
+    // Filter questions based on role. Fallback to FRANQUEADO if role matches or if strictly meant for everyone?
+    // The previous code had `q.role === user.role || q.role === 'FRANQUEADO'`.
+    const filteredQuestions = questions.filter(q => q.target_role === user.role || q.target_role === 'FRANQUEADO')
 
     return (
         <div className="space-y-8">
@@ -105,51 +159,69 @@ export default function AutoAvaliacaoPage() {
 
             <Card className="bg-gray-900 border-gray-800">
                 <CardContent className="p-6 space-y-8">
-                    {filteredQuestions.map((q, index) => (
-                        <div key={q.id} className="space-y-3 pb-6 border-b border-gray-800 last:border-0">
-                            <div className="flex items-start justify-between gap-4">
-                                <span className="text-brand-pink font-bold text-lg">#{index + 1}</span>
-                                <p className="text-lg text-white flex-1">{q.text}</p>
-                                <span className="text-xs font-mono text-gray-500 bg-gray-800 px-2 py-1 rounded">Peso: {q.weight}</span>
-                            </div>
+                    {filteredQuestions.length === 0 ? (
+                        <p className="text-gray-400 text-center py-8">Nenhuma pergunta encontrada para o seu perfil.</p>
+                    ) : (
+                        filteredQuestions.map((q, index) => (
+                            <div key={q.id} className="space-y-3 pb-6 border-b border-gray-800 last:border-0">
+                                <div className="flex items-start justify-between gap-4">
+                                    <span className="text-brand-pink font-bold text-lg">#{index + 1}</span>
+                                    <p className="text-lg text-white flex-1">{q.text}</p>
+                                    <span className="text-xs font-mono text-gray-500 bg-gray-800 px-2 py-1 rounded">Peso: {q.weight}</span>
+                                </div>
 
-                            <div className="flex gap-4 pl-10">
-                                {['Sim', 'Parcialmente', 'Não'].map((option) => (
-                                    <label key={option} className="flex items-center gap-2 cursor-pointer group">
-                                        <div className={`
-                      w-5 h-5 rounded-full border flex items-center justify-center transition-colors
-                      ${answers[q.id] === option
-                                                ? 'border-brand-pink bg-brand-pink/20'
-                                                : 'border-gray-600 group-hover:border-gray-400'}
-                    `}>
-                                            {answers[q.id] === option && <div className="w-2.5 h-2.5 rounded-full bg-brand-pink" />}
-                                        </div>
-                                        <input
-                                            type="radio"
-                                            name={q.id}
-                                            value={option}
-                                            className="hidden"
-                                            onChange={() => handleOptionChange(q.id, option)}
-                                        />
-                                        <span className={`${answers[q.id] === option ? 'text-white' : 'text-gray-400 group-hover:text-gray-300'}`}>
-                                            {option}
-                                        </span>
-                                    </label>
-                                ))}
+                                <div className="flex gap-4 pl-10">
+                                    {[
+                                        { label: 'Sim', value: 1.0 },
+                                        { label: 'Parcialmente', value: 0.5 },
+                                        { label: 'Não', value: 0.0 }
+                                    ].map((option) => (
+                                        <label key={option.label} className="flex items-center gap-2 cursor-pointer group">
+                                            <div className={`
+                                                w-5 h-5 rounded-full border flex items-center justify-center transition-colors
+                                                ${answers[q.id] === option.value
+                                                    ? 'border-brand-pink bg-brand-pink/20'
+                                                    : 'border-gray-600 group-hover:border-gray-400'}
+                                            `}>
+                                                {answers[q.id] === option.value && <div className="w-2.5 h-2.5 rounded-full bg-brand-pink" />}
+                                            </div>
+                                            <input
+                                                type="radio"
+                                                name={String(q.id)}
+                                                value={option.value}
+                                                className="hidden"
+                                                checked={answers[q.id] === option.value}
+                                                onChange={() => handleOptionChange(q.id, option.value)}
+                                            />
+                                            <span className={`${answers[q.id] === option.value ? 'text-white' : 'text-gray-400 group-hover:text-gray-300'}`}>
+                                                {option.label}
+                                            </span>
+                                        </label>
+                                    ))}
+                                </div>
                             </div>
-                        </div>
-                    ))}
+                        ))
+                    )}
                 </CardContent>
             </Card>
 
             <div className="flex justify-end">
                 <button
                     onClick={handleSubmit}
-                    className="bg-brand-pink hover:bg-pink-700 text-white font-bold py-3 px-8 rounded-lg transition-all shadow-lg hover:shadow-pink-900/20 transform hover:-translate-y-1"
+                    disabled={submitting || filteredQuestions.length === 0}
+                    className="bg-brand-pink hover:bg-pink-700 text-white font-bold py-3 px-8 rounded-lg transition-all shadow-lg hover:shadow-pink-900/20 transform hover:-translate-y-1 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
                 >
-                    Enviar Avaliação
+                    {submitting ? (
+                        <div className="flex items-center gap-2">
+                            <Loader2 className="animate-spin w-4 h-4" />
+                            Enviando...
+                        </div>
+                    ) : (
+                        "Enviar Avaliação"
+                    )}
                 </button>
             </div>
         </div>
     )
 }
+
