@@ -18,16 +18,16 @@ import Step2 from "./CreateCourseWizard/Step2";
 import Step3 from "./CreateCourseWizard/Step3";
 
 export default function RenderManageCourses() {
-  const { 
-    data: cursosData, 
-    loading: loadingCursos, 
-    error: errorCursos, 
-    refetch: refetchCursos 
+  const {
+    data: cursosData,
+    loading: loadingCursos,
+    error: errorCursos,
+    refetch: refetchCursos
   } = useCursos({ page_size: 100 });
-  
-  const { 
-    data: categoriasData, 
-    loading: loadingCategorias, 
+
+  const {
+    data: categoriasData,
+    loading: loadingCategorias,
     error: errorCategorias,
     refetch: refetchCategorias
   } = useCategorias({ page_size: 100 });
@@ -52,14 +52,14 @@ export default function RenderManageCourses() {
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
   const [selectedCategory, setSelectedCategory] = useState<string | number>("all");
   const [filterStatus, setFilterStatus] = useState<"all" | "livre" | "pago">("all");
-  
+
   const [modalMode, setModalMode] = useState<"create" | "edit" | null>(null);
   const [selectedCourseSlug, setSelectedCourseSlug] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [fullCourseData, setFullCourseData] = useState<Curso | null>(null);
   const [loadingFullCourse, setLoadingFullCourse] = useState(false);
   const [errorFullCourse, setErrorFullCourse] = useState<string | null>(null);
-  
+
   // Buscar dados completos do curso quando estiver em modo de edição
   const fetchFullCourse = async (slug: string) => {
     if (!slug) return;
@@ -67,18 +67,18 @@ export default function RenderManageCourses() {
     setErrorFullCourse(null);
     try {
       const data = await apiBackend.get<any>(`/academy/cursos/${slug}/`);
-      
+
       // Se o curso tiver quizzes, buscar os dados completos do quiz
       if (data.quizzes && Array.isArray(data.quizzes) && data.quizzes.length > 0) {
         const quizId = data.quizzes[0].id;
         try {
           const quizData = await apiBackend.get<any>(`/academy/quizzes/${quizId}/`);
-          
+
           // Transformar as perguntas para o formato esperado pelo wizard
           const perguntasFormatadas = (quizData.perguntas || []).map((pergunta: any) => {
             // Encontrar a opção correta
             const opcaoCorreta = pergunta.opcoes?.find((op: any) => op.correta === true);
-            
+
             return {
               id: String(pergunta.id), // Preserva o ID da pergunta
               texto: pergunta.texto,
@@ -90,7 +90,7 @@ export default function RenderManageCourses() {
               respostaCorretaId: opcaoCorreta ? String(opcaoCorreta.id) : ""
             };
           });
-          
+
           // Mesclar os dados completos do quiz no objeto do curso
           data.quizzes = {
             id: String(quizData.id),
@@ -100,7 +100,7 @@ export default function RenderManageCourses() {
             tentativas_maximas: quizData.tentativas_maximas || 3,
             perguntas: perguntasFormatadas
           };
-          
+
           // Armazenar quizId no objeto do curso para uso posterior
           data.quizId = quizData.id;
         } catch (quizErr: any) {
@@ -108,7 +108,7 @@ export default function RenderManageCourses() {
           // Continua mesmo se não conseguir buscar o quiz
         }
       }
-      
+
       setFullCourseData(data as Curso);
     } catch (err: any) {
       setErrorFullCourse(err.message || "Erro ao carregar curso");
@@ -117,7 +117,7 @@ export default function RenderManageCourses() {
       setLoadingFullCourse(false);
     }
   };
-  
+
   const selectedCourse = modalMode === "edit" && fullCourseData ? fullCourseData : null;
   const wizard = useCourseWizard(selectedCourse);
 
@@ -143,7 +143,7 @@ export default function RenderManageCourses() {
       alert(err.response?.data?.message || "Erro ao deletar quiz. Veja o console para mais detalhes.");
     }
   };
-  
+
   // Adicionar handleDeleteQuiz ao wizard object para passar ao Step2
   const wizardWithDelete = {
     ...wizard,
@@ -172,7 +172,7 @@ export default function RenderManageCourses() {
     setFullCourseData(null); // Limpar dados anteriores
     await fetchFullCourse(curso.slug);
   };
-  
+
   const handleSubmit = async () => {
     // ======= VALIDAÇÕES =======
     if (!wizard.formData.titulo || !wizard.formData.categoriaId || !wizard.formData.duracao) {
@@ -180,7 +180,7 @@ export default function RenderManageCourses() {
       wizard.setStep(1);
       return;
     }
-  
+
     // Validação do quiz
     if (wizard.perguntas.length > 0) {
       if (!wizard.quizTitle.trim()) {
@@ -188,7 +188,7 @@ export default function RenderManageCourses() {
         wizard.setStep(2);
         return;
       }
-  
+
       const invalidas = wizard.perguntas.filter(
         p => p.opcoes.filter(opt => opt.correta).length !== 1
       );
@@ -198,32 +198,32 @@ export default function RenderManageCourses() {
         return;
       }
     }
-  
+
     setIsSubmitting(true);
-  
+
     try {
       // Função auxiliar local (Idealmente mover para utils.ts)
       const isValidBackendId = (id: string | number | undefined): boolean => {
         if (!id) return false;
-    
+
         const idNumber = Number(id);
-    
+
         if (isNaN(idNumber)) return false;
-    
-        if (idNumber > 10000000000) return false; 
-    
+
+        if (idNumber > 10000000000) return false;
+
         return true;
-    };
+      };
 
       // ======= FORMATAR MATERIAIS =======
       const materiaisFormatted: any[] = [];
       const materiaisArquivos: { index: number; file: File }[] = [];
-  
+
       wizard.materiaisGerais.forEach((material, idx) => {
         // 🔥 CORREÇÃO CRÍTICA AQUI: Checar se ID é válido antes de enviar
-        const baseMaterial = (modalMode === "edit" && isValidBackendId(material.id)) 
-            ? { id: Number(material.id) } 
-            : {};
+        const baseMaterial = (modalMode === "edit" && isValidBackendId(material.id))
+          ? { id: Number(material.id) }
+          : {};
 
         if (material.tipo === "pdf" && material.arquivoFile) {
           materiaisArquivos.push({ index: idx, file: material.arquivoFile });
@@ -237,7 +237,7 @@ export default function RenderManageCourses() {
           });
         }
       });
-  
+
       // ======= FORMATAR MÓDULOS =======
       const modulosFormatted = wizard.modulos.map((modulo, idxModulo) => {
         const moduloPayload: any = {
@@ -250,20 +250,20 @@ export default function RenderManageCourses() {
               duracao: aula.duracao,
               ordem: idxAula + 1,
             };
-            
+
             if (modalMode === "edit" && isValidBackendId(aula.id)) {
               aulaPayload.id = Number(aula.id);
             }
             return aulaPayload;
           })
         };
-        
+
         if (modalMode === "edit" && isValidBackendId(modulo.id)) {
           moduloPayload.id = Number(modulo.id);
         }
         return moduloPayload;
       });
-  
+
       // ======= PAYLOAD DO CURSO =======
       const payload: any = {
         titulo: wizard.formData.titulo,
@@ -276,6 +276,7 @@ export default function RenderManageCourses() {
         publicado: wizard.formData.publicado ?? true,
         destaque: wizard.formData.destaque ?? false,
         certificado: wizard.formData.certificado ?? false,
+        privado_franqueado: wizard.formData.privado_franqueado ?? false,
         modulos: modulosFormatted,
         materiais: materiaisFormatted,
       };
@@ -283,24 +284,24 @@ export default function RenderManageCourses() {
       if (wizard.formData.status === "Pago") {
         payload.preco = wizard.formData.preco;
       }
-  
+
       // ======= 1) ENVIO DO CURSO =======
       const url = modalMode === "create"
         ? "/academy/cursos/"
         : `/academy/cursos/${selectedCourseSlug}/`;
-  
+
       const method = modalMode === "create" ? "post" : "patch";
-  
+
       let cursoResponse;
       let responseData; // Para pegar o ID independente do wrapper do axios/fetch
-  
+
       // Se houver arquivos → Enviar como FormData
       if (wizard.formData.capaFile || materiaisArquivos.length > 0) {
         const formData = new FormData();
-        
+
         Object.keys(payload).forEach(key => {
           const value = payload[key];
-          
+
           if (key === "materiais" || key === "modulos") {
             formData.append(key, JSON.stringify(value));
           } else {
@@ -315,25 +316,25 @@ export default function RenderManageCourses() {
             }
           }
         });
-  
+
         if (wizard.formData.capaFile) {
           formData.append("capa", wizard.formData.capaFile);
         }
-  
+
         materiaisArquivos.forEach(item => {
           formData.append(`material_arquivo_${item.index}`, item.file);
         });
-  
+
         cursoResponse = await apiBackend[method](url, formData);
       } else {
         // Envio JSON simples
         cursoResponse = await apiBackend[method](url, payload);
       }
-      
+
       // Ajuste: Dependendo do seu interceptor, o ID pode estar no root ou em .data
-      responseData = cursoResponse.data || cursoResponse; 
-      const cursoId = responseData.id; 
-  
+      responseData = cursoResponse.data || cursoResponse;
+      const cursoId = responseData.id;
+
       // ======= 2) QUIZ =======
       if (wizard.perguntas.length > 0 && cursoId) {
         const quizPayload = {
@@ -364,21 +365,21 @@ export default function RenderManageCourses() {
             return perguntaPayload;
           }),
         };
-  
+
         if (modalMode === "edit" && wizard.quizId) {
           await apiBackend.patch(`/academy/quizzes/${wizard.quizId}/`, quizPayload);
         } else {
           await apiBackend.post(`/academy/quizzes/`, quizPayload);
         }
       }
-  
+
       // ======= FINAL =======
       await refetchCursos();
       wizard.resetWizard();
       setModalMode(null);
       setSelectedCourseSlug(null);
       alert("Curso salvo com sucesso!");
-  
+
     } catch (err) {
       console.error(err);
       alert("Erro ao salvar o curso. Verifique o console.");
@@ -386,7 +387,7 @@ export default function RenderManageCourses() {
       setIsSubmitting(false);
     }
   }
-  
+
   // Garantir que os tipos sejam explícitos
   const filteredCursos = cursos.filter((curso: Curso) =>
     (curso.titulo.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -430,30 +431,30 @@ export default function RenderManageCourses() {
           </button>
         </div>
 
-        <Stats 
-            cursos={cursos} 
-            searchTerm={searchTerm} 
-            setSearchTerm={setSearchTerm} 
-            selectedCategory={selectedCategory} 
-            setSelectedCategory={setSelectedCategory} 
-            filterStatus={filterStatus} 
-            setFilterStatus={setFilterStatus} 
-            categorias={categorias} 
-            filteredCount={filteredCursos.length} 
+        <Stats
+          cursos={cursos}
+          searchTerm={searchTerm}
+          setSearchTerm={setSearchTerm}
+          selectedCategory={selectedCategory}
+          setSelectedCategory={setSelectedCategory}
+          filterStatus={filterStatus}
+          setFilterStatus={setFilterStatus}
+          categorias={categorias}
+          filteredCount={filteredCursos.length}
         />
 
         <CategoryManage categorias={categorias} refetchCategorias={refetchCategorias} />
-        
+
         {/* TODO: Trilhas de Formação - Comentado temporariamente */}
         {/* <TrilhaManage trilhas={trilhas} refetchTrilhas={refetchTrilhas} /> */}
 
-        <CourseView 
-            cursos={filteredCursos} 
-            categorias={categorias} 
-            onEditCourse={openEditModal} 
-            refetchCursos={refetchCursos} 
-            viewMode={viewMode} 
-            setViewMode={setViewMode} 
+        <CourseView
+          cursos={filteredCursos}
+          categorias={categorias}
+          onEditCourse={openEditModal}
+          refetchCursos={refetchCursos}
+          viewMode={viewMode}
+          setViewMode={setViewMode}
         />
 
         {modalMode && (
@@ -478,7 +479,7 @@ export default function RenderManageCourses() {
                   <div className="flex items-center space-x-2 mt-2">
                     {[1, 2, 3].map(stepNumber => (
                       <div key={stepNumber} className={`flex items-center ${stepNumber < 3 ? "mr-2" : ""}`}>
-                        <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium ${ wizard.step === stepNumber ? "bg-pink-500 text-white" : wizard.step > stepNumber ? "bg-green-500 text-white" : "bg-gray-600 text-gray-300" }`}>
+                        <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium ${wizard.step === stepNumber ? "bg-pink-500 text-white" : wizard.step > stepNumber ? "bg-green-500 text-white" : "bg-gray-600 text-gray-300"}`}>
                           {stepNumber}
                         </div>
                         {stepNumber < 3 && <div className={`w-8 h-0.5 ${wizard.step > stepNumber ? "bg-green-500" : "bg-gray-600"}`} />}
