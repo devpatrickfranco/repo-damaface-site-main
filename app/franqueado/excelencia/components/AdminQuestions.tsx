@@ -1,7 +1,6 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { useAuth } from '@/context/AuthContext'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -10,12 +9,11 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from '@/components/ui/dialog'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { Loader2, Plus, Pencil, Trash2, Save } from 'lucide-react'
-import { excelenciaApi } from '../../api'
-import { Question, QuestionInput } from '../../types'
+import { excelenciaApi } from '../api'
+import { Question, QuestionInput } from '../types'
 import { toast } from 'sonner'
 
-export default function AdminQuestionsPage() {
-    const { user } = useAuth()
+export function AdminQuestions() {
     const [questions, setQuestions] = useState<Question[]>([])
     const [loading, setLoading] = useState(true)
     const [isDialogOpen, setIsDialogOpen] = useState(false)
@@ -103,11 +101,6 @@ export default function AdminQuestionsPage() {
             console.error("Error deleting question:", error)
             toast.error("Erro ao excluir pergunta.")
         }
-    }
-
-    if (!user || user.role !== 'SUPERADMIN') {
-        // Should ideally redirect or show 403, but just returning null for safety based on context
-        return <div className="text-white p-8">Acesso restrito.</div>
     }
 
     if (loading) {

@@ -7,6 +7,7 @@ import { AlertCircle, CheckCircle2, Save, Settings, Loader2 } from 'lucide-react
 import { excelenciaApi } from '../api'
 import { Question, AnswerInput } from '../types'
 import { toast } from 'sonner' // Assuming sonner is used, or alert/console
+import { AdminQuestions } from '../components/AdminQuestions'
 
 export default function AutoAvaliacaoPage() {
     const { user } = useAuth()
@@ -75,39 +76,9 @@ export default function AutoAvaliacaoPage() {
         return <div className="flex justify-center items-center h-64"><Loader2 className="animate-spin w-8 h-8 text-brand-pink" /></div>
     }
 
-    // SUPERADMIN VIEW: Configuração (Read-only for now based on previous code, simplified)
+    // SUPERADMIN VIEW: Configuração
     if (user.role === 'SUPERADMIN') {
-        return (
-            <div className="space-y-6">
-                <div className="flex items-center justify-between">
-                    <h1 className="text-3xl font-bold text-white">Configuração da Auto Avaliação</h1>
-                    <button className="bg-brand-pink text-white px-4 py-2 rounded-lg flex items-center gap-2 hover:bg-brand-pink/80 transition-colors">
-                        <Save className="w-4 h-4" />
-                        Salvar Alterações
-                    </button>
-                </div>
-
-                <div className="grid gap-4">
-                    {questions.map((q) => (
-                        <Card key={q.id} className="bg-gray-800 border-gray-700">
-                            <CardContent className="pt-6 flex items-center justify-between">
-                                <div>
-                                    <p className="font-semibold text-white">{q.text}</p>
-                                    <div className="flex gap-3 mt-2 text-sm text-gray-400">
-                                        <span className="bg-gray-900 px-2 py-0.5 rounded border border-gray-700">Peso: {q.weight}</span>
-                                        <span className="bg-gray-900 px-2 py-0.5 rounded border border-gray-700">Categoria: {q.category}</span>
-                                        <span className="bg-gray-900 px-2 py-0.5 rounded border border-gray-700">Role: {q.target_role}</span>
-                                    </div>
-                                </div>
-                                <button className="p-2 text-gray-400 hover:text-white transition-colors">
-                                    <Settings className="w-5 h-5" />
-                                </button>
-                            </CardContent>
-                        </Card>
-                    ))}
-                </div>
-            </div>
-        )
+        return <AdminQuestions />
     }
 
     // FRANQUEADO VIEW: Formulário
