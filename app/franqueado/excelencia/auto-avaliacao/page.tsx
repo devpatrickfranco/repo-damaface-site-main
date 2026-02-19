@@ -6,7 +6,8 @@ import { Card, CardContent } from '@/components/ui/card'
 import { AlertCircle, CheckCircle2, Loader2 } from 'lucide-react'
 import { toast } from 'sonner'
 import { AdminQuestions } from '../components/AdminQuestions'
-import type { Question, Category, AnswerOption, QuestionType } from '../components/AdminQuestions'
+import { excelenciaApi } from '../api'
+import type { Question, Category, AnswerOption, QuestionType } from '../types'
 
 // ─── Answer Input Components ────────────────────────────────────────────────
 
@@ -202,27 +203,6 @@ const TYPE_PILL: Record<QuestionType, { label: string; className: string }> = {
     CUSTOM: { label: 'Personalizado', className: 'bg-pink-500/10 text-pink-400 border-pink-500/20' },
 }
 
-// ─── Constants ──────────────────────────────────────────────────────────────
-
-const API_BASE = '/excelencia'
-
-async function fetchAPI<T>(endpoint: string, options: RequestInit = {}): Promise<T> {
-    const res = await fetch(`${API_BASE}${endpoint}`, {
-        ...options,
-        headers: {
-            'Content-Type': 'application/json',
-            ...(options.headers ?? {}),
-        },
-    })
-
-    if (!res.ok) {
-        throw new Error(`Erro API: ${res.statusText}`)
-    }
-
-    if (res.status === 204) return {} as T
-    return res.json()
-}
-
 // ─── Page ──────────────────────────────────────────────────────────────────
 
 export default function AutoAvaliacaoPage() {
@@ -252,8 +232,8 @@ export default function AutoAvaliacaoPage() {
             try {
                 // Fetch categories and questions
                 const [cats, qs] = await Promise.all([
-                    fetchAPI<Category[]>('/categories/'),
-                    fetchAPI<Question[]>(`/questions/?target_role=${role}&is_active=true`)
+                    excelenciaApi.getCategories(),
+                    excelenciaApi.getQuestions({ target_role: role, is_active: true })
                 ])
                 setCategories(cats || [])
                 setQuestions(qs || [])
@@ -284,10 +264,7 @@ export default function AutoAvaliacaoPage() {
                 }))
             }
 
-            await fetchAPI('/submissions/', {
-                method: 'POST',
-                body: JSON.stringify(payload)
-            })
+            await excelenciaApi.createSubmission(payload)
 
             setSubmitted(true)
             toast.success('Avaliação enviada com sucesso!')

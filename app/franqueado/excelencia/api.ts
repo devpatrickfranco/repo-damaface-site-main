@@ -1,11 +1,20 @@
 import { apiBackend } from "@/lib/api-backend";
-import { Question, Submission, CreateSubmissionPayload, RankingItem } from "./types";
+import { Question, Submission, CreateSubmissionPayload, RankingItem, Category } from "./types";
 
 const BASE_URL = "/excelencia";
 
 export const excelenciaApi = {
-    getQuestions: async (): Promise<Question[]> => {
-        return apiBackend.get<Question[]>(`${BASE_URL}/questions/`);
+    getQuestions: async (params?: { target_role?: string; is_active?: boolean }): Promise<Question[]> => {
+        const queryParams = new URLSearchParams();
+        if (params?.target_role) queryParams.append("target_role", params.target_role);
+        if (params?.is_active !== undefined) queryParams.append("is_active", String(params.is_active));
+
+        const queryString = queryParams.toString() ? `?${queryParams.toString()}` : "";
+        return apiBackend.get<Question[]>(`${BASE_URL}/questions/${queryString}`);
+    },
+
+    getCategories: async (): Promise<Category[]> => {
+        return apiBackend.get<Category[]>(`${BASE_URL}/categories/`);
     },
 
     getSubmissions: async (): Promise<Submission[]> => {

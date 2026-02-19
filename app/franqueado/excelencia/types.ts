@@ -1,29 +1,50 @@
-export interface Category {
-    id?: number; // Optional if not returned directly
+export type QuestionType = 'YES_NO' | 'YES_PARTIAL_NO' | 'NPS' | 'NUMERIC' | 'PERCENTAGE' | 'CUSTOM';
+
+export interface AnswerOption {
+    id: string;
+    label: string;
+    value: number;
+    color?: 'green' | 'yellow' | 'red' | 'blue' | 'gray';
+}
+
+export interface AnswerTemplate {
+    id: number;
     name: string;
+    options: AnswerOption[];
+    created_at?: string;
+}
+
+export interface Category {
+    id: number;
+    name: string;
+    description?: string;
+    weight_percent: number;
+    color: string;
+    created_at?: string;
 }
 
 export interface Question {
     id: number;
     text: string;
-    category: number | string; // ID or Name depending on backend serialization
+    category: number;
+    category_name?: string;
+    question_type: QuestionType;
     weight: number;
+    target_role: 'FRANQUEADO' | 'FUNCIONARIO' | 'ADMIN';
     is_active: boolean;
-    target_role: 'FRANQUEADO' | 'FUNCIONARIO' | 'ADMIN';
-}
-
-export interface QuestionInput {
-    text: string;
-    category: number | string; // ID or Name
-    weight: number;
-    target_role: 'FRANQUEADO' | 'FUNCIONARIO' | 'ADMIN';
-    is_active?: boolean;
+    // For NUMERIC
+    numeric_min?: number | null;
+    numeric_max?: number | null;
+    numeric_unit?: string;
+    // For CUSTOM
+    custom_options?: AnswerOption[] | null;
+    created_at?: string;
 }
 
 export interface Submission {
     id: number;
-    unit: number; // ID of the unit
-    user: number; // ID of the user
+    unit: number;
+    user: number;
     total_score: number;
     status: 'PENDING' | 'APPROVED';
     created_at?: string;
@@ -32,17 +53,12 @@ export interface Submission {
 
 export interface Answer {
     id?: number;
-    question: number; // ID of the question
-    value: number; // 0.0, 0.5, 1.0
-}
-
-export interface AnswerInput {
     question: number;
     value: number;
 }
 
 export interface CreateSubmissionPayload {
-    answers: AnswerInput[];
+    answers: { question: number; value: number }[];
 }
 
 export interface RankingItem {
