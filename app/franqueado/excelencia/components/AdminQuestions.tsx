@@ -16,72 +16,8 @@ import {
 } from 'lucide-react'
 import { toast } from 'sonner'
 import { useAuth } from '@/context/AuthContext'
-
-// ─── Types ─────────────────────────────────────────────────────────────────
-
-export type QuestionType = 'YES_NO' | 'YES_PARTIAL_NO' | 'NPS' | 'NUMERIC' | 'PERCENTAGE' | 'CUSTOM'
-
-export interface AnswerOption {
-    id: string
-    label: string
-    value: number
-    color?: 'green' | 'yellow' | 'red' | 'blue' | 'gray'
-}
-
-export interface AnswerTemplate {
-    id: number
-    name: string
-    options: AnswerOption[]
-    created_at?: string
-}
-
-export interface Category {
-    id: number
-    name: string
-    description: string
-    weight_percent: number
-    color: string
-    created_at?: string
-}
-
-export interface Question {
-    id: number
-    text: string
-    category: number // ID da categoria
-    category_name?: string
-    question_type: QuestionType
-    weight: number
-    target_role: 'FRANQUEADO' | 'FUNCIONARIO' | 'ADMIN'
-    is_active: boolean
-    // For NUMERIC
-    numeric_min?: number | null
-    numeric_max?: number | null
-    numeric_unit?: string
-    // For CUSTOM
-    custom_options?: AnswerOption[] | null
-    created_at?: string
-}
-
-// ─── API Helpers ───────────────────────────────────────────────────────────
-
-const API_BASE = '/excelencia'
-
-async function fetchAPI<T>(endpoint: string, options: RequestInit = {}): Promise<T> {
-    const res = await fetch(`${API_BASE}${endpoint}`, {
-        ...options,
-        headers: {
-            'Content-Type': 'application/json',
-            ...(options.headers ?? {}),
-        },
-    })
-
-    if (!res.ok) {
-        throw new Error(`Erro API: ${res.statusText}`)
-    }
-
-    if (res.status === 204) return {} as T
-    return res.json()
-}
+import { excelenciaApi } from '../api'
+import type { Question, Category, AnswerTemplate, AnswerOption, QuestionType } from '../types'
 
 // ─── Constants ──────────────────────────────────────────────────────────────
 
@@ -177,10 +113,10 @@ function AnswerTemplatesTab({
         try {
             const payload = { name, options }
             if (editingId) {
-                await fetchAPI(`/answer-templates/${editingId}/`, { method: 'PUT', body: JSON.stringify(payload) })
+                await excelenciaApi.updateAnswerTemplate(editingId, payload)
                 toast.success('Modelo atualizado!')
             } else {
-                await fetchAPI('/answer-templates/', { method: 'POST', body: JSON.stringify(payload) })
+                await excelenciaApi.createAnswerTemplate(payload)
                 toast.success('Modelo criado!')
             }
             reload()
@@ -195,7 +131,7 @@ function AnswerTemplatesTab({
     const handleDelete = async (id: number) => {
         if (!confirm('Excluir este modelo?')) return
         try {
-            await fetchAPI(`/answer-templates/${id}/`, { method: 'DELETE' })
+            await excelenciaApi.deleteAnswerTemplate(id)
             toast.success('Modelo excluído!')
             reload()
         } catch (error) {
@@ -209,7 +145,7 @@ function AnswerTemplatesTab({
                 name: `${t.name} (cópia)`,
                 options: t.options
             }
-            await fetchAPI('/answer-templates/', { method: 'POST', body: JSON.stringify(payload) })
+            await excelenciaApi.createAnswerTemplate(payload)
             toast.success('Modelo duplicado!')
             reload()
         } catch (error) {
@@ -414,7 +350,7 @@ function CategoryTab({
 
     const openEdit = (c: Category) => {
         setEditingId(c.id)
-        setForm({ name: c.name, description: c.description, weight_percent: c.weight_percent, color: c.color })
+        setForm({ name: c.name, description: c.description || '', weight_percent: c.weight_percent, color: c.color })
         setIsDialogOpen(true)
     }
 
@@ -423,10 +359,10 @@ function CategoryTab({
         setSaving(true)
         try {
             if (editingId) {
-                await fetchAPI(`/categories/${editingId}/`, { method: 'PUT', body: JSON.stringify(form) })
+                await excelenciaApi.updateCategory(editingId, form)
                 toast.success('Categoria atualizada!')
             } else {
-                await fetchAPI('/categories/', { method: 'POST', body: JSON.stringify(form) })
+                await excelenciaApi.createCategory(form)
                 toast.success('Categoria criada!')
             }
             reload()
@@ -443,7 +379,7 @@ function CategoryTab({
         if (hasQuestions) { toast.error('Remova as perguntas desta categoria antes de excluí-la.'); return }
         if (!confirm('Excluir categoria?')) return
         try {
-            await fetchAPI(`/categories/${id}/`, { method: 'DELETE' })
+            await excelenciaApi.deleteCategory(id)
             toast.success('Categoria excluída!')
             reload()
         } catch (error) {
@@ -878,10 +814,10 @@ function QuestionsTab({
     const handleSave = async (payload: Partial<Question>) => {
         try {
             if (editingQuestion) {
-                await fetchAPI(`/questions/${editingQuestion.id}/`, { method: 'PUT', body: JSON.stringify(payload) })
+                await excelenciaApi.updateQuestion(editingQuestion.id, payload)
                 toast.success('Pergunta atualizada!')
             } else {
-                await fetchAPI('/questions/', { method: 'POST', body: JSON.stringify(payload) })
+                await excelenciaApi.createQuestion(payload)
                 toast.success('Pergunta criada!')
             }
             reload()
@@ -894,7 +830,7 @@ function QuestionsTab({
     const handleDelete = async (id: number) => {
         if (!confirm('Excluir esta pergunta?')) return
         try {
-            await fetchAPI(`/questions/${id}/`, { method: 'DELETE' })
+            await excelenciaApi.deleteQuestion(id)
             toast.success('Pergunta excluída!')
             reload()
         } catch (error) {
@@ -1081,9 +1017,9 @@ export function AdminQuestions() {
         setLoading(true)
         try {
             const [cats, qs, tpls] = await Promise.all([
-                fetchAPI<Category[]>('/categories/'),
-                fetchAPI<Question[]>('/questions/'),
-                fetchAPI<AnswerTemplate[]>('/answer-templates/')
+                excelenciaApi.getCategories(),
+                excelenciaApi.getQuestions(),
+                excelenciaApi.getAnswerTemplates()
             ])
             setCategories(cats || [])
             setQuestions(qs || [])

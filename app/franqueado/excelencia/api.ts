@@ -46,4 +46,33 @@ export const excelenciaApi = {
     deleteQuestion: async (id: number): Promise<void> => {
         return apiBackend.delete(`${BASE_URL}/questions/${id}/`);
     },
+    // Category methods
+    createCategory: async (data: any): Promise<Category> => {
+        return apiBackend.post<Category>(`${BASE_URL}/categories/`, data);
+    },
+
+    updateCategory: async (id: number, data: any): Promise<Category> => {
+        return apiBackend.put<Category>(`${BASE_URL}/categories/${id}/`, data);
+    },
+
+    deleteCategory: async (id: number): Promise<void> => {
+        return apiBackend.delete(`${BASE_URL}/categories/${id}/`);
+    },
+
+    // Answer Template methods
+    getAnswerTemplates: async (): Promise<any[]> => {
+        return apiBackend.get<any[]>(`${BASE_URL}/answer-templates/`);
+    },
+
+    createAnswerTemplate: async (data: any): Promise<any> => {
+        return apiBackend.post<any>(`${BASE_URL}/answer-templates/`, data);
+    },
+
+    updateAnswerTemplate: async (id: number, data: any): Promise<any> => {
+        return apiBackend.put<any>(`${BASE_URL}/answer-templates/${id}/`, data);
+    },
+
+    deleteAnswerTemplate: async (id: number): Promise<void> => {
+        return apiBackend.delete(`${BASE_URL}/answer-templates/${id}/`);
+    },
 };
