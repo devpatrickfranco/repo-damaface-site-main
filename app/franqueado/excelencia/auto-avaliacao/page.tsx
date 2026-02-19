@@ -6,11 +6,7 @@ import { Card, CardContent } from '@/components/ui/card'
 import { AlertCircle, CheckCircle2, Loader2 } from 'lucide-react'
 import { toast } from 'sonner'
 import { AdminQuestions } from '../components/AdminQuestions'
-import type { Question, QuestionType, AnswerOption } from '../components/AdminQuestions'
-
-// ─── Extended for local storage questions ──────────────────────────────────
-
-type LocalQuestion = Question
+import type { Question, Category, AnswerOption, QuestionType } from '../components/AdminQuestions'
 
 // ─── Answer Input Components ────────────────────────────────────────────────
 
@@ -59,7 +55,7 @@ function RadioGroup({
     )
 }
 
-function YesNoAnswer({ question, value, onChange }: { question: LocalQuestion; value: number | undefined; onChange: (v: number) => void }) {
+function YesNoAnswer({ question, value, onChange }: { question: Question; value: number | undefined; onChange: (v: number) => void }) {
     return (
         <RadioGroup
             name={String(question.id)}
@@ -73,7 +69,7 @@ function YesNoAnswer({ question, value, onChange }: { question: LocalQuestion; v
     )
 }
 
-function YesPartialNoAnswer({ question, value, onChange }: { question: LocalQuestion; value: number | undefined; onChange: (v: number) => void }) {
+function YesPartialNoAnswer({ question, value, onChange }: { question: Question; value: number | undefined; onChange: (v: number) => void }) {
     return (
         <RadioGroup
             name={String(question.id)}
@@ -88,7 +84,7 @@ function YesPartialNoAnswer({ question, value, onChange }: { question: LocalQues
     )
 }
 
-function NPSAnswer({ question, value, onChange }: { question: LocalQuestion; value: number | undefined; onChange: (v: number) => void }) {
+function NPSAnswer({ question, value, onChange }: { question: Question; value: number | undefined; onChange: (v: number) => void }) {
     const scores = Array.from({ length: 11 }, (_, i) => i)
 
     const getStyle = (score: number, selected: boolean) => {
@@ -121,28 +117,28 @@ function NPSAnswer({ question, value, onChange }: { question: LocalQuestion; val
     )
 }
 
-function NumericAnswer({ question, value, onChange }: { question: LocalQuestion; value: number | undefined; onChange: (v: number) => void }) {
+function NumericAnswer({ question, value, onChange }: { question: Question; value: number | undefined; onChange: (v: number) => void }) {
     return (
         <div className="pl-10 flex items-center gap-3">
             <input
                 type="number"
-                min={question.numericMin}
-                max={question.numericMax}
+                min={question.numeric_min ?? undefined}
+                max={question.numeric_max ?? undefined}
                 step="any"
                 value={value ?? ''}
                 onChange={e => onChange(Number(e.target.value))}
                 className="bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-white text-sm w-44 focus:outline-none focus:ring-2 focus:ring-brand-pink/50"
-                placeholder={question.numericMin !== undefined && question.numericMax !== undefined ? `${question.numericMin} – ${question.numericMax}` : 'Insira o valor'}
+                placeholder={question.numeric_min !== null && question.numeric_max !== null ? `${question.numeric_min} – ${question.numeric_max}` : 'Insira o valor'}
             />
-            {question.numericUnit && <span className="text-gray-400 text-sm font-medium">{question.numericUnit}</span>}
-            {question.numericMin !== undefined && question.numericMax !== undefined && (
-                <span className="text-gray-600 text-xs">intervalo: {question.numericMin} a {question.numericMax}</span>
+            {question.numeric_unit && <span className="text-gray-400 text-sm font-medium">{question.numeric_unit}</span>}
+            {question.numeric_min !== null && question.numeric_max !== null && (
+                <span className="text-gray-600 text-xs">intervalo: {question.numeric_min} a {question.numeric_max}</span>
             )}
         </div>
     )
 }
 
-function PercentageAnswer({ question, value, onChange }: { question: LocalQuestion; value: number | undefined; onChange: (v: number) => void }) {
+function PercentageAnswer({ question, value, onChange }: { question: Question; value: number | undefined; onChange: (v: number) => void }) {
     const pct = value ?? 0
 
     const barColor = pct >= 80 ? 'bg-green-500' : pct >= 50 ? 'bg-yellow-500' : 'bg-red-500'
@@ -152,8 +148,8 @@ function PercentageAnswer({ question, value, onChange }: { question: LocalQuesti
             <div className="flex items-center gap-4">
                 <input
                     type="range"
-                    min={question.numericMin ?? 0}
-                    max={question.numericMax ?? 100}
+                    min={question.numeric_min ?? 0}
+                    max={question.numeric_max ?? 100}
                     step={1}
                     value={pct}
                     onChange={e => onChange(Number(e.target.value))}
@@ -171,8 +167,8 @@ function PercentageAnswer({ question, value, onChange }: { question: LocalQuesti
     )
 }
 
-function CustomAnswer({ question, value, onChange }: { question: LocalQuestion; value: number | undefined; onChange: (v: number) => void }) {
-    const options = question.customOptions ?? []
+function CustomAnswer({ question, value, onChange }: { question: Question; value: number | undefined; onChange: (v: number) => void }) {
+    const options = question.custom_options ?? []
     return (
         <RadioGroup
             name={String(question.id)}
@@ -183,8 +179,8 @@ function CustomAnswer({ question, value, onChange }: { question: LocalQuestion; 
     )
 }
 
-function QuestionAnswerInput({ question, value, onChange }: { question: LocalQuestion; value: number | undefined; onChange: (v: number) => void }) {
-    switch (question.questionType) {
+function QuestionAnswerInput({ question, value, onChange }: { question: Question; value: number | undefined; onChange: (v: number) => void }) {
+    switch (question.question_type) {
         case 'YES_NO': return <YesNoAnswer question={question} value={value} onChange={onChange} />
         case 'YES_PARTIAL_NO': return <YesPartialNoAnswer question={question} value={value} onChange={onChange} />
         case 'NPS': return <NPSAnswer question={question} value={value} onChange={onChange} />
@@ -206,28 +202,38 @@ const TYPE_PILL: Record<QuestionType, { label: string; className: string }> = {
     CUSTOM: { label: 'Personalizado', className: 'bg-pink-500/10 text-pink-400 border-pink-500/20' },
 }
 
-// ─── Load questions from localStorage ──────────────────────────────────────
+// ─── Constants ──────────────────────────────────────────────────────────────
 
-function useLocalStorageValue<T>(key: string, fallback: T): T {
-    const [value] = useState<T>(() => {
-        try {
-            const stored = localStorage.getItem(key)
-            return stored ? JSON.parse(stored) : fallback
-        } catch { return fallback }
+const API_BASE = '/excelencia'
+
+async function fetchAPI<T>(endpoint: string, options: RequestInit = {}): Promise<T> {
+    const res = await fetch(`${API_BASE}${endpoint}`, {
+        ...options,
+        headers: {
+            'Content-Type': 'application/json',
+            ...(options.headers ?? {}),
+        },
     })
-    return value
+
+    if (!res.ok) {
+        throw new Error(`Erro API: ${res.statusText}`)
+    }
+
+    if (res.status === 204) return {} as T
+    return res.json()
 }
 
 // ─── Page ──────────────────────────────────────────────────────────────────
 
 export default function AutoAvaliacaoPage() {
     const { user } = useAuth()
-    const [answers, setAnswers] = useState<Record<string, number>>({})
+    const [answers, setAnswers] = useState<Record<number, number>>({})
     const [submitted, setSubmitted] = useState(false)
     const [submitting, setSubmitting] = useState(false)
+    const [loading, setLoading] = useState(true)
 
-    const questions = useLocalStorageValue<LocalQuestion[]>('excelencia_questions', [])
-    const categories = useLocalStorageValue<Array<{ id: string; name: string; color: string; weightPercent: number }>>('excelencia_categories', [])
+    const [questions, setQuestions] = useState<Question[]>([])
+    const [categories, setCategories] = useState<Category[]>([])
 
     const CATEGORY_COLOR_MAP: Record<string, string> = {
         pink: 'bg-pink-500', blue: 'bg-blue-500', green: 'bg-green-500',
@@ -235,22 +241,58 @@ export default function AutoAvaliacaoPage() {
         teal: 'bg-teal-500', red: 'bg-red-500',
     }
 
-    const nextAnalysisDate = '15/11/2023'
+    // TODO: Fetch real date from backend if available
+    const nextAnalysisDate = '15/11/2026'
 
-    const handleChange = (questionId: string, value: number) => {
+    useEffect(() => {
+        const loadData = async () => {
+            // Only load for FRANQUEADO or user's role
+            const role = user?.role === 'FRANQUEADO' ? 'FRANQUEADO' : 'FUNCIONARIO'
+
+            try {
+                // Fetch categories and questions
+                const [cats, qs] = await Promise.all([
+                    fetchAPI<Category[]>('/categories/'),
+                    fetchAPI<Question[]>(`/questions/?target_role=${role}&is_active=true`)
+                ])
+                setCategories(cats || [])
+                setQuestions(qs || [])
+            } catch (error) {
+                console.error('Failed to load evaluation data', error)
+                toast.error('Erro ao carregar questionário.')
+            } finally {
+                setLoading(false)
+            }
+        }
+
+        if (user && user.role !== 'SUPERADMIN') {
+            loadData()
+        }
+    }, [user])
+
+    const handleChange = (questionId: number, value: number) => {
         setAnswers(prev => ({ ...prev, [questionId]: value }))
     }
 
     const handleSubmit = async () => {
         setSubmitting(true)
         try {
-            // In real app: send to API
-            // const payload = Object.entries(answers).map(([qId, val]) => ({ question: qId, value: val }))
-            // await excelenciaApi.createSubmission({ answers: payload })
-            await new Promise(r => setTimeout(r, 800)) // simulate API
+            const payload = {
+                answers: Object.entries(answers).map(([qId, val]) => ({
+                    question: Number(qId),
+                    value: val
+                }))
+            }
+
+            await fetchAPI('/submissions/', {
+                method: 'POST',
+                body: JSON.stringify(payload)
+            })
+
             setSubmitted(true)
             toast.success('Avaliação enviada com sucesso!')
         } catch (error) {
+            console.error(error)
             toast.error('Erro ao enviar avaliação.')
         } finally {
             setSubmitting(false)
@@ -260,6 +302,14 @@ export default function AutoAvaliacaoPage() {
     if (!user) return null
 
     if (user.role === 'SUPERADMIN') return <AdminQuestions />
+
+    if (loading) {
+        return (
+            <div className="flex justify-center py-20">
+                <Loader2 className="w-8 h-8 text-brand-pink animate-spin" />
+            </div>
+        )
+    }
 
     if (submitted) {
         return (
@@ -279,22 +329,18 @@ export default function AutoAvaliacaoPage() {
         )
     }
 
-    const filteredQuestions = questions.filter(
-        q => q.isActive && (q.targetRole === user?.role || q.targetRole === 'FRANQUEADO')
-    )
-
     const answeredCount = Object.keys(answers).length
-    const progress = filteredQuestions.length > 0 ? Math.round((answeredCount / filteredQuestions.length) * 100) : 0
+    const progress = questions.length > 0 ? Math.round((answeredCount / questions.length) * 100) : 0
 
     // Group by category
     const grouped = categories
         .map(cat => ({
             category: cat,
-            questions: filteredQuestions.filter(q => q.categoryId === cat.id),
+            questions: questions.filter(q => q.category === cat.id),
         }))
         .filter(g => g.questions.length > 0)
 
-    const ungrouped = filteredQuestions.filter(q => !categories.find(c => c.id === q.categoryId))
+    const ungrouped = questions.filter(q => !categories.find(c => c.id === q.category))
 
     return (
         <div className="space-y-8">
@@ -318,7 +364,7 @@ export default function AutoAvaliacaoPage() {
                 <div className="flex justify-between text-sm">
                     <span className="text-gray-400">Progresso do formulário</span>
                     <span className={`font-semibold ${progress === 100 ? 'text-green-400' : 'text-white'}`}>
-                        {answeredCount}/{filteredQuestions.length} respondidas ({progress}%)
+                        {answeredCount}/{questions.length} respondidas ({progress}%)
                     </span>
                 </div>
                 <div className="h-2.5 bg-gray-700 rounded-full overflow-hidden">
@@ -329,7 +375,7 @@ export default function AutoAvaliacaoPage() {
                 </div>
             </div>
 
-            {filteredQuestions.length === 0 ? (
+            {questions.length === 0 ? (
                 <Card className="bg-gray-900 border-gray-800">
                     <CardContent className="p-8 text-center text-gray-400">
                         Nenhuma pergunta encontrada para o seu perfil. Aguarde a configuração pelo administrador.
@@ -346,7 +392,7 @@ export default function AutoAvaliacaoPage() {
                                 <div className="flex items-center gap-3 mb-3">
                                     <div className={`w-3 h-3 rounded-full ${colorClass}`} />
                                     <h2 className="text-base font-bold text-white">{category.name}</h2>
-                                    <span className="text-xs font-bold text-brand-pink">{category.weightPercent}%</span>
+                                    <span className="text-xs font-bold text-brand-pink">{category.weight_percent}%</span>
                                     <div className="flex-1 h-px bg-gray-800" />
                                     <span className="text-xs text-gray-500">{catAnswered}/{qs.length}</span>
                                 </div>
@@ -354,7 +400,7 @@ export default function AutoAvaliacaoPage() {
                                 <Card className="bg-gray-900 border-gray-800">
                                     <CardContent className="p-6 space-y-8">
                                         {qs.map((q, qIndex) => {
-                                            const badge = TYPE_PILL[q.questionType]
+                                            const badge = TYPE_PILL[q.question_type]
                                             const isAnswered = answers[q.id] !== undefined
                                             return (
                                                 <div key={q.id} className={`space-y-3 pb-7 border-b border-gray-800 last:border-0 last:pb-0 ${isAnswered ? '' : ''}`}>
@@ -390,7 +436,7 @@ export default function AutoAvaliacaoPage() {
                         <Card className="bg-gray-900 border-gray-800">
                             <CardContent className="p-6 space-y-8">
                                 {ungrouped.map((q, index) => {
-                                    const badge = TYPE_PILL[q.questionType]
+                                    const badge = TYPE_PILL[q.question_type]
                                     const isAnswered = answers[q.id] !== undefined
                                     return (
                                         <div key={q.id} className="space-y-3 pb-6 border-b border-gray-800 last:border-0 last:pb-0">
@@ -412,11 +458,11 @@ export default function AutoAvaliacaoPage() {
             )}
 
             {/* Submit */}
-            {filteredQuestions.length > 0 && (
+            {questions.length > 0 && (
                 <div className="flex items-center justify-between pt-2">
                     {progress < 100 && (
                         <p className="text-sm text-gray-500">
-                            {filteredQuestions.length - answeredCount} pergunta(s) ainda não respondida(s)
+                            {questions.length - answeredCount} pergunta(s) ainda não respondida(s)
                         </p>
                     )}
                     <div className="ml-auto">

@@ -15,6 +15,7 @@ import {
     ChevronDown, ChevronUp, Check, Copy, Bookmark
 } from 'lucide-react'
 import { toast } from 'sonner'
+import { useAuth } from '@/context/AuthContext'
 
 // ─── Types ─────────────────────────────────────────────────────────────────
 
@@ -28,37 +29,58 @@ export interface AnswerOption {
 }
 
 export interface AnswerTemplate {
-    id: string
+    id: number
     name: string
     options: AnswerOption[]
-    createdAt: string
+    created_at?: string
 }
 
 export interface Category {
-    id: string
+    id: number
     name: string
     description: string
-    weightPercent: number
+    weight_percent: number
     color: string
-    createdAt: string
+    created_at?: string
 }
 
 export interface Question {
-    id: string
+    id: number
     text: string
-    categoryId: string
-    questionType: QuestionType
+    category: number // ID da categoria
+    category_name?: string
+    question_type: QuestionType
     weight: number
-    targetRole: 'FRANQUEADO' | 'FUNCIONARIO' | 'ADMIN'
-    isActive: boolean
+    target_role: 'FRANQUEADO' | 'FUNCIONARIO' | 'ADMIN'
+    is_active: boolean
     // For NUMERIC
-    numericMin?: number
-    numericMax?: number
-    numericUnit?: string
+    numeric_min?: number | null
+    numeric_max?: number | null
+    numeric_unit?: string
     // For CUSTOM
-    customTemplateId?: string
-    customOptions?: AnswerOption[]
-    createdAt: string
+    custom_options?: AnswerOption[] | null
+    created_at?: string
+}
+
+// ─── API Helpers ───────────────────────────────────────────────────────────
+
+const API_BASE = '/excelencia'
+
+async function fetchAPI<T>(endpoint: string, options: RequestInit = {}): Promise<T> {
+    const res = await fetch(`${API_BASE}${endpoint}`, {
+        ...options,
+        headers: {
+            'Content-Type': 'application/json',
+            ...(options.headers ?? {}),
+        },
+    })
+
+    if (!res.ok) {
+        throw new Error(`Erro API: ${res.statusText}`)
+    }
+
+    if (res.status === 204) return {} as T
+    return res.json()
 }
 
 // ─── Constants ──────────────────────────────────────────────────────────────
@@ -100,29 +122,6 @@ const OPTION_COLORS: { value: AnswerOption['color']; label: string; dot: string;
     { value: 'gray', label: 'Cinza', dot: 'bg-gray-500', text: 'text-gray-400' },
 ]
 
-// ─── Local Storage Helpers ──────────────────────────────────────────────────
-
-function useLocalStorage<T>(key: string, initial: T) {
-    const [value, setValue] = useState<T>(() => {
-        try {
-            const stored = localStorage.getItem(key)
-            return stored ? JSON.parse(stored) : initial
-        } catch {
-            return initial
-        }
-    })
-
-    const set = useCallback((val: T | ((prev: T) => T)) => {
-        setValue(prev => {
-            const next = typeof val === 'function' ? (val as (p: T) => T)(prev) : val
-            localStorage.setItem(key, JSON.stringify(next))
-            return next
-        })
-    }, [key])
-
-    return [value, set] as const
-}
-
 function uid() {
     return Math.random().toString(36).slice(2, 10) + Date.now().toString(36)
 }
@@ -131,17 +130,18 @@ function uid() {
 
 function AnswerTemplatesTab({
     templates,
-    setTemplates,
+    reload,
 }: {
     templates: AnswerTemplate[]
-    setTemplates: (fn: (prev: AnswerTemplate[]) => AnswerTemplate[]) => void
+    reload: () => void
 }) {
     const [isDialogOpen, setIsDialogOpen] = useState(false)
-    const [editingId, setEditingId] = useState<string | null>(null)
+    const [editingId, setEditingId] = useState<number | null>(null)
     const [name, setName] = useState('')
     const [options, setOptions] = useState<AnswerOption[]>([
         { id: uid(), label: '', value: 1, color: 'green' },
     ])
+    const [saving, setSaving] = useState(false)
 
     const openNew = () => {
         setEditingId(null)
@@ -169,36 +169,52 @@ function AnswerTemplatesTab({
         setOptions(prev => prev.map(o => o.id === id ? { ...o, [field]: value } : o))
     }
 
-    const handleSave = () => {
+    const handleSave = async () => {
         if (!name.trim()) { toast.error('Nome do modelo é obrigatório.'); return }
         if (options.some(o => !o.label.trim())) { toast.error('Todas as opções precisam ter um rótulo.'); return }
 
-        if (editingId) {
-            setTemplates(prev => prev.map(t => t.id === editingId ? { ...t, name, options } : t))
-            toast.success('Modelo atualizado!')
-        } else {
-            const newTemplate: AnswerTemplate = { id: uid(), name, options, createdAt: new Date().toISOString() }
-            setTemplates(prev => [...prev, newTemplate])
-            toast.success('Modelo criado!')
+        setSaving(true)
+        try {
+            const payload = { name, options }
+            if (editingId) {
+                await fetchAPI(`/answer-templates/${editingId}/`, { method: 'PUT', body: JSON.stringify(payload) })
+                toast.success('Modelo atualizado!')
+            } else {
+                await fetchAPI('/answer-templates/', { method: 'POST', body: JSON.stringify(payload) })
+                toast.success('Modelo criado!')
+            }
+            reload()
+            setIsDialogOpen(false)
+        } catch (error) {
+            toast.error('Erro ao salvar modelo.')
+        } finally {
+            setSaving(false)
         }
-        setIsDialogOpen(false)
     }
 
-    const handleDelete = (id: string) => {
+    const handleDelete = async (id: number) => {
         if (!confirm('Excluir este modelo?')) return
-        setTemplates(prev => prev.filter(t => t.id !== id))
-        toast.success('Modelo excluído!')
+        try {
+            await fetchAPI(`/answer-templates/${id}/`, { method: 'DELETE' })
+            toast.success('Modelo excluído!')
+            reload()
+        } catch (error) {
+            toast.error('Erro ao excluir.')
+        }
     }
 
-    const handleDuplicate = (t: AnswerTemplate) => {
-        const copy: AnswerTemplate = {
-            ...t,
-            id: uid(),
-            name: `${t.name} (cópia)`,
-            createdAt: new Date().toISOString(),
+    const handleDuplicate = async (t: AnswerTemplate) => {
+        try {
+            const payload = {
+                name: `${t.name} (cópia)`,
+                options: t.options
+            }
+            await fetchAPI('/answer-templates/', { method: 'POST', body: JSON.stringify(payload) })
+            toast.success('Modelo duplicado!')
+            reload()
+        } catch (error) {
+            toast.error('Erro ao duplicar.')
         }
-        setTemplates(prev => [...prev, copy])
-        toast.success('Modelo duplicado!')
     }
 
     return (
@@ -263,10 +279,10 @@ function AnswerTemplatesTab({
                                     </div>
                                 </div>
                                 <div className="flex flex-wrap gap-2">
-                                    {t.options.map(o => {
+                                    {t.options.map((o, idx) => {
                                         const colorCfg = OPTION_COLORS.find(c => c.value === o.color)
                                         return (
-                                            <div key={o.id} className="flex items-center gap-1.5 bg-gray-800 border border-gray-700 rounded-md px-2 py-1">
+                                            <div key={o.id || idx} className="flex items-center gap-1.5 bg-gray-800 border border-gray-700 rounded-md px-2 py-1">
                                                 <div className={`w-2 h-2 rounded-full ${colorCfg?.dot ?? 'bg-gray-500'}`} />
                                                 <span className="text-xs text-gray-300">{o.label}</span>
                                                 <span className="text-xs text-gray-500">({o.value})</span>
@@ -361,8 +377,9 @@ function AnswerTemplatesTab({
                     </div>
                     <DialogFooter>
                         <Button variant="outline" onClick={() => setIsDialogOpen(false)} className="border-gray-700 text-gray-300 hover:bg-gray-800">Cancelar</Button>
-                        <Button onClick={handleSave} className="bg-brand-pink hover:bg-pink-700 text-white gap-2">
-                            <Save className="w-4 h-4" /> Salvar Modelo
+                        <Button onClick={handleSave} disabled={saving} className="bg-brand-pink hover:bg-pink-700 text-white gap-2">
+                            {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
+                            Salvar Modelo
                         </Button>
                     </DialogFooter>
                 </DialogContent>
@@ -375,49 +392,63 @@ function AnswerTemplatesTab({
 
 function CategoryTab({
     categories,
-    setCategories,
     questions,
+    reload,
 }: {
     categories: Category[]
-    setCategories: (fn: (prev: Category[]) => Category[]) => void
     questions: Question[]
+    reload: () => void
 }) {
     const [isDialogOpen, setIsDialogOpen] = useState(false)
-    const [editingId, setEditingId] = useState<string | null>(null)
-    const [form, setForm] = useState({ name: '', description: '', weightPercent: 10, color: 'pink' })
+    const [editingId, setEditingId] = useState<number | null>(null)
+    const [form, setForm] = useState({ name: '', description: '', weight_percent: 10, color: 'pink' })
+    const [saving, setSaving] = useState(false)
 
-    const totalWeight = categories.reduce((s, c) => s + c.weightPercent, 0)
+    const totalWeight = categories.reduce((s, c) => s + c.weight_percent, 0)
 
     const openNew = () => {
         setEditingId(null)
-        setForm({ name: '', description: '', weightPercent: 10, color: 'pink' })
+        setForm({ name: '', description: '', weight_percent: 10, color: 'pink' })
         setIsDialogOpen(true)
     }
 
     const openEdit = (c: Category) => {
         setEditingId(c.id)
-        setForm({ name: c.name, description: c.description, weightPercent: c.weightPercent, color: c.color })
+        setForm({ name: c.name, description: c.description, weight_percent: c.weight_percent, color: c.color })
         setIsDialogOpen(true)
     }
 
-    const handleSave = () => {
+    const handleSave = async () => {
         if (!form.name.trim()) { toast.error('Nome é obrigatório.'); return }
-        if (editingId) {
-            setCategories(prev => prev.map(c => c.id === editingId ? { ...c, ...form } : c))
-            toast.success('Categoria atualizada!')
-        } else {
-            setCategories(prev => [...prev, { id: uid(), ...form, createdAt: new Date().toISOString() }])
-            toast.success('Categoria criada!')
+        setSaving(true)
+        try {
+            if (editingId) {
+                await fetchAPI(`/categories/${editingId}/`, { method: 'PUT', body: JSON.stringify(form) })
+                toast.success('Categoria atualizada!')
+            } else {
+                await fetchAPI('/categories/', { method: 'POST', body: JSON.stringify(form) })
+                toast.success('Categoria criada!')
+            }
+            reload()
+            setIsDialogOpen(false)
+        } catch (error) {
+            toast.error('Erro ao salvar categoria.')
+        } finally {
+            setSaving(false)
         }
-        setIsDialogOpen(false)
     }
 
-    const handleDelete = (id: string) => {
-        const hasQuestions = questions.some(q => q.categoryId === id)
+    const handleDelete = async (id: number) => {
+        const hasQuestions = questions.some(q => q.category === id)
         if (hasQuestions) { toast.error('Remova as perguntas desta categoria antes de excluí-la.'); return }
         if (!confirm('Excluir categoria?')) return
-        setCategories(prev => prev.filter(c => c.id !== id))
-        toast.success('Categoria excluída!')
+        try {
+            await fetchAPI(`/categories/${id}/`, { method: 'DELETE' })
+            toast.success('Categoria excluída!')
+            reload()
+        } catch (error) {
+            toast.error('Erro ao excluir.')
+        }
     }
 
     return (
@@ -450,7 +481,7 @@ function CategoryTab({
                         <TableBody>
                             {categories.map(cat => {
                                 const colorCfg = CATEGORY_COLORS.find(c => c.value === cat.color)
-                                const qCount = questions.filter(q => q.categoryId === cat.id).length
+                                const qCount = questions.filter(q => q.category === cat.id).length
                                 return (
                                     <TableRow key={cat.id} className="border-gray-800 hover:bg-gray-800/50">
                                         <TableCell>
@@ -460,7 +491,7 @@ function CategoryTab({
                                             </div>
                                         </TableCell>
                                         <TableCell className="text-gray-400 text-sm">{cat.description || '—'}</TableCell>
-                                        <TableCell className="text-center font-bold text-brand-pink">{cat.weightPercent}%</TableCell>
+                                        <TableCell className="text-center font-bold text-brand-pink">{cat.weight_percent}%</TableCell>
                                         <TableCell className="text-center text-gray-300">{qCount}</TableCell>
                                         <TableCell className="text-right">
                                             <div className="flex justify-end gap-2">
@@ -508,7 +539,7 @@ function CategoryTab({
                             <div className="space-y-2">
                                 <Label>Peso no Score (%)</Label>
                                 <div className="flex items-center gap-2">
-                                    <Input type="number" min={1} max={100} value={form.weightPercent} onChange={e => setForm({ ...form, weightPercent: Number(e.target.value) })} className="bg-gray-800 border-gray-700" />
+                                    <Input type="number" min={1} max={100} value={form.weight_percent} onChange={e => setForm({ ...form, weight_percent: Number(e.target.value) })} className="bg-gray-800 border-gray-700" />
                                     <span className="text-gray-400">%</span>
                                 </div>
                             </div>
@@ -531,8 +562,9 @@ function CategoryTab({
                     </div>
                     <DialogFooter>
                         <Button variant="outline" onClick={() => setIsDialogOpen(false)} className="border-gray-700 text-gray-300 hover:bg-gray-800">Cancelar</Button>
-                        <Button onClick={handleSave} className="bg-brand-pink hover:bg-pink-700 text-white gap-2">
-                            <Save className="w-4 h-4" /> Salvar
+                        <Button onClick={handleSave} disabled={saving} className="bg-brand-pink hover:bg-pink-700 text-white gap-2">
+                            {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
+                            Salvar
                         </Button>
                     </DialogFooter>
                 </DialogContent>
@@ -553,21 +585,25 @@ function QuestionDialog({
 }: {
     open: boolean
     onOpenChange: (v: boolean) => void
-    onSave: (q: Question) => void
+    onSave: (q: Partial<Question>) => Promise<void>
     editingQuestion: Question | null
     categories: Category[]
     templates: AnswerTemplate[]
 }) {
-    const defaultForm = (): Omit<Question, 'id' | 'createdAt'> => ({
+    const defaultForm = (): Partial<Question> => ({
         text: '',
-        categoryId: categories[0]?.id ?? '',
-        questionType: 'YES_NO',
+        category: categories[0]?.id,
+        question_type: 'YES_NO',
         weight: 10,
-        targetRole: 'FRANQUEADO',
-        isActive: true,
+        target_role: 'FRANQUEADO',
+        is_active: true,
+        numeric_min: null,
+        numeric_max: null,
+        numeric_unit: '',
+        custom_options: [],
     })
 
-    const [form, setForm] = useState<Omit<Question, 'id' | 'createdAt'>>(defaultForm())
+    const [form, setForm] = useState<Partial<Question>>(defaultForm())
     const [customOptions, setCustomOptions] = useState<AnswerOption[]>([
         { id: uid(), label: '', value: 1, color: 'green' },
     ])
@@ -579,19 +615,21 @@ function QuestionDialog({
             if (editingQuestion) {
                 setForm({
                     text: editingQuestion.text,
-                    categoryId: editingQuestion.categoryId,
-                    questionType: editingQuestion.questionType,
+                    category: editingQuestion.category,
+                    question_type: editingQuestion.question_type,
                     weight: editingQuestion.weight,
-                    targetRole: editingQuestion.targetRole,
-                    isActive: editingQuestion.isActive,
-                    numericMin: editingQuestion.numericMin,
-                    numericMax: editingQuestion.numericMax,
-                    numericUnit: editingQuestion.numericUnit,
-                    customTemplateId: editingQuestion.customTemplateId,
-                    customOptions: editingQuestion.customOptions,
+                    target_role: editingQuestion.target_role,
+                    is_active: editingQuestion.is_active,
+                    numeric_min: editingQuestion.numeric_min,
+                    numeric_max: editingQuestion.numeric_max,
+                    numeric_unit: editingQuestion.numeric_unit,
+                    custom_options: editingQuestion.custom_options,
                 })
-                setCustomOptions(editingQuestion.customOptions ? editingQuestion.customOptions.map(o => ({ ...o })) : [{ id: uid(), label: '', value: 1, color: 'green' }])
-                setSelectedTemplateId(editingQuestion.customTemplateId ?? '')
+                setCustomOptions(
+                    editingQuestion.custom_options && editingQuestion.custom_options.length > 0
+                        ? editingQuestion.custom_options.map(o => ({ ...o }))
+                        : [{ id: uid(), label: '', value: 1, color: 'green' }]
+                )
             } else {
                 setForm(defaultForm())
                 setCustomOptions([{ id: uid(), label: '', value: 1, color: 'green' }])
@@ -602,10 +640,9 @@ function QuestionDialog({
 
     const applyTemplate = (templateId: string) => {
         setSelectedTemplateId(templateId)
-        const tpl = templates.find(t => t.id === templateId)
+        const tpl = templates.find(t => String(t.id) === templateId)
         if (tpl) {
             setCustomOptions(tpl.options.map(o => ({ ...o, id: uid() })))
-            setForm(f => ({ ...f, customTemplateId: templateId }))
         }
     }
 
@@ -615,25 +652,32 @@ function QuestionDialog({
         setCustomOptions(prev => prev.map(o => o.id === id ? { ...o, [field]: value } : o))
     }
 
-    const handleSave = () => {
-        if (!form.text.trim()) { toast.error('Texto da pergunta é obrigatório.'); return }
-        if (!form.categoryId) { toast.error('Selecione uma categoria.'); return }
-        if (form.questionType === 'CUSTOM' && customOptions.some(o => !o.label.trim())) {
+    const handleSave = async () => {
+        if (!form.text?.trim()) { toast.error('Texto da pergunta é obrigatório.'); return }
+        if (!form.category) { toast.error('Selecione uma categoria.'); return }
+        if (form.question_type === 'CUSTOM' && customOptions.some(o => !o.label.trim())) {
             toast.error('Todas as opções personalizadas precisam ter rótulo.'); return
         }
+
         setSaving(true)
-        setTimeout(() => {
-            const question: Question = {
-                id: editingQuestion?.id ?? uid(),
-                createdAt: editingQuestion?.createdAt ?? new Date().toISOString(),
+        try {
+            const payload: Partial<Question> = {
                 ...form,
-                customOptions: form.questionType === 'CUSTOM' ? customOptions : undefined,
-                customTemplateId: form.questionType === 'CUSTOM' ? selectedTemplateId : undefined,
+                custom_options: form.question_type === 'CUSTOM' ? customOptions : null,
+                // Ensure nulls for numeric fields if not NUMERIC/PERCENTAGE
+                numeric_min: (form.question_type === 'NUMERIC' || form.question_type === 'PERCENTAGE') ? form.numeric_min : null,
+                numeric_max: (form.question_type === 'NUMERIC' || form.question_type === 'PERCENTAGE') ? form.numeric_max : null,
+                numeric_unit: (form.question_type === 'NUMERIC') ? form.numeric_unit : '',
             }
-            onSave(question)
-            setSaving(false)
+
+            await onSave(payload)
             onOpenChange(false)
-        }, 200)
+        } catch (error) {
+            console.error(error)
+            // Toast handled in parent
+        } finally {
+            setSaving(false)
+        }
     }
 
     return (
@@ -663,7 +707,7 @@ function QuestionDialog({
                     <div className="grid grid-cols-3 gap-4">
                         <div className="space-y-2 col-span-1">
                             <Label>Categoria *</Label>
-                            <Select value={form.categoryId} onValueChange={v => setForm({ ...form, categoryId: v })}>
+                            <Select value={String(form.category || '')} onValueChange={v => setForm({ ...form, category: Number(v) })}>
                                 <SelectTrigger className="bg-gray-800 border-gray-700">
                                     <SelectValue placeholder="Selecione..." />
                                 </SelectTrigger>
@@ -671,7 +715,7 @@ function QuestionDialog({
                                     {categories.map(cat => {
                                         const cc = CATEGORY_COLORS.find(c => c.value === cat.color)
                                         return (
-                                            <SelectItem key={cat.id} value={cat.id}>
+                                            <SelectItem key={cat.id} value={String(cat.id)}>
                                                 <div className="flex items-center gap-2">
                                                     <div className={`w-2.5 h-2.5 rounded-full ${cc?.class ?? 'bg-gray-500'}`} />
                                                     {cat.name}
@@ -688,7 +732,7 @@ function QuestionDialog({
                         </div>
                         <div className="space-y-2">
                             <Label>Público Alvo</Label>
-                            <Select value={form.targetRole} onValueChange={(v: any) => setForm({ ...form, targetRole: v })}>
+                            <Select value={form.target_role} onValueChange={(v: any) => setForm({ ...form, target_role: v })}>
                                 <SelectTrigger className="bg-gray-800 border-gray-700">
                                     <SelectValue />
                                 </SelectTrigger>
@@ -708,12 +752,12 @@ function QuestionDialog({
                             {QUESTION_TYPES.map(type => (
                                 <label
                                     key={type.value}
-                                    className={`flex items-start gap-3 p-3 rounded-lg border cursor-pointer transition-colors ${form.questionType === type.value ? 'border-brand-pink bg-brand-pink/10' : 'border-gray-700 hover:border-gray-600 bg-gray-800/50'}`}
+                                    className={`flex items-start gap-3 p-3 rounded-lg border cursor-pointer transition-colors ${form.question_type === type.value ? 'border-brand-pink bg-brand-pink/10' : 'border-gray-700 hover:border-gray-600 bg-gray-800/50'}`}
                                 >
-                                    <input type="radio" className="hidden" checked={form.questionType === type.value} onChange={() => setForm({ ...form, questionType: type.value })} />
-                                    <div className={`mt-0.5 ${form.questionType === type.value ? 'text-brand-pink' : 'text-gray-500'}`}>{type.icon}</div>
+                                    <input type="radio" className="hidden" checked={form.question_type === type.value} onChange={() => setForm({ ...form, question_type: type.value })} />
+                                    <div className={`mt-0.5 ${form.question_type === type.value ? 'text-brand-pink' : 'text-gray-500'}`}>{type.icon}</div>
                                     <div>
-                                        <p className={`text-sm font-medium ${form.questionType === type.value ? 'text-white' : 'text-gray-300'}`}>{type.label}</p>
+                                        <p className={`text-sm font-medium ${form.question_type === type.value ? 'text-white' : 'text-gray-300'}`}>{type.label}</p>
                                         <p className="text-xs text-gray-500 mt-0.5">{type.description}</p>
                                     </div>
                                 </label>
@@ -722,25 +766,25 @@ function QuestionDialog({
                     </div>
 
                     {/* Numeric config */}
-                    {(form.questionType === 'NUMERIC' || form.questionType === 'PERCENTAGE') && (
+                    {(form.question_type === 'NUMERIC' || form.question_type === 'PERCENTAGE') && (
                         <div className="grid grid-cols-3 gap-3 p-3 bg-gray-800 rounded-lg border border-gray-700">
                             <div className="space-y-1.5">
                                 <Label className="text-xs">Mínimo</Label>
-                                <Input type="number" value={form.numericMin ?? ''} onChange={e => setForm({ ...form, numericMin: e.target.value === '' ? undefined : Number(e.target.value) })} className="bg-gray-700 border-gray-600 h-8 text-sm" placeholder="0" />
+                                <Input type="number" value={form.numeric_min ?? ''} onChange={e => setForm({ ...form, numeric_min: e.target.value === '' ? null : Number(e.target.value) })} className="bg-gray-700 border-gray-600 h-8 text-sm" placeholder="0" />
                             </div>
                             <div className="space-y-1.5">
                                 <Label className="text-xs">Máximo</Label>
-                                <Input type="number" value={form.numericMax ?? ''} onChange={e => setForm({ ...form, numericMax: e.target.value === '' ? undefined : Number(e.target.value) })} className="bg-gray-700 border-gray-600 h-8 text-sm" placeholder="100" />
+                                <Input type="number" value={form.numeric_max ?? ''} onChange={e => setForm({ ...form, numeric_max: e.target.value === '' ? null : Number(e.target.value) })} className="bg-gray-700 border-gray-600 h-8 text-sm" placeholder="100" />
                             </div>
                             <div className="space-y-1.5">
                                 <Label className="text-xs">Unidade</Label>
-                                <Input value={form.numericUnit ?? ''} onChange={e => setForm({ ...form, numericUnit: e.target.value })} className="bg-gray-700 border-gray-600 h-8 text-sm" placeholder="%, R$, min..." />
+                                <Input value={form.numeric_unit ?? ''} onChange={e => setForm({ ...form, numeric_unit: e.target.value })} className="bg-gray-700 border-gray-600 h-8 text-sm" placeholder="%, R$, min..." />
                             </div>
                         </div>
                     )}
 
                     {/* Custom options */}
-                    {form.questionType === 'CUSTOM' && (
+                    {form.question_type === 'CUSTOM' && (
                         <div className="space-y-3 p-3 bg-gray-800 rounded-lg border border-gray-700">
                             {/* Load from template */}
                             {templates.length > 0 && (
@@ -753,7 +797,7 @@ function QuestionDialog({
                                             </SelectTrigger>
                                             <SelectContent className="bg-gray-800 border-gray-700">
                                                 {templates.map(t => (
-                                                    <SelectItem key={t.id} value={t.id}>{t.name}</SelectItem>
+                                                    <SelectItem key={t.id} value={String(t.id)}>{t.name}</SelectItem>
                                                 ))}
                                             </SelectContent>
                                         </Select>
@@ -813,53 +857,64 @@ function QuestionDialog({
 
 function QuestionsTab({
     questions,
-    setQuestions,
     categories,
     templates,
+    reload,
 }: {
     questions: Question[]
-    setQuestions: (fn: (prev: Question[]) => Question[]) => void
     categories: Category[]
     templates: AnswerTemplate[]
+    reload: () => void
 }) {
     const [isDialogOpen, setIsDialogOpen] = useState(false)
     const [editingQuestion, setEditingQuestion] = useState<Question | null>(null)
     const [filterCategory, setFilterCategory] = useState('ALL')
     const [filterType, setFilterType] = useState('ALL')
-    const [expandedCategory, setExpandedCategory] = useState<string | null>(null)
+    const [expandedCategory, setExpandedCategory] = useState<number | null>(null)
 
     const openNew = () => { setEditingQuestion(null); setIsDialogOpen(true) }
     const openEdit = (q: Question) => { setEditingQuestion(q); setIsDialogOpen(true) }
 
-    const handleSave = (q: Question) => {
-        if (editingQuestion) {
-            setQuestions(prev => prev.map(x => x.id === q.id ? q : x))
-            toast.success('Pergunta atualizada!')
-        } else {
-            setQuestions(prev => [...prev, q])
-            toast.success('Pergunta criada!')
+    const handleSave = async (payload: Partial<Question>) => {
+        try {
+            if (editingQuestion) {
+                await fetchAPI(`/questions/${editingQuestion.id}/`, { method: 'PUT', body: JSON.stringify(payload) })
+                toast.success('Pergunta atualizada!')
+            } else {
+                await fetchAPI('/questions/', { method: 'POST', body: JSON.stringify(payload) })
+                toast.success('Pergunta criada!')
+            }
+            reload()
+        } catch (error) {
+            toast.error('Erro ao salvar pergunta.')
+            throw error
         }
     }
 
-    const handleDelete = (id: string) => {
+    const handleDelete = async (id: number) => {
         if (!confirm('Excluir esta pergunta?')) return
-        setQuestions(prev => prev.filter(q => q.id !== id))
-        toast.success('Pergunta excluída!')
+        try {
+            await fetchAPI(`/questions/${id}/`, { method: 'DELETE' })
+            toast.success('Pergunta excluída!')
+            reload()
+        } catch (error) {
+            toast.error('Erro ao excluir.')
+        }
     }
 
     const filtered = questions.filter(q => {
-        const catOk = filterCategory === 'ALL' || q.categoryId === filterCategory
-        const typeOk = filterType === 'ALL' || q.questionType === filterType
+        const catOk = filterCategory === 'ALL' || String(q.category) === filterCategory
+        const typeOk = filterType === 'ALL' || q.question_type === filterType
         return catOk && typeOk
     })
 
     // Group by category
     const grouped = categories.map(cat => ({
         category: cat,
-        questions: filtered.filter(q => q.categoryId === cat.id),
+        questions: filtered.filter(q => q.category === cat.id),
     })).filter(g => g.questions.length > 0)
 
-    const ungrouped = filtered.filter(q => !categories.find(c => c.id === q.categoryId))
+    const ungrouped = filtered.filter(q => !categories.find(c => c.id === q.category))
 
     return (
         <div className="space-y-4">
@@ -871,7 +926,7 @@ function QuestionsTab({
                         </SelectTrigger>
                         <SelectContent className="bg-gray-800 border-gray-700">
                             <SelectItem value="ALL">Todas as categorias</SelectItem>
-                            {categories.map(c => <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>)}
+                            {categories.map(c => <SelectItem key={c.id} value={String(c.id)}>{c.name}</SelectItem>)}
                         </SelectContent>
                     </Select>
                     <Select value={filterType} onValueChange={setFilterType}>
@@ -914,7 +969,7 @@ function QuestionsTab({
                                         <div className={`w-3 h-3 rounded-full ${colorCfg?.class ?? 'bg-gray-500'}`} />
                                         <span className="font-semibold text-white">{category.name}</span>
                                         <span className="text-xs text-gray-500 bg-gray-800 border border-gray-700 px-2 py-0.5 rounded-full">{qs.length} pergunta(s)</span>
-                                        <span className="text-xs font-bold text-brand-pink">{category.weightPercent}%</span>
+                                        <span className="text-xs font-bold text-brand-pink">{category.weight_percent}%</span>
                                     </div>
                                     {isExpanded ? <ChevronUp className="w-4 h-4 text-gray-400" /> : <ChevronDown className="w-4 h-4 text-gray-400" />}
                                 </button>
@@ -933,7 +988,7 @@ function QuestionsTab({
                                             </TableHeader>
                                             <TableBody>
                                                 {qs.map(q => {
-                                                    const badge = TYPE_BADGE[q.questionType]
+                                                    const badge = TYPE_BADGE[q.question_type]
                                                     return (
                                                         <TableRow key={q.id} className="border-gray-800 hover:bg-gray-800/50">
                                                             <TableCell className="pl-6 max-w-xs">
@@ -943,7 +998,7 @@ function QuestionsTab({
                                                                 <span className={`text-xs font-mono px-2 py-0.5 rounded border ${badge.className}`}>{badge.label}</span>
                                                             </TableCell>
                                                             <TableCell className="text-center font-bold text-brand-pink">{q.weight}</TableCell>
-                                                            <TableCell className="text-gray-400 text-xs font-mono">{q.targetRole}</TableCell>
+                                                            <TableCell className="text-gray-400 text-xs font-mono">{q.target_role}</TableCell>
                                                             <TableCell className="text-right pr-6">
                                                                 <div className="flex justify-end gap-2">
                                                                     <Button size="icon" variant="ghost" className="h-8 w-8 text-blue-400 hover:text-blue-300 hover:bg-blue-400/10" onClick={() => openEdit(q)}>
@@ -972,7 +1027,7 @@ function QuestionsTab({
                             <Table>
                                 <TableBody>
                                     {ungrouped.map(q => {
-                                        const badge = TYPE_BADGE[q.questionType]
+                                        const badge = TYPE_BADGE[q.question_type]
                                         return (
                                             <TableRow key={q.id} className="border-gray-800 hover:bg-gray-800/50">
                                                 <TableCell className="pl-6 max-w-xs">
@@ -1017,9 +1072,41 @@ function QuestionsTab({
 // ─── Main AdminQuestions ────────────────────────────────────────────────────
 
 export function AdminQuestions() {
-    const [categories, setCategories] = useLocalStorage<Category[]>('excelencia_categories', [])
-    const [questions, setQuestions] = useLocalStorage<Question[]>('excelencia_questions', [])
-    const [templates, setTemplates] = useLocalStorage<AnswerTemplate[]>('excelencia_answer_templates', [])
+    const [categories, setCategories] = useState<Category[]>([])
+    const [questions, setQuestions] = useState<Question[]>([])
+    const [templates, setTemplates] = useState<AnswerTemplate[]>([])
+    const [loading, setLoading] = useState(true)
+
+    const fetchData = useCallback(async () => {
+        setLoading(true)
+        try {
+            const [cats, qs, tpls] = await Promise.all([
+                fetchAPI<Category[]>('/categories/'),
+                fetchAPI<Question[]>('/questions/'),
+                fetchAPI<AnswerTemplate[]>('/answer-templates/')
+            ])
+            setCategories(cats || [])
+            setQuestions(qs || [])
+            setTemplates(tpls || [])
+        } catch (error) {
+            console.error('Error fetching data:', error)
+            toast.error('Erro ao carregar dados.')
+        } finally {
+            setLoading(false)
+        }
+    }, [])
+
+    useEffect(() => {
+        fetchData()
+    }, [fetchData])
+
+    if (loading) {
+        return (
+            <div className="flex justify-center py-20">
+                <Loader2 className="w-8 h-8 text-brand-pink animate-spin" />
+            </div>
+        )
+    }
 
     return (
         <div className="space-y-6">
@@ -1054,16 +1141,16 @@ export function AdminQuestions() {
                             </CardContent>
                         </Card>
                     ) : (
-                        <QuestionsTab questions={questions} setQuestions={setQuestions} categories={categories} templates={templates} />
+                        <QuestionsTab questions={questions} categories={categories} templates={templates} reload={fetchData} />
                     )}
                 </TabsContent>
 
                 <TabsContent value="categories">
-                    <CategoryTab categories={categories} setCategories={setCategories} questions={questions} />
+                    <CategoryTab categories={categories} questions={questions} reload={fetchData} />
                 </TabsContent>
 
                 <TabsContent value="templates">
-                    <AnswerTemplatesTab templates={templates} setTemplates={setTemplates} />
+                    <AnswerTemplatesTab templates={templates} reload={fetchData} />
                 </TabsContent>
             </Tabs>
         </div>
