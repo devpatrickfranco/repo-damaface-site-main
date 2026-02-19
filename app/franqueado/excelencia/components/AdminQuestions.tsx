@@ -806,10 +806,20 @@ function QuestionsTab({
     const [editingQuestion, setEditingQuestion] = useState<Question | null>(null)
     const [filterCategory, setFilterCategory] = useState('ALL')
     const [filterType, setFilterType] = useState('ALL')
-    const [expandedCategory, setExpandedCategory] = useState<number | null>(null)
+    const [collapsedCategories, setCollapsedCategories] = useState<Set<number>>(new Set())
 
     const openNew = () => { setEditingQuestion(null); setIsDialogOpen(true) }
     const openEdit = (q: Question) => { setEditingQuestion(q); setIsDialogOpen(true) }
+
+    const toggleCategory = (id: number) => {
+        const next = new Set(collapsedCategories)
+        if (next.has(id)) {
+            next.delete(id)
+        } else {
+            next.add(id)
+        }
+        setCollapsedCategories(next)
+    }
 
     const handleSave = async (payload: Partial<Question>) => {
         try {
@@ -893,13 +903,13 @@ function QuestionsTab({
                 <div className="space-y-3">
                     {grouped.map(({ category, questions: qs }) => {
                         const colorCfg = CATEGORY_COLORS.find(c => c.value === category.color)
-                        const isExpanded = expandedCategory === category.id || expandedCategory === null
+                        const isExpanded = !collapsedCategories.has(category.id)
                         return (
                             <Card key={category.id} className="bg-gray-900 border-gray-800 overflow-hidden">
                                 <button
                                     type="button"
                                     className="w-full flex items-center justify-between p-4 hover:bg-gray-800/50 transition-colors text-left"
-                                    onClick={() => setExpandedCategory(expandedCategory === category.id ? null : category.id)}
+                                    onClick={() => toggleCategory(category.id)}
                                 >
                                     <div className="flex items-center gap-3">
                                         <div className={`w-3 h-3 rounded-full ${colorCfg?.class ?? 'bg-gray-500'}`} />
