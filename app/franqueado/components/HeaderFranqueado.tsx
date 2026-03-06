@@ -40,13 +40,31 @@ interface NotificationResponse {
 
 const fetcher = (url: string) => apiBackend.get<NotificationResponse>(url)
 
-const HeaderDashboard = () => {
+interface HeaderProps {
+  isSidebarOpen?: boolean
+  onSidebarClose?: () => void
+}
+
+const HeaderDashboard = ({ isSidebarOpen = false, onSidebarClose }: HeaderProps) => {
   const [profileDropdownOpen, setProfileDropdownOpen] = useState(false)
   const [notificationsOpen, setNotificationsOpen] = useState(false)
   const [isLoggingOut, setIsLoggingOut] = useState(false)
 
   const { user, logout } = useAuth()
   const router = useRouter()
+
+  // Fecha a sidebar (mobile) ao abrir qualquer dropdown do header
+  const openNotifications = () => {
+    if (isSidebarOpen) onSidebarClose?.()
+    setNotificationsOpen(prev => !prev)
+    setProfileDropdownOpen(false)
+  }
+
+  const openProfile = () => {
+    if (isSidebarOpen) onSidebarClose?.()
+    setProfileDropdownOpen(prev => !prev)
+    setNotificationsOpen(false)
+  }
 
   // --- [LÓGICA DE PAGINAÇÃO COM SWR INFINITE] ---
 
@@ -165,7 +183,7 @@ const HeaderDashboard = () => {
     : null
 
   return (
-    <header className="fixed top-0 left-0 right-0 bg-gray-800 border-b border-gray-700 z-40 h-16">
+    <header className={`fixed top-0 left-0 right-0 bg-gray-800 border-b border-gray-700 h-16 transition-[z-index] duration-300 ${isSidebarOpen ? 'z-30 lg:z-40' : 'z-40'}`}>
       <div className="flex items-center justify-between h-full px-4 relative">
 
         {/* ... LADO ESQUERDO E LOGO (MANTIDOS IGUAIS) ... */}
@@ -185,7 +203,7 @@ const HeaderDashboard = () => {
           {/* --- SINO DE NOTIFICAÇÕES --- */}
           <div className="relative">
             <button
-              onClick={() => setNotificationsOpen(!notificationsOpen)}
+              onClick={openNotifications}
               className="relative p-2 rounded-lg hover:bg-gray-700"
               aria-label={`Notificações (${unreadCount})`}
             >
@@ -273,7 +291,7 @@ const HeaderDashboard = () => {
           <div className="relative">
             {/* Código do Profile Dropdown mantido idêntico ao original */}
             <button
-              onClick={() => setProfileDropdownOpen(!profileDropdownOpen)}
+              onClick={openProfile}
               className="flex items-center space-x-2 p-2 rounded-lg hover:bg-gray-700"
             >
               <div className="size-8 rounded-full flex items-center justify-center overflow-hidden bg-gray-700">
