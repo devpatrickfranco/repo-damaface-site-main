@@ -327,6 +327,12 @@ export default function CourseDetail({ cursoSlug }: CourseDetailProps) {
     }
   };
 
+  const firstLastName = (fullName: string) => {
+    const parts = fullName?.trim().split(' ').filter(Boolean) || [];
+    if (parts.length <= 1) return fullName;
+    return `${parts[0]} ${parts[parts.length - 1]}`;
+  };
+
   const renderStars = (rating: number, interactive: boolean = false, onStarClick?: (rating: number) => void) => {
     return (
       <div className="flex items-center gap-1">
@@ -788,7 +794,7 @@ export default function CourseDetail({ cursoSlug }: CourseDetailProps) {
                             // Modo de visualização
                             <>
                               <div className="flex items-center gap-3 mb-2">
-                                <h4 className="font-semibold text-white">{avaliacao.aluno}</h4>
+                                <h4 className="font-semibold text-white">{firstLastName(avaliacao.aluno)}</h4>
                                 {renderStars(avaliacao.rating || avaliacao.rating)}
                                 <span className="text-sm text-gray-400">
                                   {format(new Date(avaliacao.data || avaliacao.data), 'dd/MM/yyyy')}
@@ -876,7 +882,7 @@ export default function CourseDetail({ cursoSlug }: CourseDetailProps) {
                       )}
                       <div className="flex-1">
                         <div className="flex justify-between items-center mb-1">
-                          <span className="font-semibold text-white">{coment.aluno}</span>
+                          <span className="font-semibold text-white">{firstLastName(coment.aluno)}</span>
                           <span className="text-xs text-gray-400">
                             {format(new Date(coment.data), 'dd/MM/yyyy')}
                           </span>
