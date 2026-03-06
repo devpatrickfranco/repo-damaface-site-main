@@ -35,6 +35,7 @@ interface SidebarProps {
   isOpen: boolean
   onClose: () => void
   onToggle: () => void
+  hideToggle?: boolean
 }
 
 interface NavItem {
@@ -81,7 +82,7 @@ const NAV_LINKS: NavItem[] = [
   { id: 'usuarios', name: 'Usuarios', icon: Users2, route: '/franqueado/usuarios', roles: ADMIN_ROLES },
 ]
 
-const Sidebar = ({ isOpen, onClose, onToggle }: SidebarProps) => {
+const Sidebar = ({ isOpen, onClose, onToggle, hideToggle = false }: SidebarProps) => {
   const { user } = useAuth()
   const router = useRouter()
   const pathname = usePathname()
@@ -113,7 +114,8 @@ const Sidebar = ({ isOpen, onClose, onToggle }: SidebarProps) => {
         onClick={onToggle}
         className={clsx(
           'fixed top-20 z-40 p-2 bg-gray-800 border-y border-r border-gray-700 rounded-r-lg shadow-lg text-gray-400 hover:text-white hover:bg-gray-700 transition-all duration-300 ease-in-out',
-          isOpen ? 'left-64' : 'left-0'
+          isOpen ? 'left-64' : 'left-0',
+          hideToggle ? 'hidden lg:flex' : 'flex'
         )}
         aria-label={isOpen ? "Fechar menu" : "Abrir menu"}
       >

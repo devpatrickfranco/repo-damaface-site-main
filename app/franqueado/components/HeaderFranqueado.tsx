@@ -43,9 +43,10 @@ const fetcher = (url: string) => apiBackend.get<NotificationResponse>(url)
 interface HeaderProps {
   isSidebarOpen?: boolean
   onSidebarClose?: () => void
+  onDropdownChange?: (isOpen: boolean) => void
 }
 
-const HeaderDashboard = ({ isSidebarOpen = false, onSidebarClose }: HeaderProps) => {
+const HeaderDashboard = ({ isSidebarOpen = false, onSidebarClose, onDropdownChange }: HeaderProps) => {
   const [profileDropdownOpen, setProfileDropdownOpen] = useState(false)
   const [notificationsOpen, setNotificationsOpen] = useState(false)
   const [isLoggingOut, setIsLoggingOut] = useState(false)
@@ -56,14 +57,23 @@ const HeaderDashboard = ({ isSidebarOpen = false, onSidebarClose }: HeaderProps)
   // Fecha a sidebar (mobile) ao abrir qualquer dropdown do header
   const openNotifications = () => {
     if (isSidebarOpen) onSidebarClose?.()
-    setNotificationsOpen(prev => !prev)
+    const next = !notificationsOpen
+    setNotificationsOpen(next)
     setProfileDropdownOpen(false)
+    onDropdownChange?.(next || profileDropdownOpen)
   }
 
   const openProfile = () => {
     if (isSidebarOpen) onSidebarClose?.()
-    setProfileDropdownOpen(prev => !prev)
+    const next = !profileDropdownOpen
+    setProfileDropdownOpen(next)
     setNotificationsOpen(false)
+    onDropdownChange?.(next || notificationsOpen)
+  }
+
+  const closeNotifications = () => {
+    setNotificationsOpen(false)
+    onDropdownChange?.(profileDropdownOpen)
   }
 
   // --- [LÓGICA DE PAGINAÇÃO COM SWR INFINITE] ---
@@ -147,7 +157,7 @@ const HeaderDashboard = ({ isSidebarOpen = false, onSidebarClose }: HeaderProps)
       },
       false
     )
-    setNotificationsOpen(false)
+    closeNotifications()
 
     try {
       await apiBackend.post('/notificacoes/marcar-todas-como-lidas/')

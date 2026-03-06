@@ -13,6 +13,7 @@ export default function FranqueadoLayout({
 }) {
   const pathname = usePathname()
   const [isSidebarOpen, setIsSidebarOpen] = useState(true)
+  const [isHeaderDropdownOpen, setIsHeaderDropdownOpen] = useState(false)
 
   // Páginas que NÃO devem mostrar Header/Sidebar
   const publicPages = ['/franqueado', '/franqueado/reset_password']
@@ -31,11 +32,13 @@ export default function FranqueadoLayout({
           <HeaderFranqueado
             isSidebarOpen={isSidebarOpen}
             onSidebarClose={() => setIsSidebarOpen(false)}
+            onDropdownChange={setIsHeaderDropdownOpen}
           />
           <Sidebar
             isOpen={isSidebarOpen}
             onClose={() => setIsSidebarOpen(false)}
             onToggle={() => setIsSidebarOpen(!isSidebarOpen)}
+            hideToggle={isHeaderDropdownOpen}
           />
 
           {/* Main Content - com padding para não ficar atrás do header/sidebar */}
