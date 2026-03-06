@@ -53,6 +53,7 @@ export interface AvaliacaoAluno {
   autorId: number;
   aluno: string;
   avatar: string;
+  imgProfile: string | null;
   rating: number;
   comentario: string;
   data: string;
