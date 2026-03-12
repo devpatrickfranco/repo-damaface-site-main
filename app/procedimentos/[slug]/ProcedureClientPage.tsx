@@ -1,12 +1,12 @@
 "use client"
 
- import Image from "next/image"
- import Header from "@/components/Header"
- import Footer from "@/components/Footer"
- import Contact from "@/components/Contact"
- import { ArrowRight, CheckCircle, Clock, Users, Star, Shield, Award, Heart } from "lucide-react"
+import Image from "next/image"
+import Header from "@/components/Header"
+import Footer from "@/components/Footer"
+import Contact from "@/components/Contact"
+import { ArrowRight, CheckCircle, Clock, Users, Star, Shield, Award, Heart } from "lucide-react"
 
- interface ProcedureClientPageProps {
+interface ProcedureClientPageProps {
   procedure: any;
 }
 
@@ -14,38 +14,38 @@
 
 export default function ProcedureClientPage({ procedure }: ProcedureClientPageProps) {
 
-  
-    const pricingPackages: Array<{
-      title: string;
-      price: string;
-      oldPrice?: string;
-      features: string[];
-      popular?: boolean;
-    }> = procedure.pricingPackages || [
-      {
-        title: "Sessão Avulsa",
-        price: "R$ 800",
-        features: [
-          "Avaliação completa",
-          "1 sessão de bioestimulador",
-          "Acompanhamento pós-procedimento",
-          "Orientações personalizadas"
-        ]
-      },
-      {
-        title: "Pacote Completo",
-        price: "R$ 2.100",
-        oldPrice: "R$ 2.400",
-        features: [
-          "3 sessões de bioestimulador",
-          "Avaliação e acompanhamento",
-          "Desconto de 12,5%",
-          "Garantia de resultados",
-          "Retornos inclusos"
-        ],
-        popular: true
-      }
-    ];
+
+  const pricingPackages: Array<{
+    title: string;
+    price: string;
+    oldPrice?: string;
+    features: string[];
+    popular?: boolean;
+  }> = procedure.pricingPackages || [
+    {
+      title: "Sessão Avulsa",
+      price: "R$ 2.500,00",
+      features: [
+        "Avaliação completa",
+        "1 sessão de bioestimulador",
+        "Acompanhamento pós-procedimento",
+        "Orientações personalizadas"
+      ]
+    },
+    {
+      title: "Pacote Completo",
+      price: "R$ 5.997,00",
+      oldPrice: "R$ 7.500,00",
+      features: [
+        "3 sessões de bioestimulador",
+        "Avaliação e acompanhamento",
+        "Desconto de 20%",
+        "Garantia de resultados",
+        "Retornos inclusos"
+      ],
+      popular: true
+    }
+  ];
 
   const handleWhatsAppClick = () => {
     window.open(
@@ -280,22 +280,22 @@ export default function ProcedureClientPage({ procedure }: ProcedureClientPagePr
             </h2>
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {procedure.beforeAfterImages.map((img: { src: string; alt?: string }, idx: number) => (
-                  <div key={idx} className="card-dark">
-                    <div className="relative mb-4">
-                      <Image
-                        src={img.src}
-                        alt={img.alt || `Resultado ${idx + 1}`}
-                        width={400}
-                        height={300}
-                        className="rounded-lg w-full"
-                      />
-                      <div className="absolute top-2 left-2 bg-black/70 text-white px-2 py-1 rounded text-sm">
-                        Antes/Depois
-                      </div>
+              {procedure.beforeAfterImages.map((img: { src: string; alt?: string }, idx: number) => (
+                <div key={idx} className="card-dark">
+                  <div className="relative mb-4">
+                    <Image
+                      src={img.src}
+                      alt={img.alt || `Resultado ${idx + 1}`}
+                      width={400}
+                      height={300}
+                      className="rounded-lg w-full"
+                    />
+                    <div className="absolute top-2 left-2 bg-black/70 text-white px-2 py-1 rounded text-sm">
+                      Antes/Depois
                     </div>
                   </div>
-                ))}
+                </div>
+              ))}
             </div>
           </div>
         </div>
@@ -338,37 +338,37 @@ export default function ProcedureClientPage({ procedure }: ProcedureClientPagePr
             </h2>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                {pricingPackages.map((pkg: {
-                  title: string;
-                  price: string;
-                  oldPrice?: string;
-                  features: string[];
-                  popular?: boolean;
-                }, idx: number) => (
-                  <div
-                    key={idx}
-                    className={`card-dark${pkg.popular ? ' border-2 border-brand-pink relative' : ''}`}
-                  >
-                    {pkg.popular && (
-                      <div className="absolute -top-3 left-1/2 transform -translate-x-1/2 bg-brand-pink text-white px-4 py-1 rounded-full text-sm font-semibold">
-                        Mais Popular
-                      </div>
-                    )}
-                    <h3 className="text-2xl font-bold text-brand-pink mb-4">{pkg.title}</h3>
-                    <div className="text-4xl font-bold text-white mb-2">{pkg.price}</div>
-                    {pkg.oldPrice && (
-                      <div className="text-gray-400 line-through mb-4">{pkg.oldPrice}</div>
-                    )}
-                    <ul className="space-y-2 text-gray-300 mb-6">
-                      {pkg.features.map((feature, fidx) => (
-                        <li key={fidx}>• {feature}</li>
-                      ))}
-                    </ul>
-                    <button onClick={handleWhatsAppClick} className="w-full btn-primary">
-                      Agendar Avaliação
-                    </button>
-                  </div>
-                ))}
+              {pricingPackages.map((pkg: {
+                title: string;
+                price: string;
+                oldPrice?: string;
+                features: string[];
+                popular?: boolean;
+              }, idx: number) => (
+                <div
+                  key={idx}
+                  className={`card-dark${pkg.popular ? ' border-2 border-brand-pink relative' : ''}`}
+                >
+                  {pkg.popular && (
+                    <div className="absolute -top-3 left-1/2 transform -translate-x-1/2 bg-brand-pink text-white px-4 py-1 rounded-full text-sm font-semibold">
+                      Mais Popular
+                    </div>
+                  )}
+                  <h3 className="text-2xl font-bold text-brand-pink mb-4">{pkg.title}</h3>
+                  <div className="text-4xl font-bold text-white mb-2">{pkg.price}</div>
+                  {pkg.oldPrice && (
+                    <div className="text-gray-400 line-through mb-4">{pkg.oldPrice}</div>
+                  )}
+                  <ul className="space-y-2 text-gray-300 mb-6">
+                    {pkg.features.map((feature, fidx) => (
+                      <li key={fidx}>• {feature}</li>
+                    ))}
+                  </ul>
+                  <button onClick={handleWhatsAppClick} className="w-full btn-primary">
+                    Agendar Avaliação
+                  </button>
+                </div>
+              ))}
             </div>
 
             <div className="mt-8 text-center">
