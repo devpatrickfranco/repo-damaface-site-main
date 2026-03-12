@@ -931,7 +931,7 @@ export const procedures: { [key: string]: any } = {
     "title": "Bioestimulador de Colágeno Corporal",
     "subtitle": "Firmeza e Combate à Flacidez do Corpo",
     "description": "Tratamento que estimula a produção natural de colágeno em áreas como glúteos, abdômen e braços, combatendo a flacidez e melhorando a celulite.",
-    "heroImage": "/images/procedimentos/corporal/bioestimulador-coporal/gerais/bioestimulador-coporal-1.jpg",
+    "heroImage": "/images/procedimentos/.corporal/bioestimulador-coporal/gerais/bioestimulador-coporal-1.jpg",
     "category": "Corporal",
     "duration": "60 minutos",
     "sessions": "2 a 4 sessões",
@@ -1051,7 +1051,7 @@ export const procedures: { [key: string]: any } = {
     "duration": "30-45 minutos por sessão",
     "sessions": "5 a 10 sessões",
     "results": "Progressivos a cada sessão",
-    "price": "A partir de R$ 199,00",
+    "price": "A partir de R$ 189,00",
     "beforeAfterImages": [
       { "src": "/images/procedimentos/peim/antes-x-depois/PEIM-1.png", "alt": "Resultado de PEIM Antes e Depois" },
       { "src": "/images/procedimentos/peim/antes-x-depois/PEIM-2.jpg", "alt": "Secagem de Vasinhos nas Pernas" },
@@ -1060,7 +1060,7 @@ export const procedures: { [key: string]: any } = {
     "pricingPackages": [
       {
         "title": "Sessão Individual",
-        "price": "R$ 199,00",
+        "price": "R$ 189,00",
         "features": [
           "Avaliação dos vasos",
           "1 sessão de escleroterapia (PEIM)",
@@ -1071,7 +1071,7 @@ export const procedures: { [key: string]: any } = {
       {
         "title": "Pacote 10 Sessões",
         "price": "R$ 1.499,00",
-        "oldPrice": "R$ 1.990,00",
+        "oldPrice": "R$ 1.890,00",
         "features": [
           "Tratamento completo para múltiplas áreas",
           "Avaliação e acompanhamento da evolução",
@@ -1515,7 +1515,7 @@ export const procedures: { [key: string]: any } = {
     "duration": "50-60 minutos",
     "sessions": "Protocolo de 10 sessões",
     "results": "Visíveis após a 3ª ou 4ª sessão",
-    "price": "A partir de R$ 220,00",
+    "price": "A partir de R$ 199,00",
     "beforeAfterImages": [
       { "src": "/images/procedimentos/massagem-modeladora/antes-x-depois/modeladora-abdomen-1.png", "alt": "Massagem Modeladora no Abdômen Antes e Depois" },
       { "src": "/images/procedimentos/massagem-modeladora/antes-x-depois/modeladora-coxas-1.png", "alt": "Resultado da Modeladora para Celulite" },
