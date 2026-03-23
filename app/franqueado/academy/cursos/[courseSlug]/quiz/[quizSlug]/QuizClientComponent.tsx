@@ -91,7 +91,7 @@ export default function QuizClientComponent({ params }: QuizClientComponentProps
         <p className="text-lg text-gray-300 max-w-md mb-8">
           Você precisa concluir todas as aulas do curso "{curso.titulo}" antes de iniciar a avaliação.
         </p>
-        <Link 
+        <Link
           href={`/franqueado/academy/cursos/${params.courseSlug}/${todasAulas[0]?.slug || ''}`}
           className="bg-brand-pink text-white px-8 py-3 rounded-lg font-semibold hover:bg-brand-pink/90 transition-colors"
         >
@@ -121,7 +121,7 @@ export default function QuizClientComponent({ params }: QuizClientComponentProps
 
   const finalizarQuiz = async () => {
     setEnviandoQuiz(true);
-    
+
     try {
       // Converter respostas para o formato esperado pela API
       // Formato: { respostas: { "perguntaId": "opcaoId", "perguntaId": "opcaoId" } }
@@ -129,18 +129,22 @@ export default function QuizClientComponent({ params }: QuizClientComponentProps
       Object.entries(respostasUsuario).forEach(([perguntaId, opcaoId]) => {
         respostasFormatadas[String(perguntaId)] = String(opcaoId);
       });
-      
+
       // Enviar respostas para a API
       // A função submitQuiz já envia no formato: { respostas: respostasFormatadas }
       const response = await submitQuiz(String(quiz.id), respostasFormatadas);
-      
+
       // A API deve retornar a nota calculada
       const nota = Number(response.nota) || 0;
       setPontuacao(nota);
       setQuizFinalizado(true);
+
+      // Limpa o cache do roteador para que o CourseDetail
+      // busque dados frescos (quiz_conclido: true) ao voltar
+      router.refresh();
     } catch (error) {
       console.error("Erro ao enviar quiz:", error);
-      
+
       // Fallback: calcular nota localmente se a API falhar
       let acertos = 0;
       quiz.perguntas.forEach((p: Pergunta) => {
@@ -181,7 +185,7 @@ export default function QuizClientComponent({ params }: QuizClientComponentProps
     const notaMinima = parseFloat(quiz.nota_minima);
     const pontuacaoNumero = Number(pontuacao) || 0;
     const aprovado = pontuacaoNumero >= notaMinima;
-    
+
     return (
       <div className="flex flex-col items-center justify-center min-h-screen bg-gray-900 text-white text-center p-8">
         <Award className={`w-24 h-24 mb-6 ${aprovado ? 'text-green-400' : 'text-red-400'}`} />
@@ -200,15 +204,15 @@ export default function QuizClientComponent({ params }: QuizClientComponentProps
           </p>
         )}
         <div className="mt-10 flex gap-4">
-          <Link 
-            href={`/franqueado/academy/cursos/${curso.slug}`} 
+          <button
+            onClick={() => router.push(`/franqueado/academy/cursos/${curso.slug}`)}
             className="bg-white/10 text-white px-6 py-3 rounded-lg font-semibold hover:bg-white/20 transition-colors"
           >
             Voltar ao curso
-          </Link>
+          </button>
           {!aprovado && (
-            <button 
-              onClick={handleTentarNovamente} 
+            <button
+              onClick={handleTentarNovamente}
               className="bg-brand-pink text-white px-6 py-3 rounded-lg font-semibold hover:bg-brand-pink/90 flex items-center gap-2"
             >
               <RotateCw className="w-4 h-4" />
@@ -228,8 +232,8 @@ export default function QuizClientComponent({ params }: QuizClientComponentProps
           <p className="text-brand-pink font-semibold text-sm">{quiz.titulo}</p>
           <div className="flex items-center gap-4 mt-2">
             <div className="w-full bg-white/10 rounded-full h-2">
-              <div 
-                className="bg-brand-pink h-2 rounded-full transition-all duration-300" 
+              <div
+                className="bg-brand-pink h-2 rounded-full transition-all duration-300"
                 style={{ width: `${progresso}%` }}
               />
             </div>
@@ -239,7 +243,7 @@ export default function QuizClientComponent({ params }: QuizClientComponentProps
           </div>
         </div>
       </div>
-      
+
       {/* Conteúdo do Quiz */}
       <div className="flex-1 flex items-center justify-center p-4">
         <div className="w-full max-w-2xl">
@@ -250,7 +254,7 @@ export default function QuizClientComponent({ params }: QuizClientComponentProps
             {perguntaAtual.opcoes.map((opcao: Opcao) => {
               const isSelected = respostaSelecionada === opcao.id;
               const isCorrect = opcao.correta;
-              
+
               let optionClass = "border-gray-700 bg-gray-800 hover:border-brand-pink";
               if (isSelected && !feedback) {
                 optionClass = "border-brand-pink bg-brand-pink/10";
@@ -259,7 +263,7 @@ export default function QuizClientComponent({ params }: QuizClientComponentProps
               } else if (feedback && isCorrect) {
                 optionClass = "border-green-500 bg-green-500/20 text-green-300";
               }
-              
+
               return (
                 <button
                   key={opcao.id}
@@ -276,15 +280,15 @@ export default function QuizClientComponent({ params }: QuizClientComponentProps
           </div>
           <div className="mt-10 h-14 flex justify-end items-center">
             {!feedback ? (
-              <button 
-                onClick={handleConfirmarResposta} 
+              <button
+                onClick={handleConfirmarResposta}
                 disabled={!respostaSelecionada}
                 className="bg-brand-pink text-white px-8 py-3 rounded-lg font-semibold hover:bg-brand-pink/90 disabled:bg-gray-600 disabled:cursor-not-allowed"
               >
                 Confirmar Resposta
               </button>
             ) : (
-              <button 
+              <button
                 onClick={handleAvancar}
                 disabled={enviandoQuiz}
                 className="bg-green-500 text-white px-8 py-3 rounded-lg font-semibold hover:bg-green-600 animate-pulse disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
