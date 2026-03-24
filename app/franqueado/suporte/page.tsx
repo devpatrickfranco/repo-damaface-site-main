@@ -131,7 +131,7 @@ export default function SuportePage() {
   const [sortField, setSortField] = useState("criado_em")
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc")
   const [newMessage, setNewMessage] = useState("")
-  
+
   const [novoTicketLoading, setNovoTicketLoading] = useState(false)
   const [novoChamadoLoading, setNovoChamadoLoading] = useState(false)
   const [attachedFiles, setAttachedFiles] = useState<File[]>([])
@@ -188,7 +188,7 @@ export default function SuportePage() {
 
   const handleOpenCreateView = async () => {
     try {
-      setNovoTicketLoading(true )
+      setNovoTicketLoading(true)
       const catResponse = await apiBackend.get<ApiCategoria[]>("/chamados/categorias/")
       setCategorias(catResponse)
 
@@ -201,11 +201,11 @@ export default function SuportePage() {
       alert("Erro ao carregar dados. Tente novamente.")
       console.error(err)
     }
-   finally {
-    // 3. Independentemente de sucesso ou falha,
-    // reativa o botão e restaura o texto.
-    setNovoTicketLoading(false);
-  }
+    finally {
+      // 3. Independentemente de sucesso ou falha,
+      // reativa o botão e restaura o texto.
+      setNovoTicketLoading(false);
+    }
 
   }
 
@@ -267,15 +267,15 @@ export default function SuportePage() {
       console.error("Erro detalhado:", err.response)
       const errorMessages = err.response?.data
         ? Object.entries(err.response.data)
-            .map(([field, messages]) => `${field}: ${(messages as string[]).join(", ")}`)
-            .join("\n")
+          .map(([field, messages]) => `${field}: ${(messages as string[]).join(", ")}`)
+          .join("\n")
         : ""
       alert(`Erro ao criar chamado:\n${errorMessages || "Verifique o console para detalhes."}`)
     }
     finally {
       setNovoChamadoLoading(false)
     }
-  } 
+  }
 
 
   const handleTicketAction = async (action: "assumir" | "resolver" | "reabrir" | "fechar") => {
@@ -297,36 +297,36 @@ export default function SuportePage() {
   const handleSendMessage = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!newMessage.trim() || !selectedChamado) return
-    
+
     setLoading(true)
-    
+
     try {
       const formData = new FormData()
       formData.append('conteudo', newMessage || '(Anexo enviado)')  // 🔥 Fallback se só enviar anexos
-      
+
       // Adicionar arquivos anexados
       attachedFiles.forEach((file) => {
         formData.append('anexos', file)
       })
-      
+
       await apiBackend.post(
         `/chamados/chamados/${selectedChamado.id}/adicionar-comentario/`,
         formData
       )
-      
+
       // 🔥 Limpar estados
       setNewMessage("")
       setAttachedFiles([])
-      
+
       // 🔥 Limpar input file do DOM
       const fileInput = document.getElementById('conversation-file-upload') as HTMLInputElement
       if (fileInput) {
         fileInput.value = ''
       }
-      
+
       // Recarregar detalhes do chamado
       await handleViewDetails(selectedChamado.id)
-      
+
     } catch (err: any) {
       console.error('Erro ao enviar:', err)
       alert("Erro ao enviar mensagem.")
@@ -334,22 +334,22 @@ export default function SuportePage() {
       setLoading(false)
     }
   }
-  
+
   // Handler do input de arquivos
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files ? Array.from(e.target.files) : []
-    
+
     // 🔥 Validação: máximo 5 arquivos por mensagem
     const totalFiles = attachedFiles.length + files.length
-    
+
     if (totalFiles > 5) {
       alert(`Você pode anexar no máximo 5 arquivos por mensagem.\nAtualmente você tem ${attachedFiles.length} arquivo(s) selecionado(s).`)
       return
     }
-    
+
     setAttachedFiles(prev => [...prev, ...files])
   }
-  
+
   // Remover arquivo da lista
   const handleRemoveFile = (index: number) => {
     setAttachedFiles(prev => prev.filter((_, i) => i !== index))
@@ -424,28 +424,28 @@ export default function SuportePage() {
       minute: "2-digit",
     })
 
-    // Ctrl + Enter
+  // Ctrl + Enter
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
-      // Verifica se Ctrl + Enter foram pressionados
-      if (e.ctrlKey && e.key === 'Enter') {
-        e.preventDefault(); // Impede a quebra de linha no textarea
-    
-        // Verifica as mesmas condições do seu botão de submit
-        // Certifique-se que 'newMessage' e 'loading' estão acessíveis neste escopo
-        if (!newMessage.trim() || loading) {
-          return;
-        }
-    
-        // Dispara o evento de submit do formulário
-        if (formRef.current) {
-          // Usamos dispatchEvent para simular o submit,
-          // o que vai acionar seu handler `onSubmit={handleSendMessage}`
-          formRef.current.dispatchEvent(
-            new Event('submit', { cancelable: true, bubbles: true })
-          );
-        }
+    // Verifica se Ctrl + Enter foram pressionados
+    if (e.ctrlKey && e.key === 'Enter') {
+      e.preventDefault(); // Impede a quebra de linha no textarea
+
+      // Verifica as mesmas condições do seu botão de submit
+      // Certifique-se que 'newMessage' e 'loading' estão acessíveis neste escopo
+      if (!newMessage.trim() || loading) {
+        return;
       }
-    };
+
+      // Dispara o evento de submit do formulário
+      if (formRef.current) {
+        // Usamos dispatchEvent para simular o submit,
+        // o que vai acionar seu handler `onSubmit={handleSendMessage}`
+        formRef.current.dispatchEvent(
+          new Event('submit', { cancelable: true, bubbles: true })
+        );
+      }
+    }
+  };
 
   const renderListaTickets = () => (
     <div className="space-y-8 animate-fade-in">
@@ -847,46 +847,46 @@ export default function SuportePage() {
             />
           </div>
           <div>
-          <label className="block text-sm font-medium text-foreground mb-3">Anexos (opcional)</label>
-          {/* Container do input customizado */}
-          <div className="relative w-full px-4 py-3 bg-input border-2 border-border rounded-xl hover:border-brand-pink/50 transition-all flex items-center gap-3">
-            {/* Input file escondido */}
-            <input
-              type="file"
-              multiple
-              onChange={(e) => setAnexos(e.target.files ? Array.from(e.target.files) : [])}
-              className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
-              id="file-upload"
-            />
-            
-            {/* Botão customizado */}
-            <button
-              type="button"
-              className="relative z-0 px-4 py-2 bg-white text-gray-800 rounded-lg font-medium text-sm hover:bg-gray-100 transition-colors border border-gray-300 whitespace-nowrap pointer-events-none"
-            >
-              Escolher arquivos
-            </button>
-            
-            {/* Texto de feedback */}
-            <span className="text-sm text-muted-foreground flex-1 truncate">
-              {anexos.length === 0 
-                ? 'Nenhum arquivo escolhido' 
-                : `${anexos.length} arquivo${anexos.length > 1 ? 's' : ''} selecionado${anexos.length > 1 ? 's' : ''}`
-              }
-            </span>
-          </div>
+            <label className="block text-sm font-medium text-foreground mb-3">Anexos (opcional)</label>
+            {/* Container do input customizado */}
+            <div className="relative w-full px-4 py-3 bg-input border-2 border-border rounded-xl hover:border-brand-pink/50 transition-all flex items-center gap-3">
+              {/* Input file escondido */}
+              <input
+                type="file"
+                multiple
+                onChange={(e) => setAnexos(e.target.files ? Array.from(e.target.files) : [])}
+                className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
+                id="file-upload"
+              />
 
-          {/* Lista de arquivos selecionados */}
-          {anexos.length > 0 && (
-            <ul className="mt-2 text-sm text-muted-foreground list-disc list-inside space-y-1">
-              {anexos.map((file, idx) => (
-                <li key={idx}>{file.name}</li>
-              ))}
-            </ul>
-          )}
-          
-          <p className="text-xs text-muted-foreground mt-2">Você pode selecionar múltiplos arquivos.</p>
-        </div>
+              {/* Botão customizado */}
+              <button
+                type="button"
+                className="relative z-0 px-4 py-2 bg-white text-gray-800 rounded-lg font-medium text-sm hover:bg-gray-100 transition-colors border border-gray-300 whitespace-nowrap pointer-events-none"
+              >
+                Escolher arquivos
+              </button>
+
+              {/* Texto de feedback */}
+              <span className="text-sm text-muted-foreground flex-1 truncate">
+                {anexos.length === 0
+                  ? 'Nenhum arquivo escolhido'
+                  : `${anexos.length} arquivo${anexos.length > 1 ? 's' : ''} selecionado${anexos.length > 1 ? 's' : ''}`
+                }
+              </span>
+            </div>
+
+            {/* Lista de arquivos selecionados */}
+            {anexos.length > 0 && (
+              <ul className="mt-2 text-sm text-muted-foreground list-disc list-inside space-y-1">
+                {anexos.map((file, idx) => (
+                  <li key={idx}>{file.name}</li>
+                ))}
+              </ul>
+            )}
+
+            <p className="text-xs text-muted-foreground mt-2">Você pode selecionar múltiplos arquivos.</p>
+          </div>
           <div className="flex gap-4 pt-4">
             <button
               type="button"
@@ -919,15 +919,15 @@ export default function SuportePage() {
         </div>
       )
     }
-  
+
     if (!selectedChamado) return null
-  
+
     const isAgent = user?.role === "ADMIN" || user?.role === "SUPERADMIN"
     const isCreator = user?.id === selectedChamado.criado_por.id
-  
+
     // 🔥 SIMPLIFICADO - Backend já separa os anexos
     const anexosCriacao = selectedChamado.anexos_criacao || []
-  
+
     return (
       <div className="max-w-5xl mx-auto space-y-8 animate-fade-in">
         <div className="flex items-center justify-between">
@@ -945,7 +945,7 @@ export default function SuportePage() {
             <span>Voltar para a lista</span>
           </button>
         </div>
-  
+
         <div className="bg-card rounded-2xl border border-border p-6 shadow-sm">
           <div className="flex flex-wrap items-center justify-between gap-4">
             <div className="flex items-center gap-3">
@@ -963,7 +963,7 @@ export default function SuportePage() {
                   Assumir Chamado
                 </button>
               )}
-  
+
               {isAgent &&
                 selectedChamado.atribuido_para?.id === user?.id &&
                 selectedChamado.status === "EM_ANDAMENTO" && (
@@ -976,7 +976,7 @@ export default function SuportePage() {
                     Resolver Chamado
                   </button>
                 )}
-  
+
               {(isCreator || isAgent) && selectedChamado.status === "RESOLVIDO" && (
                 <button
                   onClick={() => handleTicketAction("reabrir")}
@@ -987,7 +987,7 @@ export default function SuportePage() {
                   Reabrir Chamado
                 </button>
               )}
-  
+
               {isAgent && selectedChamado.status === "RESOLVIDO" && (
                 <button
                   onClick={() => handleTicketAction("fechar")}
@@ -1005,7 +1005,7 @@ export default function SuportePage() {
             Clique para alterar o status do chamado conforme seu perfil de acesso.
           </p>
         </div>
-  
+
         <div className="bg-card rounded-2xl border border-border shadow-sm overflow-hidden">
           {/* Header com gradiente sutil */}
           <div className="bg-gradient-to-r from-brand-pink/5 to-brand-pink/10 p-6 border-b border-border">
@@ -1024,11 +1024,11 @@ export default function SuportePage() {
                     </span>
                   </div>
                 </div>
-  
+
                 <h1 className="text-2xl lg:text-3xl font-bold text-foreground leading-tight">
                   {selectedChamado.titulo}
                 </h1>
-  
+
                 <div className="flex flex-wrap items-center gap-6">
                   <div className="flex items-center gap-2 text-muted-foreground">
                     {getPriorityIcon(selectedChamado.prioridade)}
@@ -1046,7 +1046,7 @@ export default function SuportePage() {
                   )}
                 </div>
               </div>
-  
+
               <div className="text-right space-y-2">
                 <div className="flex items-center justify-end gap-2 text-sm text-muted-foreground">
                   <Calendar className="w-4 h-4" />
@@ -1059,7 +1059,7 @@ export default function SuportePage() {
               </div>
             </div>
           </div>
-  
+
           {/* Conteúdo principal */}
           <div className="p-6 space-y-6">
             {/* Descrição */}
@@ -1072,7 +1072,7 @@ export default function SuportePage() {
                 <p className="text-foreground leading-relaxed whitespace-pre-wrap">{selectedChamado.descricao}</p>
               </div>
             </div>
-  
+
             {/* 🔥 Anexos da Criação - Agora vem do backend */}
             {anexosCriacao.length > 0 && (
               <div>
@@ -1109,7 +1109,7 @@ export default function SuportePage() {
                 </div>
               </div>
             )}
-  
+
             {/* Pessoas envolvidas */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="space-y-3">
@@ -1127,7 +1127,7 @@ export default function SuportePage() {
                   </div>
                 </div>
               </div>
-  
+
               <div className="space-y-3">
                 <h3 className="text-sm font-semibold text-foreground flex items-center gap-2">
                   <Users className="w-4 h-4" />
@@ -1158,7 +1158,7 @@ export default function SuportePage() {
             </div>
           </div>
         </div>
-  
+
         <div className="bg-card rounded-2xl border border-border shadow-sm overflow-hidden">
           <div className="bg-gradient-to-r from-brand-pink/5 to-brand-pink/10 p-6 border-b border-border">
             <div className="flex items-center justify-between">
@@ -1173,7 +1173,7 @@ export default function SuportePage() {
               </div>
             </div>
           </div>
-  
+
           {/* Lista de comentários */}
           <div className="p-6">
             <div className="space-y-6 mb-8 max-h-96 overflow-y-auto custom-scrollbar pr-2">
@@ -1185,15 +1185,13 @@ export default function SuportePage() {
                     style={{ animationDelay: `${index * 0.1}s` }}
                   >
                     <div
-                      className={`max-w-xs lg:max-w-md ${
-                        comentario.autor.id === user?.id ? "bg-brand-pink text-white" : "bg-muted text-foreground"
-                      } rounded-2xl p-4 shadow-sm`}
+                      className={`max-w-sm lg:max-w-xl min-w-0 break-words overflow-hidden ${comentario.autor.id === user?.id ? "bg-brand-pink text-white" : "bg-muted text-foreground"
+                        } rounded-2xl p-4 shadow-sm`}
                     >
                       <div className="flex items-center gap-3 mb-3">
                         <div
-                          className={`w-8 h-8 rounded-full flex items-center justify-center ${
-                            comentario.autor.id === user?.id ? "bg-white/20" : "bg-brand-pink"
-                          }`}
+                          className={`w-8 h-8 rounded-full flex items-center justify-center ${comentario.autor.id === user?.id ? "bg-white/20" : "bg-brand-pink"
+                            }`}
                         >
                           <User
                             className={`w-4 h-4 ${comentario.autor.id === user?.id ? "text-white" : "text-white"}`}
@@ -1203,17 +1201,16 @@ export default function SuportePage() {
                           <div className="flex items-center gap-2">
                             <span className="text-sm font-medium truncate">{comentario.autor.nome}</span>
                             <span
-                              className={`text-xs ${
-                                comentario.autor.id === user?.id ? "text-white/70" : "text-muted-foreground"
-                              }`}
+                              className={`text-xs ${comentario.autor.id === user?.id ? "text-white/70" : "text-muted-foreground"
+                                }`}
                             >
                               {formatDate(comentario.data_envio)}
                             </span>
                           </div>
                         </div>
                       </div>
-                      <p className="text-sm leading-relaxed whitespace-pre-wrap">{comentario.conteudo}</p>
-                      
+                      <p className="text-sm leading-relaxed whitespace-pre-wrap break-words">{comentario.conteudo}</p>
+
                       {/* 🔥 Anexos vêm do próprio comentário agora */}
                       {comentario.anexos && comentario.anexos.length > 0 && (
                         <div className="mt-3 pt-3 border-t border-white/10 space-y-2">
@@ -1223,11 +1220,10 @@ export default function SuportePage() {
                               href={anexo.url}
                               target="_blank"
                               rel="noopener noreferrer"
-                              className={`flex items-center gap-2 p-2 rounded-lg transition-all ${
-                                comentario.autor.id === user?.id 
-                                  ? "bg-white/10 hover:bg-white/20" 
+                              className={`flex items-center gap-2 p-2 rounded-lg transition-all ${comentario.autor.id === user?.id
+                                  ? "bg-white/10 hover:bg-white/20"
                                   : "bg-brand-pink/10 hover:bg-brand-pink/20"
-                              }`}
+                                }`}
                             >
                               <Paperclip className="w-3 h-3 flex-shrink-0" />
                               <span className="text-xs truncate flex-1">{anexo.nome}</span>
@@ -1255,18 +1251,18 @@ export default function SuportePage() {
                 </div>
               )}
             </div>
-  
+
             {/* Formulário de nova mensagem */}
             {selectedChamado.status === "EM_ANDAMENTO" ? (
               <div className="border-t border-border pt-6 space-y-4">
-                
+
                 {/* Input de anexos */}
                 <div>
                   <label className="block text-sm font-medium text-foreground mb-2 flex items-center gap-2">
                     <Paperclip className="w-4 h-4" />
                     Anexar arquivos (opcional - máximo 5)
                   </label>
-                  
+
                   <div className="relative w-full px-4 py-3 bg-input border-2 border-border rounded-xl hover:border-brand-pink/50 transition-all flex items-center gap-3">
                     <input
                       type="file"
@@ -1282,19 +1278,19 @@ export default function SuportePage() {
                       Escolher arquivos
                     </button>
                     <span className="text-sm text-muted-foreground flex-1 truncate">
-                      {attachedFiles.length === 0 
+                      {attachedFiles.length === 0
                         ? "Nenhum arquivo escolhido"
                         : `${attachedFiles.length} arquivo(s) selecionado(s)`
                       }
                     </span>
                   </div>
-                  
+
                   {/* Lista de arquivos selecionados */}
                   {attachedFiles.length > 0 && (
                     <div className="flex flex-wrap gap-2 mt-3">
                       {attachedFiles.map((file, idx) => (
-                        <div 
-                          key={idx} 
+                        <div
+                          key={idx}
                           className="flex items-center gap-2 bg-gray-100 px-3 py-1.5 rounded-lg border border-gray-200"
                         >
                           <Paperclip className="w-3 h-3 text-gray-500" />
@@ -1313,9 +1309,9 @@ export default function SuportePage() {
                     </div>
                   )}
                 </div>
-  
+
                 {/* Formulário de mensagem */}
-                <form onSubmit={handleSendMessage} ref={formRef}> 
+                <form onSubmit={handleSendMessage} ref={formRef}>
                   <div className="relative">
                     <textarea
                       value={newMessage}
@@ -1365,10 +1361,10 @@ export default function SuportePage() {
   }
 
   return (
-        <div className="p-6">
-          {activeView === "lista" && renderListaTickets()}
-          {activeView === "criar" && renderCriarTicket()}
-          {activeView === "detalhes" && renderDetalhesTicket()}
-        </div>
+    <div className="p-6">
+      {activeView === "lista" && renderListaTickets()}
+      {activeView === "criar" && renderCriarTicket()}
+      {activeView === "detalhes" && renderDetalhesTicket()}
+    </div>
   )
 }
