@@ -61,7 +61,7 @@ const Testimonials = () => {
   }, []);
 
   const handleWhatsAppClick = () => {
-    window.open('https://typebot.damaface.com.br/agendar Vi os depoimentos e gostaria de saber mais sobre os tratamentos.', '_blank');
+    window.open('https://typebot-typebot-viewer.i4khe5.easypanel.host/agendamento', '_blank');
   };
 
   return (
@@ -82,7 +82,7 @@ const Testimonials = () => {
           <div className="card-dark p-8 md:p-12 relative overflow-hidden animate-on-scroll">
             {/* Background Pattern */}
             <div className="absolute top-0 right-0 w-32 h-32 bg-brand-pink/5 rounded-full -translate-y-16 translate-x-16"></div>
-            
+
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8 items-center">
               {/* Client Info */}
               <div className="text-center md:text-left">
@@ -104,7 +104,7 @@ const Testimonials = () => {
               {/* Testimonial Content */}
               <div className="md:col-span-2">
                 <Quote className="w-8 h-8 text-brand-pink/50 mb-4" />
-                
+
                 {/* Stars */}
                 <div className="flex justify-center md:justify-start mb-4 space-x-1">
                   {[...Array(testimonials[currentSlide].rating)].map((_, i) => (
@@ -134,9 +134,8 @@ const Testimonials = () => {
                   <button
                     key={index}
                     onClick={() => setCurrentSlide(index)}
-                    className={`w-3 h-3 rounded-full transition-colors ${
-                      index === currentSlide ? 'bg-brand-pink' : 'bg-gray-600'
-                    }`}
+                    className={`w-3 h-3 rounded-full transition-colors ${index === currentSlide ? 'bg-brand-pink' : 'bg-gray-600'
+                      }`}
                   />
                 ))}
               </div>
@@ -172,7 +171,7 @@ const Testimonials = () => {
         </div>
       </div>
       <div className="flex justify-center gap-6 text-center mt-12 animate-on-scroll">
-        <CtaButtonWhatsapp className='mt-12'/>
+        <CtaButtonWhatsapp className='mt-12' />
       </div>
     </section>
   );

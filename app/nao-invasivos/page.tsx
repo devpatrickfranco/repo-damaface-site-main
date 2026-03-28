@@ -6,7 +6,7 @@ import Link from "next/link"
 import Image from "next/image"
 
 export default function NaoInvasivosPage() {
-const nonInvasiveProcedures = [
+  const nonInvasiveProcedures = [
     {
       id: "ultraformer",
       name: "Ultraformer",
@@ -122,7 +122,7 @@ const nonInvasiveProcedures = [
                   <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
                 </Link>
                 <a
-                  href="https://typebot.damaface.com.br/agendar"
+                  href="https://typebot-typebot-viewer.i4khe5.easypanel.host/agendamento"
                   target="_blank"
                   className="btn-secondary"
                   rel="noreferrer"
@@ -199,7 +199,7 @@ const nonInvasiveProcedures = [
                     </span>
                   </div>
                 </div>
-              
+
               </Link>
             ))}
           </div>

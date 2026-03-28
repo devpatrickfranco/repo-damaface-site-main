@@ -6,7 +6,7 @@ import Link from "next/link"
 import Image from "next/image"
 
 export default function CorporalPage() {
-const corporalProcedures = [ 
+  const corporalProcedures = [
     {
       id: "bioestimulador-corporal",
       name: "Bioestimulador de Colágeno Corporal",
@@ -111,7 +111,7 @@ const corporalProcedures = [
                   <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
                 </Link>
                 <a
-                  href="https://typebot.damaface.com.br/agendar"
+                  href="https://typebot-typebot-viewer.i4khe5.easypanel.host/agendamento"
                   target="_blank"
                   className="btn-secondary"
                   rel="noreferrer"
@@ -139,7 +139,7 @@ const corporalProcedures = [
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             {corporalProcedures.map((procedure, index) => (
-            <Link
+              <Link
                 key={procedure.id}
                 href={`/procedimentos/${procedure.id}`}
                 className="card-dark group cursor-pointer animate-on-scroll block"
@@ -188,7 +188,7 @@ const corporalProcedures = [
                     </span>
                   </div>
                 </div>
-              </Link> 
+              </Link>
             ))}
           </div>
         </div>

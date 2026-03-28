@@ -4,14 +4,14 @@ import { ArrowRight } from 'lucide-react';
 
 const Hero = () => {
   const handleWhatsAppClick = () => {
-    window.open('https://typebot.damaface.com.br/agendar', '_blank');
+    window.open('https://typebot-typebot-viewer.i4khe5.easypanel.host/agendamento', '_blank');
   };
 
   return (
     <section className="relative min-h-screen flex items-center justify-center overflow-hidden">
       {/* Background Image with Overlay */}
       <div className="absolute inset-0 z-0">
-        <div 
+        <div
           className="w-full h-full bg-cover bg-center bg-no-repeat"
           style={{
             backgroundImage: 'url("https://images.pexels.com/photos/3985360/pexels-photo-3985360.jpeg?auto=compress&cs=tinysrgb&w=1920&h=1280&fit=crop")'
@@ -34,7 +34,7 @@ const Hero = () => {
             </h1>
 
             <p className="text-lg md:text-xl text-gray-300 mb-8 max-w-2xl mx-auto lg:mx-0 leading-relaxed">
-              Transforme sua beleza natural com tratamentos personalizados e tecnologia de ponta. 
+              Transforme sua beleza natural com tratamentos personalizados e tecnologia de ponta.
               Agende sua avaliação gratuita com nossa equipe de especialistas.
             </p>
 
@@ -59,11 +59,11 @@ const Hero = () => {
               <div className="text-3xl lg:text-4xl font-bold text-brand-pink mb-2">1.2M </div>
               <div className="text-gray-400">Clientes Satisfeitos</div>
             </div>
-            <div className="text-center lg:text-left animate-fade-up" style={{animationDelay: '0.1s'}}>
+            <div className="text-center lg:text-left animate-fade-up" style={{ animationDelay: '0.1s' }}>
               <div className="text-3xl lg:text-4xl font-bold text-brand-pink mb-2">5+</div>
               <div className="text-gray-400">Anos de Experiência</div>
             </div>
-            <div className="text-center lg:text-left animate-fade-up" style={{animationDelay: '0.2s'}}>
+            <div className="text-center lg:text-left animate-fade-up" style={{ animationDelay: '0.2s' }}>
               <div className="text-3xl lg:text-4xl font-bold text-brand-pink mb-2">98%</div>
               <div className="text-gray-400">Taxa de Satisfação</div>
             </div>

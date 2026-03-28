@@ -131,7 +131,7 @@ export default function FacialPage() {
                   <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
                 </Link>
                 <a
-                  href="https://typebot.damaface.com.br/agendar"
+                  href="https://typebot-typebot-viewer.i4khe5.easypanel.host/agendamento"
                   target="_blank"
                   className="btn-secondary"
                   rel="noreferrer"
