@@ -31,6 +31,7 @@ const Header = () => {
     // { name: "Contato", href: "/contato" },
   ]
 
+
   const handleWhatsAppClick = () => {
     window.open("https://typebot-typebot-viewer.i4khe5.easypanel.host/agendamento", "_self")
   }
@@ -48,9 +49,8 @@ const Header = () => {
 
   return (
     <header
-      className={`fixed top-0 left-0 right-0 z-50 transition-all duration-500 ${
-        isScrolled ? "bg-black/20 backdrop-blur-md" : "bg-transparent"
-      }`}
+      className={`fixed top-0 left-0 right-0 z-50 transition-all duration-500 ${isScrolled ? "bg-black/20 backdrop-blur-md" : "bg-transparent"
+        }`}
     >
       <div className="container">
         <div className="flex items-center justify-between h-16 gap-2">
