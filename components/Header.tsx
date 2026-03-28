@@ -32,7 +32,7 @@ const Header = () => {
   ]
 
   const handleWhatsAppClick = () => {
-    window.open("https://typebot.damaface.com.br/agendar", "_self")
+    window.open("https://typebot-typebot-viewer.i4khe5.easypanel.host/agendamento", "_self")
   }
 
   const handleFranchiseClick = () => {
