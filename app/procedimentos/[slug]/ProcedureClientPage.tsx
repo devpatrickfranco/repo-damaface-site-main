@@ -49,7 +49,7 @@ export default function ProcedureClientPage({ procedure }: ProcedureClientPagePr
 
   const handleWhatsAppClick = () => {
     window.open(
-      `https://typebot.damaface.com.br/agendar`,
+      `https://typebot-typebot-viewer.i4khe5.easypanel.host/agendamento`,
       "_blank",
     )
   }
