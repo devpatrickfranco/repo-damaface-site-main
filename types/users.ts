@@ -2,7 +2,7 @@ export interface Franquia {
   id: number; // IDs do banco de dados são geralmente números
   nome: string;
   cnpj: string;
-  user_count?: number; 
+  user_count?: number;
 }
 
 export interface Usuario {
@@ -18,4 +18,5 @@ export interface Usuario {
 
 export interface Profile extends Usuario {
   bio: string | null;
+  telefone: string | null;
 }

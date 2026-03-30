@@ -11,13 +11,18 @@ export default function SettingsPage() {
   const [profileData, setProfileData] = useState({
     nome: "",
     bio: "",
+    telefone: "",
   })
 
   const [originalData, setOriginalData] = useState({
     nome: "",
     imgProfile: "",
     bio: "",
+    telefone: "",
   })
+
+  const PHONE_REGEX = /^\d{10,11}$/
+  const [phoneError, setPhoneError] = useState(false)
 
   const MAX_NAME_LENGTH = 100
   const MAX_BIO_LENGTH = 500
@@ -42,11 +47,13 @@ export default function SettingsPage() {
       setProfileData({
         nome: userData.nome || "",
         bio: userData.bio || "",
+        telefone: userData.telefone || "",
       })
       setOriginalData({
         nome: userData.nome || "",
         imgProfile: userData.imgProfile || "",
         bio: userData.bio || "",
+        telefone: userData.telefone || "",
       })
 
       // Define preview com a URL completa do backend
@@ -99,12 +106,20 @@ export default function SettingsPage() {
 
     if (!currentUser) return
 
+    const telefoneRaw = profileData.telefone.replace(/\D/g, "")
+    if (telefoneRaw && !PHONE_REGEX.test(telefoneRaw)) {
+      setPhoneError(true)
+      return
+    }
+    setPhoneError(false)
+
     const hasNameChange = profileData.nome.trim() !== originalData.nome.trim()
     const hasBioChange = (profileData.bio || "").trim() !== (originalData.bio || "").trim()
+    const hasTelefoneChange = (profileData.telefone || "").trim() !== (originalData.telefone || "").trim()
     const hasImageChange =
       imageFile !== null || (previewImage === null && originalData.imgProfile)
 
-    if (!hasNameChange && !hasImageChange && !hasBioChange) {
+    if (!hasNameChange && !hasImageChange && !hasBioChange && !hasTelefoneChange) {
       alert("Nenhuma alteração foi feita")
       return
     }
@@ -116,6 +131,7 @@ export default function SettingsPage() {
       const formData = new FormData()
       formData.append("nome", profileData.nome.trim())
       formData.append("bio", profileData.bio.trim())
+      formData.append("telefone", profileData.telefone.replace(/\D/g, ""))
 
       if (imageFile) {
         formData.append("imgProfile", imageFile)
@@ -132,11 +148,13 @@ export default function SettingsPage() {
       setProfileData({
         nome: response.nome,
         bio: response.bio || "",
+        telefone: response.telefone || "",
       })
       setOriginalData({
         nome: response.nome,
         imgProfile: response.imgProfile || "",
         bio: response.bio || "",
+        telefone: response.telefone || "",
       })
 
       if (response.imgProfile) {
@@ -175,201 +193,230 @@ export default function SettingsPage() {
   return (
     <div className="bg-background">
 
-        <div className="p-6">
-          <div className="max-w-3xl">
-            <div className="mb-6">
-              <h1 className="text-3xl font-bold text-white">
-                Configurações de Perfil
-              </h1>
-              <p className="mt-2 text-gray-400">
-                Gerencie suas informações pessoais e preferências
+      <div className="p-6">
+        <div className="max-w-3xl">
+          <div className="mb-6">
+            <h1 className="text-3xl font-bold text-white">
+              Configurações de Perfil
+            </h1>
+            <p className="mt-2 text-gray-400">
+              Gerencie suas informações pessoais e preferências
+            </p>
+          </div>
+
+          {error && (
+            <div className="mb-6 p-4 bg-red-900/20 border border-red-900 rounded-md text-red-400">
+              {error}
+            </div>
+          )}
+
+          <form onSubmit={handleSubmit} className="space-y-6">
+            <div className="flex flex-col items-center gap-4 pb-6 border-b border-gray-700">
+              <div className="relative group">
+                <div className="size-32 rounded-full overflow-hidden ring-4 ring-gray-700 bg-gray-700">
+                  {previewImage ? (
+                    <img
+                      src={previewImage}
+                      alt={profileData.nome}
+                      className="size-full object-cover"
+                      onError={(e) => {
+                        e.currentTarget.style.display = "none"
+                        const fallback =
+                          e.currentTarget.nextElementSibling as HTMLElement
+                        if (fallback) fallback.classList.remove("hidden")
+                      }}
+                    />
+                  ) : null}
+                  <div
+                    className={`${previewImage ? "hidden" : ""
+                      } size-full bg-brand-pink text-white flex items-center justify-center text-3xl font-medium`}
+                  >
+                    {profileData.nome
+                      ? profileData.nome.charAt(0).toUpperCase()
+                      : "U"}
+                  </div>
+                </div>
+
+                <label
+                  htmlFor="avatar-upload"
+                  className="absolute bottom-0 right-0 flex size-10 cursor-pointer items-center justify-center rounded-full bg-brand-pink text-white shadow-lg transition-transform hover:scale-110"
+                >
+                  <Camera className="size-5" />
+                  <input
+                    id="avatar-upload"
+                    type="file"
+                    accept="image/*"
+                    className="hidden"
+                    onChange={handleImageChange}
+                  />
+                </label>
+
+                {previewImage && (
+                  <button
+                    type="button"
+                    onClick={handleRemoveImage}
+                    className="absolute -top-2 -right-2 flex size-8 items-center justify-center rounded-full bg-red-500 text-white shadow-lg transition-transform hover:scale-110"
+                    title="Remover imagem"
+                  >
+                    <X className="size-4" />
+                  </button>
+                )}
+              </div>
+              <div className="text-center">
+                <p className="text-sm text-gray-400">
+                  Clique no ícone para alterar sua foto de perfil
+                </p>
+                <p className="text-xs text-gray-500 mt-1">
+                  Tamanho máximo: 5MB
+                </p>
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <label
+                htmlFor="email"
+                className="block text-sm font-medium text-gray-300"
+              >
+                Email
+              </label>
+              <input
+                id="email"
+                type="email"
+                value={currentUser?.email || ""}
+                disabled
+                className="w-full h-10 px-3 text-gray-400 rounded-md bg-gray-800 border border-gray-700 cursor-not-allowed text-sm"
+              />
+              <p className="text-xs text-gray-500">
+                O email não pode ser alterado
               </p>
             </div>
 
-            {error && (
-              <div className="mb-6 p-4 bg-red-900/20 border border-red-900 rounded-md text-red-400">
-                {error}
-              </div>
-            )}
+            <div className="space-y-2">
+              <label
+                htmlFor="franquia"
+                className="block text-sm font-medium text-gray-300"
+              >
+                Unidade
+              </label>
+              <input
+                id="franquia"
+                type="text"
+                value={currentUser?.franquia_nome || "Franqueadora"}
+                disabled
+                className="w-full h-10 px-3 text-gray-400 rounded-md bg-gray-800 border border-gray-700 cursor-not-allowed text-sm"
+              />
+              <p className="text-xs text-gray-500">
+                A franquia não pode ser alterada
+              </p>
+            </div>
 
-            <form onSubmit={handleSubmit} className="space-y-6">
-              <div className="flex flex-col items-center gap-4 pb-6 border-b border-gray-700">
-                <div className="relative group">
-                  <div className="size-32 rounded-full overflow-hidden ring-4 ring-gray-700 bg-gray-700">
-                    {previewImage ? (
-                      <img
-                        src={previewImage}
-                        alt={profileData.nome}
-                        className="size-full object-cover"
-                        onError={(e) => {
-                          e.currentTarget.style.display = "none"
-                          const fallback =
-                            e.currentTarget.nextElementSibling as HTMLElement
-                          if (fallback) fallback.classList.remove("hidden")
-                        }}
-                      />
-                    ) : null}
-                    <div
-                      className={`${
-                        previewImage ? "hidden" : ""
-                      } size-full bg-brand-pink text-white flex items-center justify-center text-3xl font-medium`}
-                    >
-                      {profileData.nome
-                        ? profileData.nome.charAt(0).toUpperCase()
-                        : "U"}
-                    </div>
-                  </div>
-
-                  <label
-                    htmlFor="avatar-upload"
-                    className="absolute bottom-0 right-0 flex size-10 cursor-pointer items-center justify-center rounded-full bg-brand-pink text-white shadow-lg transition-transform hover:scale-110"
-                  >
-                    <Camera className="size-5" />
-                    <input
-                      id="avatar-upload"
-                      type="file"
-                      accept="image/*"
-                      className="hidden"
-                      onChange={handleImageChange}
-                    />
-                  </label>
-
-                  {previewImage && (
-                    <button
-                      type="button"
-                      onClick={handleRemoveImage}
-                      className="absolute -top-2 -right-2 flex size-8 items-center justify-center rounded-full bg-red-500 text-white shadow-lg transition-transform hover:scale-110"
-                      title="Remover imagem"
-                    >
-                      <X className="size-4" />
-                    </button>
-                  )}
-                </div>
-                <div className="text-center">
-                  <p className="text-sm text-gray-400">
-                    Clique no ícone para alterar sua foto de perfil
-                  </p>
-                  <p className="text-xs text-gray-500 mt-1">
-                    Tamanho máximo: 5MB
-                  </p>
-                </div>
-              </div>
-
-              <div className="space-y-2">
+            <div className="space-y-2">
+              <div className="flex justify-between items-baseline">
                 <label
-                  htmlFor="email"
+                  htmlFor="name"
                   className="block text-sm font-medium text-gray-300"
                 >
-                  Email
+                  Nome Completo
                 </label>
-                <input
-                  id="email"
-                  type="email"
-                  value={currentUser?.email || ""}
-                  disabled
-                  className="w-full h-10 px-3 text-gray-400 rounded-md bg-gray-800 border border-gray-700 cursor-not-allowed text-sm"
-                />
-                <p className="text-xs text-gray-500">
-                  O email não pode ser alterado
+                <span className="text-xs text-gray-500">
+                  {profileData.nome.length} / {MAX_NAME_LENGTH}
+                </span>
+              </div>
+              <input
+                id="name"
+                type="text"
+                value={profileData.nome}
+                onChange={(e) =>
+                  setProfileData({ ...profileData, nome: e.target.value })
+                }
+                placeholder="Digite seu nome completo"
+                className="w-full h-10 px-3 text-white rounded-md bg-gray-900 border border-gray-700 focus:outline-none focus:ring-2 focus:ring-brand-pink focus:border-brand-pink text-sm placeholder-gray-500"
+                required
+                maxLength={MAX_NAME_LENGTH}
+              />
+            </div>
+
+            <div className="space-y-2">
+              <label
+                htmlFor="bio"
+                className="block text-sm font-medium text-gray-300"
+              >
+                Biografia
+              </label>
+              <textarea
+                id="bio"
+                rows={4}
+                value={profileData.bio || ""}
+                onChange={(e) =>
+                  setProfileData({ ...profileData, bio: e.target.value })
+                }
+                placeholder="Fale um pouco sobre você..."
+                className="w-full p-3 text-white rounded-md bg-gray-900 border border-gray-700 focus:outline-none focus:ring-2 focus:ring-brand-pink focus:border-brand-pink text-sm placeholder-gray-500"
+                maxLength={MAX_BIO_LENGTH} // Mantenha o maxLength
+              />
+              {/* --- TEXTO DE AJUDA MODIFICADO COM CONTADOR --- */}
+              <div className="flex justify-between text-xs text-gray-500">
+                <span>
+                  Esta biografia será exibida em seu perfil (opcional)
+                </span>
+                <span>
+                  {(profileData.bio || "").length} / {MAX_BIO_LENGTH}
+                </span>
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <label
+                htmlFor="telefone"
+                className="block text-sm font-medium text-gray-300"
+              >
+                Telefone
+              </label>
+              <input
+                id="telefone"
+                type="tel"
+                value={profileData.telefone}
+                onChange={(e) => {
+                  setProfileData({ ...profileData, telefone: e.target.value })
+                  setPhoneError(false)
+                }}
+                placeholder="Ex: 11999998888"
+                className={`w-full h-10 px-3 text-white rounded-md bg-gray-900 border ${phoneError ? "border-red-500 focus:ring-red-500" : "border-gray-700 focus:ring-brand-pink focus:border-brand-pink"
+                  } focus:outline-none focus:ring-2 text-sm placeholder-gray-500`}
+                maxLength={15}
+              />
+              {phoneError && (
+                <p className="text-xs text-red-500">
+                  Número inválido. Use o formato DDD + número (ex: 11999998888).
                 </p>
-              </div>
+              )}
+              <p className="text-xs text-red-400">
+                Garanta que seu telefone esteja correto, ele será usado em casos de suporte.
+              </p>
+            </div>
 
-              <div className="space-y-2">
-                <label
-                  htmlFor="franquia"
-                  className="block text-sm font-medium text-gray-300"
-                >
-                  Unidade
-                </label>
-                <input
-                  id="franquia"
-                  type="text"
-                  value={currentUser?.franquia_nome || "Franqueadora"}
-                  disabled
-                  className="w-full h-10 px-3 text-gray-400 rounded-md bg-gray-800 border border-gray-700 cursor-not-allowed text-sm"
-                />
-                <p className="text-xs text-gray-500">
-                  A franquia não pode ser alterada
-                </p>
-              </div>
-
-              <div className="space-y-2">
-                <div className="flex justify-between items-baseline">
-                  <label
-                    htmlFor="name"
-                    className="block text-sm font-medium text-gray-300"
-                  >
-                    Nome Completo
-                  </label>
-                  <span className="text-xs text-gray-500">
-                    {profileData.nome.length} / {MAX_NAME_LENGTH}
-                  </span>
-                </div>
-                <input
-                  id="name"
-                  type="text"
-                  value={profileData.nome}
-                  onChange={(e) =>
-                    setProfileData({ ...profileData, nome: e.target.value })
-                  }
-                  placeholder="Digite seu nome completo"
-                  className="w-full h-10 px-3 text-white rounded-md bg-gray-900 border border-gray-700 focus:outline-none focus:ring-2 focus:ring-brand-pink focus:border-brand-pink text-sm placeholder-gray-500"
-                  required
-                  maxLength={MAX_NAME_LENGTH}
-                />
-              </div>
-
-              <div className="space-y-2">
-                <label
-                  htmlFor="bio"
-                  className="block text-sm font-medium text-gray-300"
-                >
-                  Biografia
-                </label>
-                <textarea 
-                  id="bio"
-                  rows={4}
-                  value={profileData.bio || ""}
-                  onChange={(e) =>
-                    setProfileData({ ...profileData, bio: e.target.value })
-                  }
-                  placeholder="Fale um pouco sobre você..."
-                  className="w-full p-3 text-white rounded-md bg-gray-900 border border-gray-700 focus:outline-none focus:ring-2 focus:ring-brand-pink focus:border-brand-pink text-sm placeholder-gray-500"
-                  maxLength={MAX_BIO_LENGTH} // Mantenha o maxLength
-                />
-                {/* --- TEXTO DE AJUDA MODIFICADO COM CONTADOR --- */}
-                <div className="flex justify-between text-xs text-gray-500">
-                  <span>
-                    Esta biografia será exibida em seu perfil (opcional)
-                  </span>
-                  <span>
-                    {(profileData.bio || "").length} / {MAX_BIO_LENGTH}
-                  </span>
-                </div>
-              </div>
-
-              <div className="flex justify-end pt-4">
-                <button
-                  type="submit"
-                  disabled={loading}
-                  className="flex items-center gap-2 bg-brand-pink hover:bg-brand-pink/90 text-white font-medium px-8 py-2.5 rounded-md transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  {loading ? (
-                    <>
-                      <Loader2 className="size-4 animate-spin" />
-                      Salvando...
-                    </>
-                  ) : (
-                    <>
-                      <Save className="size-4" />
-                      Salvar Alterações
-                    </>
-                  )}
-                </button>
-              </div>
-            </form>
-          </div>
+            <div className="flex justify-end pt-4">
+              <button
+                type="submit"
+                disabled={loading}
+                className="flex items-center gap-2 bg-brand-pink hover:bg-brand-pink/90 text-white font-medium px-8 py-2.5 rounded-md transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {loading ? (
+                  <>
+                    <Loader2 className="size-4 animate-spin" />
+                    Salvando...
+                  </>
+                ) : (
+                  <>
+                    <Save className="size-4" />
+                    Salvar Alterações
+                  </>
+                )}
+              </button>
+            </div>
+          </form>
         </div>
+      </div>
     </div>
   )
 }
