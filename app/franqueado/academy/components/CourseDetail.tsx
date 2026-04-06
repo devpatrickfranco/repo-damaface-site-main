@@ -10,6 +10,7 @@ import { format } from 'date-fns'
 import Link from "next/link";
 import Image from "next/image";
 import Avatar from '@/app/franqueado/components/Avatar';
+import { getMediaUrl } from "@/lib/api-backend";
 import { enrollCourse, postAvaliacao, updateAvaliacao, deleteAvaliacao, gerarCertificado, downloadCertificado } from "@/hooks/useApi";
 
 import { Play, Clock, Users, Star, BookOpen, Award, CheckCircle, Circle, FileText, ChevronRight, Trash2, Edit2, Send, X, Download, AlertCircle } from 'lucide-react';
@@ -356,10 +357,7 @@ export default function CourseDetail({ cursoSlug }: CourseDetailProps) {
     );
   };
 
-  const imageUrl =
-    user && user.imgProfile
-      ? `${process.env.NEXT_PUBLIC_API_BACKEND_URL}${user.imgProfile}`
-      : null
+  const imageUrl = getMediaUrl(user?.imgProfile)
 
   return (
     <div className="bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900">
@@ -745,17 +743,7 @@ export default function CourseDetail({ cursoSlug }: CourseDetailProps) {
                   <div className="space-y-6">
                     {avaliacoes.map((avaliacao: AvaliacaoAluno) => (
                       <div key={avaliacao.id} className="flex gap-4">
-                        {avaliacao.imgProfile ? (
-                          <Image
-                            src={`${process.env.NEXT_PUBLIC_API_BACKEND_URL}${avaliacao.imgProfile}`}
-                            alt={avaliacao.aluno}
-                            className="w-12 h-12 rounded-full object-cover"
-                            width={40}
-                            height={40}
-                          />
-                        ) : (
-                          <Avatar />
-                        )}
+                        <Avatar src={avaliacao.imgProfile} alt={avaliacao.aluno} />
                         <div className="flex-1">
                           {editandoAvaliacaoId === avaliacao.id ? (
                             // Modo de edição

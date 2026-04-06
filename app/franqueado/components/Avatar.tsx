@@ -2,6 +2,7 @@
 
 import React from 'react';
 import { User } from 'lucide-react';
+import { getMediaUrl } from '@/lib/api-backend';
 
 interface AvatarProps {
   src?: string | null;
@@ -12,7 +13,7 @@ const Avatar: React.FC<AvatarProps> = ({ src, alt = 'Avatar' }) => {
   if (src) {
     return (
       <img
-        src={src || '/placeholder.svg'}
+        src={getMediaUrl(src)}
         alt={alt}
         className="w-10 h-10 rounded-full object-cover"
       />

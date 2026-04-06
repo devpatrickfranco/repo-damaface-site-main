@@ -271,25 +271,17 @@ const RenderManageStudents: FC = () => {
         <div className="bg-gray-800 rounded-xl border border-gray-700 w-full max-w-5xl max-h-[90vh] flex flex-col">
           <div className="flex items-start justify-between p-6 border-b border-gray-700">
             <div className="flex items-center gap-4">
-              {alunoSelecionado.usuario.imgProfile ? (
-                <img
-                  src={alunoSelecionado.usuario.imgProfile}
-                  alt={alunoSelecionado.usuario.nome}
-                  className="w-16 h-16 rounded-full object-cover"
-                />
-              ) : (
-                <div className="w-16 h-16">
-                  <Avatar alt={alunoSelecionado.usuario.nome} />
-                </div>
-              )}
+              <div className="w-16 h-16">
+                <Avatar src={alunoSelecionado.usuario.imgProfile} alt={alunoSelecionado.usuario.nome} />
+              </div>
               <div>
                 <h2 className="text-2xl font-bold text-white">{alunoSelecionado.usuario.nome}</h2>
                 <p className="text-gray-400">{alunoSelecionado.usuario.email}</p>
                 <div className="flex items-center gap-4 mt-2">
                   <p className="text-sm text-gray-400">{alunoSelecionado.telefone}</p>
                   <span className={`px-2 py-1 text-xs rounded-full ${alunoSelecionado.status === 'ATIVO' ? 'bg-green-500/20 text-green-400' :
-                      alunoSelecionado.status === 'INATIVO' ? 'bg-gray-500/20 text-gray-400' :
-                        'bg-red-500/20 text-red-400'
+                    alunoSelecionado.status === 'INATIVO' ? 'bg-gray-500/20 text-gray-400' :
+                      'bg-red-500/20 text-red-400'
                     }`}>
                     {alunoSelecionado.status}
                   </span>
@@ -315,8 +307,8 @@ const RenderManageStudents: FC = () => {
             <button
               onClick={() => setAbaModal('resumo')}
               className={`py-4 px-4 text-sm font-medium transition-colors ${abaModal === 'resumo'
-                  ? 'text-pink-400 border-b-2 border-pink-400'
-                  : 'text-gray-400 hover:text-white'
+                ? 'text-pink-400 border-b-2 border-pink-400'
+                : 'text-gray-400 hover:text-white'
                 }`}
             >
               Resumo
@@ -324,8 +316,8 @@ const RenderManageStudents: FC = () => {
             <button
               onClick={() => setAbaModal('desempenho')}
               className={`py-4 px-4 text-sm font-medium transition-colors ${abaModal === 'desempenho'
-                  ? 'text-pink-400 border-b-2 border-pink-400'
-                  : 'text-gray-400 hover:text-white'
+                ? 'text-pink-400 border-b-2 border-pink-400'
+                : 'text-gray-400 hover:text-white'
                 }`}
             >
               Desempenho Detalhado
@@ -333,8 +325,8 @@ const RenderManageStudents: FC = () => {
             <button
               onClick={() => setAbaModal('historico')}
               className={`py-4 px-4 text-sm font-medium transition-colors ${abaModal === 'historico'
-                  ? 'text-pink-400 border-b-2 border-pink-400'
-                  : 'text-gray-400 hover:text-white'
+                ? 'text-pink-400 border-b-2 border-pink-400'
+                : 'text-gray-400 hover:text-white'
                 }`}
             >
               Histórico
@@ -342,8 +334,8 @@ const RenderManageStudents: FC = () => {
             <button
               onClick={() => setAbaModal('certificados')}
               className={`py-4 px-4 text-sm font-medium transition-colors ${abaModal === 'certificados'
-                  ? 'text-pink-400 border-b-2 border-pink-400'
-                  : 'text-gray-400 hover:text-white'
+                ? 'text-pink-400 border-b-2 border-pink-400'
+                : 'text-gray-400 hover:text-white'
                 }`}
             >
               Certificados ({alunoSelecionado.certificados.length})
@@ -436,9 +428,9 @@ const RenderManageStudents: FC = () => {
                     <div className="flex items-center justify-between mb-3">
                       <h4 className="font-bold text-white">{curso.titulo}</h4>
                       <span className={`px-2 py-1 text-xs rounded-full ${curso.status === 'Concluído' ? 'bg-green-500/20 text-green-400' :
-                          curso.status === 'Em Andamento' ? 'bg-blue-500/20 text-blue-400' :
-                            curso.status === 'Pausado' ? 'bg-yellow-500/20 text-yellow-400' :
-                              'bg-gray-500/20 text-gray-400'
+                        curso.status === 'Em Andamento' ? 'bg-blue-500/20 text-blue-400' :
+                          curso.status === 'Pausado' ? 'bg-yellow-500/20 text-yellow-400' :
+                            'bg-gray-500/20 text-gray-400'
                         }`}>
                         {curso.status}
                       </span>
@@ -496,9 +488,9 @@ const RenderManageStudents: FC = () => {
                   {alunoSelecionado.historicoAtividade.map((item: HistoricoAtividade) => (
                     <li key={item.id} className="flex items-start gap-3">
                       <div className={`rounded-full p-2 mt-1 flex-shrink-0 ${item.tipo === 'CURSO_CONCLUIDO' ? 'bg-green-500/20' :
-                          item.tipo === 'QUIZ_APROVADO' ? 'bg-blue-500/20' :
-                            item.tipo === 'CERTIFICADO_EMITIDO' ? 'bg-yellow-500/20' :
-                              'bg-gray-700'
+                        item.tipo === 'QUIZ_APROVADO' ? 'bg-blue-500/20' :
+                          item.tipo === 'CERTIFICADO_EMITIDO' ? 'bg-yellow-500/20' :
+                            'bg-gray-700'
                         }`}>
                         <Calendar className="w-3 h-3 text-gray-400" />
                       </div>
@@ -728,15 +720,7 @@ const RenderManageStudents: FC = () => {
                   <tr key={aluno.id} className="hover:bg-gray-700/30 transition-colors">
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="flex items-center space-x-3">
-                        {aluno.usuario.imgProfile ? (
-                          <img
-                            src={aluno.usuario.imgProfile}
-                            alt={aluno.usuario.nome}
-                            className="w-10 h-10 rounded-full object-cover"
-                          />
-                        ) : (
-                          <Avatar alt={aluno.usuario.nome} />
-                        )}
+                        <Avatar src={aluno.usuario.imgProfile} alt={aluno.usuario.nome} />
                         <div>
                           <div className="text-sm font-medium text-white">{aluno.usuario.nome}</div>
                           <div className="text-sm text-gray-400">{aluno.usuario.email}</div>
@@ -748,8 +732,8 @@ const RenderManageStudents: FC = () => {
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <span className={`px-2 py-1 text-xs rounded-full ${aluno.status === 'ATIVO' ? 'bg-green-500/20 text-green-400' :
-                          aluno.status === 'INATIVO' ? 'bg-gray-500/20 text-gray-400' :
-                            'bg-red-500/20 text-red-400'
+                        aluno.status === 'INATIVO' ? 'bg-gray-500/20 text-gray-400' :
+                          'bg-red-500/20 text-red-400'
                         }`}>
                         {aluno.status}
                       </span>

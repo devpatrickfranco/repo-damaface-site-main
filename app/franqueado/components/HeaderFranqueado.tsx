@@ -8,7 +8,7 @@ import { useRouter } from 'next/navigation'
 
 // [MODIFICADO] Importa useSWRInfinite para paginação
 import useSWRInfinite from 'swr/infinite'
-import { apiBackend } from '@/lib/api-backend'
+import { apiBackend, getMediaUrl } from '@/lib/api-backend'
 
 import {
   Bell,
@@ -188,9 +188,7 @@ const HeaderDashboard = ({ isSidebarOpen = false, onSidebarClose, onDropdownChan
     }
   }
 
-  const imageUrl = user?.imgProfile
-    ? `${process.env.NEXT_PUBLIC_API_BACKEND_URL}${user.imgProfile}`
-    : null
+  const imageUrl = getMediaUrl(user?.imgProfile)
 
   return (
     <header className={`fixed top-0 left-0 right-0 bg-gray-800 border-b border-gray-700 h-16 transition-[z-index] duration-300 ${isSidebarOpen ? 'z-30 lg:z-40' : 'z-40'}`}>

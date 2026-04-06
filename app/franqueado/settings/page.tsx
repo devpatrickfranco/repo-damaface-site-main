@@ -4,7 +4,7 @@ import type React from "react"
 import { useState, useEffect } from "react"
 
 import { Camera, Save, Loader2, X } from "lucide-react"
-import { apiBackend } from "@/lib/api-backend"
+import { apiBackend, getMediaUrl } from "@/lib/api-backend"
 import type { Profile } from "@/types/users"
 
 export default function SettingsPage() {
@@ -58,10 +58,7 @@ export default function SettingsPage() {
 
       // Define preview com a URL completa do backend
       if (userData.imgProfile) {
-        const imageUrl = userData.imgProfile.startsWith("http")
-          ? userData.imgProfile
-          : `${process.env.NEXT_PUBLIC_API_BACKEND_URL}${userData.imgProfile}`
-        setPreviewImage(imageUrl)
+        setPreviewImage(getMediaUrl(userData.imgProfile))
       }
     } catch (err) {
       console.error("Erro ao buscar dados do usuário:", err)
@@ -158,10 +155,7 @@ export default function SettingsPage() {
       })
 
       if (response.imgProfile) {
-        const imageUrl = response.imgProfile.startsWith("http")
-          ? response.imgProfile
-          : `${process.env.NEXT_PUBLIC_API_BACKEND_URL}${response.imgProfile}`
-        setPreviewImage(imageUrl)
+        setPreviewImage(getMediaUrl(response.imgProfile))
       } else {
         setPreviewImage(null)
       }
