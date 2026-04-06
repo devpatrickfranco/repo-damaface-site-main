@@ -76,9 +76,9 @@ export default function BlogClientPage({ post }: Props) {
               <div className="flex flex-wrap items-center gap-6 text-sm text-gray-400 mb-8">
                 <div className="flex items-center space-x-2">
                   <div className="relative w-10 h-10 overflow-hidden rounded-full bg-gray-800">
-                    {post.author?.avatar_imagem ? (
+                    {post.author?.avatar ? (
                       <Image
-                        src={getMediaUrl(post.author.avatar_imagem)}
+                        src={getMediaUrl(post.author.avatar)}
                         alt={post.author.name}
                         fill
                         className="object-cover"
@@ -121,10 +121,9 @@ export default function BlogClientPage({ post }: Props) {
               </div>
             </header>
 
-            <div className="prose prose-lg max-w-none animate-on-scroll">
+            <div className="prose prose-invert prose-pink prose-lg max-w-none animate-on-scroll">
               <div
-                className="text-white leading-relaxed"
-                style={{ color: "#FFF", lineHeight: "1.8" }}
+                className="leading-relaxed"
                 dangerouslySetInnerHTML={{ __html: post.content }}
               />
             </div>

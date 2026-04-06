@@ -96,9 +96,9 @@ export default function PostForm({ initialData, isEditing }: PostFormProps) {
             formDataToSend.append('content', formData.content);
 
             if (coverFile) {
-                formDataToSend.append('cover_image', coverFile);
+                formDataToSend.append('cover_image_file', coverFile);
             } else if (formData.cover_image) {
-                formDataToSend.append('cover_image', formData.cover_image);
+                formDataToSend.append('cover_image_url', formData.cover_image);
             }
 
             formDataToSend.append('categories', JSON.stringify(categories));

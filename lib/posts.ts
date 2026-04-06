@@ -21,7 +21,7 @@ export interface Tag {
 export interface Author {
   id: number;
   name: string;
-  avatar_imagem: string;
+  avatar: string;
 }
 
 export interface Post {
@@ -84,4 +84,12 @@ export async function updatePost(slug: string, data: FormData | Partial<Post>) {
 
 export async function submitPost(slug: string) {
   return await apiBackend.post(`/blog/posts/${slug}/submit/`);
+}
+
+export async function approvePost(slug: string) {
+  return await apiBackend.post(`/blog/posts/${slug}/approve/`);
+}
+
+export async function rejectPost(slug: string, reason: string) {
+  return await apiBackend.post(`/blog/posts/${slug}/reject/`, { reason });
 }

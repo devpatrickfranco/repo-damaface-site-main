@@ -2,8 +2,9 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { Plus, Edit, Send, Eye, Search, Filter, Loader2 } from "lucide-react";
-import { getMyPosts, submitPost, type PostSummary, PostStatus } from "@/lib/posts";
+import { Plus, Edit, Send, Eye, Search, Filter, Loader2, Check, XCircle } from "lucide-react";
+import { getMyPosts, submitPost, approvePost, rejectPost, type PostSummary, PostStatus } from "@/lib/posts";
+import { useAuth } from "@/context/AuthContext";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -32,9 +33,11 @@ const statusLabels: Record<PostStatus, string> = {
 };
 
 export default function BlogManagementPage() {
+    const { user } = useAuth();
     const [posts, setPosts] = useState<PostSummary[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [isSubmitting, setIsSubmitting] = useState<string | null>(null);
+    const [isApproving, setIsApproving] = useState<string | null>(null);
     const [searchTerm, setSearchTerm] = useState("");
 
     useEffect(() => {
@@ -59,10 +62,39 @@ export default function BlogManagementPage() {
             await submitPost(slug);
             toast.success("Post enviado para aprovação!");
             loadPosts();
-        } catch (error) {
-            toast.error("Erro ao enviar post para aprovação");
+        } catch (error: any) {
+            toast.error(error.message || "Erro ao enviar post para aprovação");
         } finally {
             setIsSubmitting(null);
+        }
+    };
+
+    const handleApprove = async (slug: string) => {
+        setIsApproving(slug);
+        try {
+            await approvePost(slug);
+            toast.success("Post aprovado com sucesso!");
+            loadPosts();
+        } catch (error: any) {
+            toast.error(error.message || "Erro ao aprovar post");
+        } finally {
+            setIsApproving(null);
+        }
+    };
+
+    const handleReject = async (slug: string) => {
+        const reason = window.prompt("Motivo da rejeição:");
+        if (reason === null) return;
+
+        setIsApproving(slug);
+        try {
+            await rejectPost(slug, reason);
+            toast.success("Post rejeitado com sucesso!");
+            loadPosts();
+        } catch (error: any) {
+            toast.error(error.message || "Erro ao rejeitar post");
+        } finally {
+            setIsApproving(null);
         }
     };
 
@@ -176,6 +208,34 @@ export default function BlogManagementPage() {
                                                             <Send className="w-4 h-4" />
                                                         )}
                                                     </Button>
+                                                )}
+                                                {(user?.role === 'ADMIN' || user?.role === 'SUPERADMIN') && post.status === "PENDENTE_APROVACAO" && (
+                                                    <div className="flex gap-1">
+                                                        <Button
+                                                            variant="ghost"
+                                                            size="icon"
+                                                            onClick={() => handleApprove(post.slug)}
+                                                            disabled={isApproving === post.slug}
+                                                            className="text-gray-400 hover:text-green-500"
+                                                            title="Aprovar"
+                                                        >
+                                                            {isApproving === post.slug ? (
+                                                                <Loader2 className="w-4 h-4 animate-spin text-green-500" />
+                                                            ) : (
+                                                                <Check className="w-4 h-4" />
+                                                            )}
+                                                        </Button>
+                                                        <Button
+                                                            variant="ghost"
+                                                            size="icon"
+                                                            onClick={() => handleReject(post.slug)}
+                                                            disabled={isApproving === post.slug}
+                                                            className="text-gray-400 hover:text-red-500"
+                                                            title="Rejeitar"
+                                                        >
+                                                            <XCircle className="w-4 h-4" />
+                                                        </Button>
+                                                    </div>
                                                 )}
                                             </div>
                                         </TableCell>
