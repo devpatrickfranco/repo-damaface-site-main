@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Post, Category, Tag, createPost, updatePost } from "@/lib/posts";
 import { getMediaUrl } from "@/lib/api-backend";
+import { useAuth } from "@/context/AuthContext";
 import toast from "react-hot-toast";
 import dynamic from "next/dynamic";
 
@@ -21,10 +22,25 @@ interface PostFormProps {
 }
 
 export default function PostForm({ initialData, isEditing }: PostFormProps) {
+    const { user, loading } = useAuth();
     const fileInputRef = useRef<HTMLInputElement>(null);
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [coverFile, setCoverFile] = useState<File | null>(null);
     const [coverPreview, setCoverPreview] = useState<string | null>(null);
+
+    // Proteção de rota simples no componente
+    if (!loading && !user) {
+        window.location.href = '/franqueado';
+        return null;
+    }
+
+    if (loading) {
+        return (
+            <div className="flex items-center justify-center min-h-[400px]">
+                <Loader2 className="w-8 h-8 animate-spin text-brand-pink" />
+            </div>
+        );
+    }
 
     const [formData, setFormData] = useState({
         title: initialData?.title || "",
@@ -94,6 +110,12 @@ export default function PostForm({ initialData, isEditing }: PostFormProps) {
             formDataToSend.append('title', formData.title);
             formDataToSend.append('excerpt', formData.excerpt);
             formDataToSend.append('content', formData.content);
+
+            // Author details (Required by Blog API)
+            if (user) {
+                formDataToSend.append('author.name', user.nome);
+                formDataToSend.append('author.avatar', getMediaUrl(user.imgProfile));
+            }
 
             if (coverFile) {
                 formDataToSend.append('cover_image_file', coverFile);
