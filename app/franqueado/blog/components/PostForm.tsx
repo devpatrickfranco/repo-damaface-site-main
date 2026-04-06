@@ -8,6 +8,12 @@ import { Label } from "@/components/ui/label";
 import { Post, Category, Tag, createPost, updatePost } from "@/lib/posts";
 import { getMediaUrl } from "@/lib/api-backend";
 import toast from "react-hot-toast";
+import dynamic from "next/dynamic";
+
+const RichTextEditor = dynamic(() => import("@/app/franqueado/components/RichTextEditor"), {
+    ssr: false,
+    loading: () => <p className="text-gray-400">Carregando editor...</p>,
+});
 
 interface PostFormProps {
     initialData?: Post;
@@ -32,6 +38,10 @@ export default function PostForm({ initialData, isEditing }: PostFormProps) {
     const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
         const { name, value } = e.target;
         setFormData(prev => ({ ...prev, [name]: value }));
+    };
+
+    const handleContentChange = (content: string) => {
+        setFormData(prev => ({ ...prev, content }));
     };
 
     const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -167,20 +177,11 @@ export default function PostForm({ initialData, isEditing }: PostFormProps) {
                     </div>
 
                     <div className="space-y-2">
-                        <Label htmlFor="content" className="text-gray-300">Conteúdo (HTML)</Label>
-                        <textarea
-                            id="content"
-                            name="content"
-                            value={formData.content}
-                            onChange={handleChange}
-                            rows={15}
-                            placeholder="<h1>Seu conteúdo aqui...</h1>"
-                            className="w-full bg-gray-800/50 border border-gray-700 rounded-md p-4 text-white font-mono text-sm focus:outline-none focus:ring-1 focus:ring-brand-pink"
-                            required
+                        <Label htmlFor="content" className="text-gray-300">Conteúdo</Label>
+                        <RichTextEditor
+                            content={formData.content}
+                            onChange={handleContentChange}
                         />
-                        <p className="text-xs text-gray-500">
-                            Você pode usar tags HTML básicas para formatar seu texto.
-                        </p>
                     </div>
                 </div>
 

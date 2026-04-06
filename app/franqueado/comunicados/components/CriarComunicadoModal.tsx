@@ -10,7 +10,7 @@ import { apiBackend } from "@/lib/api-backend"
 
 import dynamic from "next/dynamic"
 
-const RichTextEditor = dynamic(() => import("./RichTextEditor"), {
+const RichTextEditor = dynamic(() => import("@/app/franqueado/components/RichTextEditor"), {
   ssr: false,
   loading: () => <p className="text-gray-400">Carregando editor...</p>,
 })
@@ -24,14 +24,14 @@ interface CriarComunicadoModalProps {
   isEditMode: boolean;
 }
 
-export default function CriarComunicadoModal({ 
-  isOpen, 
-  onClose, 
-  onSuccess, 
+export default function CriarComunicadoModal({
+  isOpen,
+  onClose,
+  onSuccess,
   comunicadoParaEdicao = null,
-  isEditMode = false 
-}: CriarComunicadoModalProps)  {
-  
+  isEditMode = false
+}: CriarComunicadoModalProps) {
+
   const [formData, setFormData] = useState<ComunicadoFormData>({
     titulo: "",
     conteudo: "",
@@ -77,7 +77,7 @@ export default function CriarComunicadoModal({
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [showPreview, setShowPreview] = useState(false);
-  const [destinatarioSearch, setDestinatarioSearch] = useState(""); 
+  const [destinatarioSearch, setDestinatarioSearch] = useState("");
   const [destinatarioOptions, setDestinatarioOptions] = useState<DestinatarioOption[]>([]);
 
   // Efeito para buscar as franquias quando necessário
@@ -86,7 +86,7 @@ export default function CriarComunicadoModal({
       const fetchFranquias = async () => {
         try {
           const response = await apiBackend.get("/users/franquias/");
-          const franquiasFromApi = response.data; 
+          const franquiasFromApi = response.data;
           const franchiseOptions: DestinatarioOption[] = franquiasFromApi.map((franquia: any) => ({
             id: franquia.id.toString(),
             nome: franquia.nome,
@@ -100,14 +100,14 @@ export default function CriarComunicadoModal({
       };
       fetchFranquias();
     }
-  }, [isOpen, formData.tipoDestino]); 
+  }, [isOpen, formData.tipoDestino]);
 
   const handleInputChange = (field: keyof ComunicadoFormData, value: any) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
   }
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-     if (e.target.files) {
+    if (e.target.files) {
       const newFiles = Array.from(e.target.files);
       setFormData((prev) => ({
         ...prev,
@@ -161,7 +161,7 @@ export default function CriarComunicadoModal({
     const destinatariosData = {
       tipo: formData.tipoDestino,
       apenas_franqueados: formData.apenasFranqueados,
-      franquias_ids: formData.tipoDestino === 'FRANQUIAS_ESPECIFICAS' 
+      franquias_ids: formData.tipoDestino === 'FRANQUIAS_ESPECIFICAS'
         ? formData.destinatarios.map(d => parseInt(d.id, 10)).filter(id => !isNaN(id))
         : [],
       usuarios_ids: [],
@@ -182,7 +182,7 @@ export default function CriarComunicadoModal({
       const method = isEditMode ? 'put' : 'post';
 
       await apiBackend[method](endpoint, submissionData);
-      
+
       onSuccess();
       onClose();
     } catch (err: any) {
@@ -266,11 +266,11 @@ export default function CriarComunicadoModal({
                     // MODO PREVIEW
                     <div className="space-y-6">
                       {/* ... (UI de Preview pode ser adicionada aqui) ... */}
-                       <p className="text-white">Modo de pré-visualização.</p>
-                       <div
-                         className="prose prose-invert prose-pink max-w-none"
-                         dangerouslySetInnerHTML={{ __html: formData.conteudo }}
-                       />
+                      <p className="text-white">Modo de pré-visualização.</p>
+                      <div
+                        className="prose prose-invert prose-pink max-w-none"
+                        dangerouslySetInnerHTML={{ __html: formData.conteudo }}
+                      />
                     </div>
                   ) : (
                     // MODO FORMULÁRIO
@@ -292,7 +292,7 @@ export default function CriarComunicadoModal({
                             />
                             <p className="text-xs text-gray-400 mt-1">{formData.titulo.length}/100 caracteres</p>
                           </div>
-                          
+
                           {/* Prioridade */}
                           <div>
                             <label className="block text-sm font-medium text-gray-300 mb-3">Prioridade *</label>
@@ -312,7 +312,7 @@ export default function CriarComunicadoModal({
 
                         {/* Coluna Direita */}
                         <div className="space-y-6">
-                           {/* Tipo de Destino */}
+                          {/* Tipo de Destino */}
                           <div>
                             <label className="block text-sm font-medium text-gray-300 mb-2">Enviar Para *</label>
                             <select
@@ -337,36 +337,36 @@ export default function CriarComunicadoModal({
                           {/* Campo de busca de Destinatários */}
                           {formData.tipoDestino === 'FRANQUIAS_ESPECIFICAS' && (
                             <div>
-                               <label className="block text-sm font-medium text-gray-300 mb-2">Selecione as Franquias *</label>
-                                {formData.destinatarios.length > 0 && (
-                                  <div className="flex flex-wrap gap-2 mb-3">
-                                    {formData.destinatarios.map((dest) => (
-                                      <span key={dest.id} className="inline-flex items-center gap-2 px-3 py-1 bg-pink-600/20 text-pink-300 rounded-full text-sm">
-                                        <Users size={14} />
-                                        {dest.nome}
-                                        <button type="button" onClick={() => removeDestinatario(dest.id)} className="hover:text-pink-100"><X size={14} /></button>
-                                      </span>
+                              <label className="block text-sm font-medium text-gray-300 mb-2">Selecione as Franquias *</label>
+                              {formData.destinatarios.length > 0 && (
+                                <div className="flex flex-wrap gap-2 mb-3">
+                                  {formData.destinatarios.map((dest) => (
+                                    <span key={dest.id} className="inline-flex items-center gap-2 px-3 py-1 bg-pink-600/20 text-pink-300 rounded-full text-sm">
+                                      <Users size={14} />
+                                      {dest.nome}
+                                      <button type="button" onClick={() => removeDestinatario(dest.id)} className="hover:text-pink-100"><X size={14} /></button>
+                                    </span>
+                                  ))}
+                                </div>
+                              )}
+                              <div className="relative">
+                                <input type="text" value={destinatarioSearch} onChange={(e) => setDestinatarioSearch(e.target.value)} placeholder="Buscar franquias..." className="w-full px-4 py-3 bg-gray-900 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-pink-500 transition-colors" />
+                                {destinatarioSearch && filteredDestinatarios.length > 0 && (
+                                  <div className="absolute z-10 w-full mt-1 bg-gray-800 border border-gray-600 rounded-lg shadow-lg max-h-48 overflow-y-auto">
+                                    {filteredDestinatarios.map((dest) => (
+                                      <button key={dest.id} type="button" onClick={() => addDestinatario(dest)} className="w-full flex items-center gap-3 px-4 py-3 hover:bg-gray-700 text-left transition-colors">
+                                        <Users size={16} className="text-blue-400" />
+                                        <p className="text-white text-sm">{dest.nome}</p>
+                                      </button>
                                     ))}
                                   </div>
                                 )}
-                                <div className="relative">
-                                  <input type="text" value={destinatarioSearch} onChange={(e) => setDestinatarioSearch(e.target.value)} placeholder="Buscar franquias..." className="w-full px-4 py-3 bg-gray-900 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-pink-500 transition-colors" />
-                                  {destinatarioSearch && filteredDestinatarios.length > 0 && (
-                                    <div className="absolute z-10 w-full mt-1 bg-gray-800 border border-gray-600 rounded-lg shadow-lg max-h-48 overflow-y-auto">
-                                      {filteredDestinatarios.map((dest) => (
-                                        <button key={dest.id} type="button" onClick={() => addDestinatario(dest)} className="w-full flex items-center gap-3 px-4 py-3 hover:bg-gray-700 text-left transition-colors">
-                                          <Users size={16} className="text-blue-400" />
-                                          <p className="text-white text-sm">{dest.nome}</p>
-                                        </button>
-                                      ))}
-                                    </div>
-                                  )}
-                                </div>
+                              </div>
                             </div>
                           )}
                         </div>
                       </div>
-                      
+
                       {/* Editor de Conteúdo */}
                       <div>
                         <label className="block text-sm font-medium text-gray-300 mb-2">Conteúdo *</label>
@@ -415,8 +415,8 @@ export default function CriarComunicadoModal({
 
                       {error && (
                         <div className="flex items-center gap-2 p-3 bg-red-500/20 border border-red-500/50 rounded-lg">
-                           <AlertCircle size={16} className="text-red-400" />
-                           <p className="text-red-400 text-sm">{error}</p>
+                          <AlertCircle size={16} className="text-red-400" />
+                          <p className="text-red-400 text-sm">{error}</p>
                         </div>
                       )}
 
@@ -424,10 +424,10 @@ export default function CriarComunicadoModal({
                       <div className="flex justify-end gap-3 pt-4 border-t border-gray-700">
                         <button type="button" onClick={onClose} className="px-6 py-3 bg-gray-700 hover:bg-gray-600 text-white rounded-lg transition-colors">Cancelar</button>
                         <button type="button" onClick={() => handleSubmit('RASCUNHO')} disabled={loading || !formData.titulo} className="px-6 py-3 bg-gray-500 hover:bg-gray-600 disabled:bg-gray-700 disabled:cursor-not-allowed text-white rounded-lg transition-colors">
-                           {loading ? "Salvando..." : "Salvar Rascunho"}
+                          {loading ? "Salvando..." : "Salvar Rascunho"}
                         </button>
                         <button type="button" onClick={() => handleSubmit('PENDENTE_APROVACAO')} disabled={loading || !formData.titulo || !formData.conteudo || (formData.tipoDestino === 'FRANQUIAS_ESPECIFICAS' && formData.destinatarios.length === 0)} className="px-6 py-3 bg-pink-600 hover:bg-pink-700 disabled:bg-gray-600 disabled:cursor-not-allowed text-white rounded-lg transition-colors">
-                           {loading ? "Enviando..." : (isEditMode ? "Salvar e Enviar p/ Aprovação" : "Enviar para Aprovação")}
+                          {loading ? "Enviando..." : (isEditMode ? "Salvar e Enviar p/ Aprovação" : "Enviar para Aprovação")}
                         </button>
                       </div>
                     </form>
