@@ -168,6 +168,10 @@ export default function PostForm({ initialData, isEditing }: PostFormProps) {
     };
 
     const handleCategorySelect = (cat: Category) => {
+        console.log("%c[PostForm] Categoria selecionada", "color:#a78bfa;font-weight:bold", {
+            slug: cat.slug,
+            name: cat.name,
+        });
         setSelectedCategory(cat);
         setIsCategoryOpen(false);
         // Clear tags when category changes
@@ -178,19 +182,23 @@ export default function PostForm({ initialData, isEditing }: PostFormProps) {
     const handleTagToggle = (tag: Tag) => {
         const isSelected = selectedTags.some(t => t.slug === tag.slug);
         if (isSelected) {
+            console.log("%c[PostForm] Tag REMOVIDA", "color:#f87171;font-weight:bold", { slug: tag.slug, name: tag.name });
             setSelectedTags(prev => prev.filter(t => t.slug !== tag.slug));
             setTagLimitError(false);
         } else {
             if (selectedTags.length >= MAX_TAGS) {
+                console.warn(`[PostForm] Limite de ${MAX_TAGS} tags atingido. Tag ignorada:`, tag.slug);
                 setTagLimitError(true);
                 return;
             }
+            console.log("%c[PostForm] Tag ADICIONADA", "color:#34d399;font-weight:bold", { slug: tag.slug, name: tag.name });
             setSelectedTags(prev => [...prev, tag]);
             setTagLimitError(false);
         }
     };
 
     const handleRemoveTag = (slug: string) => {
+        console.log("%c[PostForm] Tag REMOVIDA (chip)", "color:#f87171;font-weight:bold", { slug });
         setSelectedTags(prev => prev.filter(t => t.slug !== slug));
         setTagLimitError(false);
     };
@@ -199,8 +207,18 @@ export default function PostForm({ initialData, isEditing }: PostFormProps) {
         e.preventDefault();
         setIsSubmitting(true);
 
+        console.group("%c[PostForm] === SUBMIT INICIADO ===", "color:#f472b6;font-weight:bold;font-size:13px");
+        console.log("Título:", formData.title);
+        console.log("Excerpt:", formData.excerpt);
+        console.log("Categoria selecionada:", selectedCategory);
+        console.log("Tags selecionadas:", selectedTags);
+        console.log("Cover file:", coverFile?.name ?? "nenhum");
+        console.log("Cover URL:", formData.cover_image || "nenhuma");
+        console.groupEnd();
+
         // Validação 1 — campos obrigatórios de texto
         if (!formData.title || !formData.content) {
+            console.error("[PostForm] ❌ Validação falhou: título ou conteúdo vazio");
             toast.error("Título e Conteúdo são obrigatórios");
             setIsSubmitting(false);
             return;
@@ -208,6 +226,7 @@ export default function PostForm({ initialData, isEditing }: PostFormProps) {
 
         // Validação 2 — categoria obrigatória
         if (!selectedCategory) {
+            console.error("[PostForm] ❌ Validação falhou: nenhuma categoria selecionada");
             toast.error("Selecione uma categoria antes de salvar");
             setIsSubmitting(false);
             return;
@@ -215,6 +234,7 @@ export default function PostForm({ initialData, isEditing }: PostFormProps) {
 
         // Validação 3 — ao menos uma tag
         if (selectedTags.length === 0) {
+            console.error("[PostForm] ❌ Validação falhou: nenhuma tag selecionada");
             toast.error("Selecione ao menos uma tag antes de salvar");
             setIsSubmitting(false);
             return;
@@ -239,16 +259,29 @@ export default function PostForm({ initialData, isEditing }: PostFormProps) {
             formDataToSend.append("categories", JSON.stringify(categorySlugs));
             formDataToSend.append("tags", JSON.stringify(tagSlugs));
 
+            // Log do payload final
+            console.group("%c[PostForm] === PAYLOAD ENVIADO ===", "color:#60a5fa;font-weight:bold;font-size:13px");
+            console.log("categories (JSON):", JSON.stringify(categorySlugs));
+            console.log("tags (JSON):", JSON.stringify(tagSlugs));
+            console.log("Todos os campos do FormData:");
+            for (const [key, val] of formDataToSend.entries()) {
+                console.log(`  ${key}:`, val instanceof File ? `[File] ${val.name} (${val.size} bytes)` : val);
+            }
+            console.groupEnd();
+
             if (isEditing && initialData) {
+                console.log(`[PostForm] 🔄 PATCH /blog/posts/${initialData.slug}/`);
                 await updatePost(initialData.slug, formDataToSend);
                 toast.success("Post atualizado com sucesso!");
             } else {
+                console.log("[PostForm] 🆕 POST /blog/posts/");
                 await createPost(formDataToSend);
                 toast.success("Post criado com sucesso!");
             }
 
             window.location.href = "/franqueado/blog";
         } catch (error: unknown) {
+            console.error("[PostForm] ❌ Erro ao salvar post:", error);
             const message = error instanceof Error ? error.message : "Erro ao salvar post";
             toast.error(message);
         } finally {

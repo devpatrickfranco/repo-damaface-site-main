@@ -75,11 +75,33 @@ export async function getPostBySlug(slug: string): Promise<Post | null> {
 }
 
 export async function createPost(data: FormData | Partial<Post>) {
-  return await apiBackend.post("/blog/posts/", data);
+  console.group("%c[posts.ts] POST /blog/posts/", "color:#60a5fa;font-weight:bold");
+  if (data instanceof FormData) {
+    for (const [key, val] of data.entries()) {
+      console.log(`  ${key}:`, val instanceof File ? `[File] ${val.name}` : val);
+    }
+  } else {
+    console.log(data);
+  }
+  console.groupEnd();
+  const response = await apiBackend.post("/blog/posts/", data);
+  console.log("%c[posts.ts] Resposta createPost:", "color:#34d399;font-weight:bold", response);
+  return response;
 }
 
 export async function updatePost(slug: string, data: FormData | Partial<Post>) {
-  return await apiBackend.patch(`/blog/posts/${slug}/`, data);
+  console.group(`%c[posts.ts] PATCH /blog/posts/${slug}/`, "color:#a78bfa;font-weight:bold");
+  if (data instanceof FormData) {
+    for (const [key, val] of data.entries()) {
+      console.log(`  ${key}:`, val instanceof File ? `[File] ${val.name}` : val);
+    }
+  } else {
+    console.log(data);
+  }
+  console.groupEnd();
+  const response = await apiBackend.patch(`/blog/posts/${slug}/`, data);
+  console.log("%c[posts.ts] Resposta updatePost:", "color:#34d399;font-weight:bold", response);
+  return response;
 }
 
 export async function submitPost(slug: string) {
@@ -96,9 +118,12 @@ export async function rejectPost(slug: string, reason: string) {
 
 export async function getCategories(): Promise<Category[]> {
   try {
-    return await apiBackend.get("/blog/categories/");
+    console.log("%c[posts.ts] GET /blog/categories/", "color:#fbbf24");
+    const result = await apiBackend.get("/blog/categories/");
+    console.log("%c[posts.ts] Categorias recebidas:", "color:#34d399;font-weight:bold", result);
+    return result;
   } catch (error) {
-    console.error('Error fetching categories:', error);
+    console.error('[posts.ts] Erro ao buscar categorias:', error);
     return [];
   }
 }
@@ -110,16 +135,20 @@ interface SuggestedTagsResponse {
 
 export async function getSuggestedTags(categorySlug: string): Promise<Tag[]> {
   try {
+    console.log(`%c[posts.ts] GET /blog/categories/${categorySlug}/suggested-tags/`, "color:#fbbf24");
     const response: SuggestedTagsResponse = await apiBackend.get(
       `/blog/categories/${categorySlug}/suggested-tags/`
     );
+    console.log("%c[posts.ts] Resposta suggested-tags (raw):", "color:#34d399;font-weight:bold", response);
     // API returns slugs as plain strings — convert to Tag objects
-    return (response.suggested_tags ?? []).map((slug) => ({
+    const tags = (response.suggested_tags ?? []).map((slug) => ({
       slug,
       name: slug.replace(/-/g, " "),
     }));
+    console.log("%c[posts.ts] Tags convertidas:", "color:#34d399", tags);
+    return tags;
   } catch (error) {
-    console.error(`Error fetching suggested tags for ${categorySlug}:`, error);
+    console.error(`[posts.ts] Erro ao buscar tags sugeridas (${categorySlug}):`, error);
     return [];
   }
 }
