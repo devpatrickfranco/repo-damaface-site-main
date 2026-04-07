@@ -103,9 +103,21 @@ export async function getCategories(): Promise<Category[]> {
   }
 }
 
+interface SuggestedTagsResponse {
+  category: string;
+  suggested_tags: string[];
+}
+
 export async function getSuggestedTags(categorySlug: string): Promise<Tag[]> {
   try {
-    return await apiBackend.get(`/blog/categories/${categorySlug}/suggested-tags/`);
+    const response: SuggestedTagsResponse = await apiBackend.get(
+      `/blog/categories/${categorySlug}/suggested-tags/`
+    );
+    // API returns slugs as plain strings — convert to Tag objects
+    return (response.suggested_tags ?? []).map((slug) => ({
+      slug,
+      name: slug.replace(/-/g, " "),
+    }));
   } catch (error) {
     console.error(`Error fetching suggested tags for ${categorySlug}:`, error);
     return [];
