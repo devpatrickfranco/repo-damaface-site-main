@@ -199,15 +199,31 @@ export default function PostForm({ initialData, isEditing }: PostFormProps) {
         e.preventDefault();
         setIsSubmitting(true);
 
+        // Validação 1 — campos obrigatórios de texto
         if (!formData.title || !formData.content) {
             toast.error("Título e Conteúdo são obrigatórios");
             setIsSubmitting(false);
             return;
         }
 
+        // Validação 2 — categoria obrigatória
+        if (!selectedCategory) {
+            toast.error("Selecione uma categoria antes de salvar");
+            setIsSubmitting(false);
+            return;
+        }
+
+        // Validação 3 — ao menos uma tag
+        if (selectedTags.length === 0) {
+            toast.error("Selecione ao menos uma tag antes de salvar");
+            setIsSubmitting(false);
+            return;
+        }
+
         try {
-            const categories: Category[] = selectedCategory ? [selectedCategory] : [];
-            const tags: Tag[] = selectedTags;
+            // Backend espera apenas os slugs como array de strings
+            const categorySlugs = [selectedCategory.slug];
+            const tagSlugs = selectedTags.map(t => t.slug);
 
             const formDataToSend = new FormData();
             formDataToSend.append("title", formData.title);
@@ -220,8 +236,8 @@ export default function PostForm({ initialData, isEditing }: PostFormProps) {
                 formDataToSend.append("cover_image_url", formData.cover_image);
             }
 
-            formDataToSend.append("categories", JSON.stringify(categories));
-            formDataToSend.append("tags", JSON.stringify(tags));
+            formDataToSend.append("categories", JSON.stringify(categorySlugs));
+            formDataToSend.append("tags", JSON.stringify(tagSlugs));
 
             if (isEditing && initialData) {
                 await updatePost(initialData.slug, formDataToSend);
@@ -239,6 +255,7 @@ export default function PostForm({ initialData, isEditing }: PostFormProps) {
             setIsSubmitting(false);
         }
     };
+
 
     return (
         <form onSubmit={handleSubmit} className="animate-in fade-in duration-500">
