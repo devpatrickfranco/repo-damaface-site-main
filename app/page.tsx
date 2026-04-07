@@ -4,6 +4,8 @@ import BestSellers from '@/components/BestSellers';
 import Partners from '@/components/partners'; 
 import Categories from '@/components/Categories';
 import Franchise from '@/components/Franchise';
+import Copiloto from '@/components/Copiloto';
+import Studio from '@/components/Studio';
 import About from '@/components/About';
 import Testimonials from '@/components/Testimonials';
 import Blog from '@/components/Blog';
@@ -22,6 +24,8 @@ export default function Home() {
         <Categories />
         <Partners />
         <Franchise />
+        <Copiloto />
+        <Studio />
         <About />
         <Testimonials />
         <Blog />
