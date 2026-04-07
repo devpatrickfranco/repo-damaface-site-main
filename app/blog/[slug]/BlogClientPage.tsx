@@ -22,6 +22,15 @@ export default function BlogClientPage({ post }: Props) {
     return null;
   }
 
+  // Debug: inspecionar dados do autor
+  console.group("%c[BlogClientPage] Dados do post", "color:#f472b6;font-weight:bold");
+  console.log("post.author (raw):", post.author);
+  console.log("post.author?.avatar (raw):", post.author?.avatar);
+  console.log("getMediaUrl(avatar):", post.author?.avatar ? getMediaUrl(post.author.avatar) : "(sem avatar)");
+  console.log("post.cover_image (raw):", post.cover_image);
+  console.log("getMediaUrl(cover_image):", getMediaUrl(post.cover_image));
+  console.groupEnd();
+
   const formatDate = (dateString: string | null) => {
     if (!dateString) return "Data não disponível";
     return new Date(dateString).toLocaleDateString("pt-BR", {
