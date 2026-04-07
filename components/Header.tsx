@@ -26,7 +26,7 @@ const Header = () => {
     { name: "Facial", href: "/facial" },
     { name: "Corporal", href: "/corporal" },
     { name: "Não Invasivos", href: "/nao-invasivos" },
-    { name: "Franquia", href: "https://franquia.damaface.com.br/" },
+    { name: "Franqueado", href: "/franqueado" },
     { name: "Blog", href: "/blog" },
     // { name: "Contato", href: "/contato" },
   ]
