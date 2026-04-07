@@ -93,3 +93,21 @@ export async function approvePost(slug: string) {
 export async function rejectPost(slug: string, reason: string) {
   return await apiBackend.post(`/blog/posts/${slug}/reject/`, { reason });
 }
+
+export async function getCategories(): Promise<Category[]> {
+  try {
+    return await apiBackend.get("/blog/categories/");
+  } catch (error) {
+    console.error('Error fetching categories:', error);
+    return [];
+  }
+}
+
+export async function getSuggestedTags(categorySlug: string): Promise<Tag[]> {
+  try {
+    return await apiBackend.get(`/blog/categories/${categorySlug}/suggested-tags/`);
+  } catch (error) {
+    console.error(`Error fetching suggested tags for ${categorySlug}:`, error);
+    return [];
+  }
+}

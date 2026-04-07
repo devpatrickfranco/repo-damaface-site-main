@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useRef, useState, useEffect } from "react";
 import {
     ArrowLeft,
     Save,
@@ -12,12 +12,14 @@ import {
     AlignLeft,
     FolderOpen,
     Tags,
-    Sparkles
+    Sparkles,
+    ChevronDown,
+    Check
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Post, Category, Tag, createPost, updatePost } from "@/lib/posts";
+import { Post, Category, Tag, createPost, updatePost, getCategories, getSuggestedTags } from "@/lib/posts";
 import { getMediaUrl } from "@/lib/api-backend";
 import { useAuth } from "@/context/AuthContext";
 import toast from "react-hot-toast";
@@ -36,6 +38,8 @@ const RichTextEditor = dynamic(() => import("@/app/franqueado/components/RichTex
     ),
 });
 
+const MAX_TAGS = 5;
+
 interface PostFormProps {
     initialData?: Post;
     isEditing?: boolean;
@@ -49,14 +53,52 @@ export default function PostForm({ initialData, isEditing }: PostFormProps) {
     const [coverPreview, setCoverPreview] = useState<string | null>(null);
     const [isDragging, setIsDragging] = useState(false);
 
+    // Categories state
+    const [availableCategories, setAvailableCategories] = useState<Category[]>([]);
+    const [categoriesLoading, setCategoriesLoading] = useState(true);
+    const [isCategoryOpen, setIsCategoryOpen] = useState(false);
+    const [selectedCategory, setSelectedCategory] = useState<Category | null>(
+        initialData?.categories?.[0] ?? null
+    );
+
+    // Tags state
+    const [selectedTags, setSelectedTags] = useState<Tag[]>(initialData?.tags ?? []);
+    const [suggestedTags, setSuggestedTags] = useState<Tag[]>([]);
+    const [tagsLoading, setTagsLoading] = useState(false);
+    const [tagLimitError, setTagLimitError] = useState(false);
+
     const [formData, setFormData] = useState({
         title: initialData?.title || "",
         excerpt: initialData?.excerpt || "",
         content: initialData?.content || "",
         cover_image: initialData?.cover_image || "",
-        categories: initialData?.categories?.map(c => c.name).join(", ") || "",
-        tags: initialData?.tags?.map(t => t.name).join(", ") || "",
     });
+
+    // Load categories on mount
+    useEffect(() => {
+        const fetchCategories = async () => {
+            setCategoriesLoading(true);
+            const cats = await getCategories();
+            setAvailableCategories(cats);
+            setCategoriesLoading(false);
+        };
+        fetchCategories();
+    }, []);
+
+    // Load suggested tags when selected category changes
+    useEffect(() => {
+        if (!selectedCategory?.slug) {
+            setSuggestedTags([]);
+            return;
+        }
+        const fetchTags = async () => {
+            setTagsLoading(true);
+            const tags = await getSuggestedTags(selectedCategory.slug);
+            setSuggestedTags(tags);
+            setTagsLoading(false);
+        };
+        fetchTags();
+    }, [selectedCategory]);
 
     // Proteção de rota simples no componente
     if (!loading && !user) {
@@ -125,6 +167,34 @@ export default function PostForm({ initialData, isEditing }: PostFormProps) {
         if (fileInputRef.current) fileInputRef.current.value = "";
     };
 
+    const handleCategorySelect = (cat: Category) => {
+        setSelectedCategory(cat);
+        setIsCategoryOpen(false);
+        // Clear tags when category changes
+        setSelectedTags([]);
+        setTagLimitError(false);
+    };
+
+    const handleTagToggle = (tag: Tag) => {
+        const isSelected = selectedTags.some(t => t.slug === tag.slug);
+        if (isSelected) {
+            setSelectedTags(prev => prev.filter(t => t.slug !== tag.slug));
+            setTagLimitError(false);
+        } else {
+            if (selectedTags.length >= MAX_TAGS) {
+                setTagLimitError(true);
+                return;
+            }
+            setSelectedTags(prev => [...prev, tag]);
+            setTagLimitError(false);
+        }
+    };
+
+    const handleRemoveTag = (slug: string) => {
+        setSelectedTags(prev => prev.filter(t => t.slug !== slug));
+        setTagLimitError(false);
+    };
+
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setIsSubmitting(true);
@@ -136,27 +206,13 @@ export default function PostForm({ initialData, isEditing }: PostFormProps) {
         }
 
         try {
-            const categories: Category[] = formData.categories
-                .split(",")
-                .map(c => c.trim())
-                .filter(c => c !== "")
-                .map(name => ({ name, slug: name.toLowerCase().replace(/ /g, "-") }));
-
-            const tags: Tag[] = formData.tags
-                .split(",")
-                .map(t => t.trim())
-                .filter(t => t !== "")
-                .map(name => ({ name, slug: name.toLowerCase().replace(/ /g, "-") }));
+            const categories: Category[] = selectedCategory ? [selectedCategory] : [];
+            const tags: Tag[] = selectedTags;
 
             const formDataToSend = new FormData();
             formDataToSend.append("title", formData.title);
             formDataToSend.append("excerpt", formData.excerpt);
             formDataToSend.append("content", formData.content);
-
-            if (user) {
-                formDataToSend.append("author.name", user.nome);
-                formDataToSend.append("author.avatar", getMediaUrl(user.imgProfile));
-            }
 
             if (coverFile) {
                 formDataToSend.append("cover_image_file", coverFile);
@@ -374,42 +430,157 @@ export default function PostForm({ initialData, isEditing }: PostFormProps) {
 
                     {/* Categories & Tags */}
                     <div className="bg-gray-900/50 backdrop-blur-sm border border-gray-800 rounded-2xl p-6 space-y-6">
-                        <div className="space-y-4">
+
+                        {/* Category Dropdown */}
+                        <div className="space-y-3">
                             <div className="flex items-center gap-3 text-gray-400">
                                 <FolderOpen className="w-4 h-4" />
-                                <span className="text-sm font-medium">Categorias</span>
+                                <span className="text-sm font-medium">Categoria</span>
                             </div>
-                            <Input
-                                id="categories"
-                                name="categories"
-                                value={formData.categories}
-                                onChange={handleChange}
-                                placeholder="Ex: Botox, Harmonização"
-                                className="bg-gray-800/50 border-gray-700 text-white rounded-xl placeholder:text-gray-600"
-                            />
-                            <p className="text-xs text-gray-500 flex items-center gap-1">
-                                <span className="w-1 h-1 bg-gray-500 rounded-full" />
-                                Separe por vírgulas
-                            </p>
+
+                            <div className="relative">
+                                <button
+                                    type="button"
+                                    onClick={() => setIsCategoryOpen(prev => !prev)}
+                                    disabled={categoriesLoading}
+                                    className={cn(
+                                        "w-full flex items-center justify-between px-4 py-3 rounded-xl border text-sm transition-all",
+                                        "bg-gray-800/50 border-gray-700 text-white",
+                                        "hover:border-gray-600 focus:outline-none focus:ring-1 focus:ring-brand-pink",
+                                        isCategoryOpen && "border-brand-pink ring-1 ring-brand-pink"
+                                    )}
+                                >
+                                    {categoriesLoading ? (
+                                        <span className="flex items-center gap-2 text-gray-500">
+                                            <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                                            Carregando...
+                                        </span>
+                                    ) : selectedCategory ? (
+                                        <span>{selectedCategory.name}</span>
+                                    ) : (
+                                        <span className="text-gray-500">Selecione uma categoria</span>
+                                    )}
+                                    <ChevronDown className={cn(
+                                        "w-4 h-4 text-gray-400 transition-transform duration-200",
+                                        isCategoryOpen && "rotate-180"
+                                    )} />
+                                </button>
+
+                                {isCategoryOpen && availableCategories.length > 0 && (
+                                    <div className="absolute z-50 w-full mt-1 bg-gray-900 border border-gray-700 rounded-xl shadow-2xl overflow-hidden animate-in fade-in slide-in-from-top-2 duration-150">
+                                        <div className="max-h-52 overflow-y-auto">
+                                            {availableCategories.map(cat => (
+                                                <button
+                                                    key={cat.slug}
+                                                    type="button"
+                                                    onClick={() => handleCategorySelect(cat)}
+                                                    className={cn(
+                                                        "w-full flex items-center justify-between px-4 py-2.5 text-sm text-left transition-colors",
+                                                        "hover:bg-gray-800",
+                                                        selectedCategory?.slug === cat.slug
+                                                            ? "text-brand-pink bg-brand-pink/10"
+                                                            : "text-gray-300"
+                                                    )}
+                                                >
+                                                    {cat.name}
+                                                    {selectedCategory?.slug === cat.slug && (
+                                                        <Check className="w-3.5 h-3.5" />
+                                                    )}
+                                                </button>
+                                            ))}
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
+                            {!categoriesLoading && availableCategories.length === 0 && (
+                                <p className="text-xs text-gray-500">Nenhuma categoria disponível.</p>
+                            )}
                         </div>
 
-                        <div className="space-y-4">
-                            <div className="flex items-center gap-3 text-gray-400">
-                                <Tags className="w-4 h-4" />
-                                <span className="text-sm font-medium">Tags</span>
+                        {/* Tags Chip Selector */}
+                        <div className="space-y-3">
+                            <div className="flex items-center justify-between">
+                                <div className="flex items-center gap-3 text-gray-400">
+                                    <Tags className="w-4 h-4" />
+                                    <span className="text-sm font-medium">Tags</span>
+                                </div>
+                                <span className={cn(
+                                    "text-xs font-medium px-2 py-0.5 rounded-full",
+                                    selectedTags.length >= MAX_TAGS
+                                        ? "bg-red-500/15 text-red-400"
+                                        : "bg-gray-800 text-gray-400"
+                                )}>
+                                    {selectedTags.length}/{MAX_TAGS}
+                                </span>
                             </div>
-                            <Input
-                                id="tags"
-                                name="tags"
-                                value={formData.tags}
-                                onChange={handleChange}
-                                placeholder="Ex: pele, rejuvenescimento"
-                                className="bg-gray-800/50 border-gray-700 text-white rounded-xl placeholder:text-gray-600"
-                            />
-                            <p className="text-xs text-gray-500 flex items-center gap-1">
-                                <span className="w-1 h-1 bg-gray-500 rounded-full" />
-                                Separe por vírgulas
-                            </p>
+
+                            {/* Selected tags */}
+                            {selectedTags.length > 0 && (
+                                <div className="flex flex-wrap gap-2">
+                                    {selectedTags.map(tag => (
+                                        <span
+                                            key={tag.slug}
+                                            className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs bg-brand-pink/20 text-brand-pink border border-brand-pink/30"
+                                        >
+                                            {tag.name}
+                                            <button
+                                                type="button"
+                                                onClick={() => handleRemoveTag(tag.slug)}
+                                                className="hover:text-white transition-colors"
+                                            >
+                                                <X className="w-3 h-3" />
+                                            </button>
+                                        </span>
+                                    ))}
+                                </div>
+                            )}
+
+                            {/* Suggested tags */}
+                            {selectedCategory ? (
+                                tagsLoading ? (
+                                    <div className="flex items-center gap-2 text-gray-500 text-xs py-2">
+                                        <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                                        Carregando sugestões...
+                                    </div>
+                                ) : suggestedTags.length > 0 ? (
+                                    <div>
+                                        <p className="text-xs text-gray-500 mb-2">Tags sugeridas — clique para adicionar:</p>
+                                        <div className="flex flex-wrap gap-2">
+                                            {suggestedTags.map(tag => {
+                                                const isSelected = selectedTags.some(t => t.slug === tag.slug);
+                                                return (
+                                                    <button
+                                                        key={tag.slug}
+                                                        type="button"
+                                                        onClick={() => handleTagToggle(tag)}
+                                                        className={cn(
+                                                            "px-3 py-1 rounded-full text-xs border transition-all",
+                                                            isSelected
+                                                                ? "bg-brand-pink/20 text-brand-pink border-brand-pink/30"
+                                                                : "bg-gray-800/60 text-gray-400 border-gray-700 hover:border-gray-500 hover:text-gray-200",
+                                                            !isSelected && selectedTags.length >= MAX_TAGS && "opacity-40 cursor-not-allowed"
+                                                        )}
+                                                    >
+                                                        {tag.name}
+                                                    </button>
+                                                );
+                                            })}
+                                        </div>
+                                    </div>
+                                ) : (
+                                    <p className="text-xs text-gray-500">Nenhuma tag sugerida para esta categoria.</p>
+                                )
+                            ) : (
+                                <p className="text-xs text-gray-500">Selecione uma categoria para ver as tags sugeridas.</p>
+                            )}
+
+                            {/* Tag limit error */}
+                            {tagLimitError && (
+                                <p className="text-xs text-red-400 flex items-center gap-1.5 animate-in fade-in duration-200">
+                                    <span className="w-1 h-1 bg-red-400 rounded-full" />
+                                    Limite de {MAX_TAGS} tags atingido. Remova uma para adicionar outra.
+                                </p>
+                            )}
                         </div>
                     </div>
 

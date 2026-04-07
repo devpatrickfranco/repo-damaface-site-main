@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import {
     Plus,
@@ -17,7 +17,8 @@ import {
     AlertCircle,
     MoreHorizontal,
     Calendar,
-    Tag
+    Tag,
+    X
 } from "lucide-react";
 import { getMyPosts, submitPost, approvePost, rejectPost, type PostSummary, PostStatus } from "@/lib/posts";
 import { useAuth } from "@/context/AuthContext";
@@ -66,6 +67,107 @@ const statusConfig: Record<PostStatus, {
     },
 };
 
+// ─── Reject Modal ────────────────────────────────────────────────────────────
+function RejectModal({
+    isOpen,
+    onClose,
+    onConfirm,
+    isLoading,
+}: {
+    isOpen: boolean;
+    onClose: () => void;
+    onConfirm: (reason: string) => void;
+    isLoading: boolean;
+}) {
+    const [reason, setReason] = useState("");
+    const textareaRef = useRef<HTMLTextAreaElement>(null);
+
+    useEffect(() => {
+        if (isOpen) {
+            setReason("");
+            setTimeout(() => textareaRef.current?.focus(), 50);
+        }
+    }, [isOpen]);
+
+    if (!isOpen) return null;
+
+    return (
+        <div
+            className="fixed inset-0 z-50 flex items-center justify-center p-4"
+            onClick={onClose}
+        >
+            {/* Backdrop */}
+            <div className="absolute inset-0 bg-black/70 backdrop-blur-sm" />
+
+            {/* Modal */}
+            <div
+                className="relative w-full max-w-md bg-gray-900 border border-gray-800 rounded-2xl shadow-2xl animate-in fade-in zoom-in-95 duration-200"
+                onClick={(e) => e.stopPropagation()}
+            >
+                {/* Header */}
+                <div className="flex items-center justify-between p-6 border-b border-gray-800">
+                    <div className="flex items-center gap-3">
+                        <div className="w-9 h-9 bg-red-500/15 rounded-xl flex items-center justify-center">
+                            <XCircle className="w-5 h-5 text-red-400" />
+                        </div>
+                        <div>
+                            <h2 className="text-white font-semibold">Rejeitar Post</h2>
+                            <p className="text-gray-500 text-xs">Informe o motivo para o autor</p>
+                        </div>
+                    </div>
+                    <button
+                        onClick={onClose}
+                        className="text-gray-500 hover:text-white hover:bg-gray-800 rounded-xl p-1.5 transition-colors"
+                    >
+                        <X className="w-4 h-4" />
+                    </button>
+                </div>
+
+                {/* Body */}
+                <div className="p-6 space-y-4">
+                    <div className="space-y-2">
+                        <label className="text-sm text-gray-300">Motivo da rejeição</label>
+                        <textarea
+                            ref={textareaRef}
+                            value={reason}
+                            onChange={(e) => setReason(e.target.value)}
+                            rows={4}
+                            placeholder="Ex: O post precisa de mais detalhes sobre o procedimento..."
+                            className="w-full bg-gray-800/60 border border-gray-700 rounded-xl p-4 text-white text-sm focus:outline-none focus:ring-1 focus:ring-red-500 focus:border-red-500 resize-none placeholder:text-gray-600 transition-all"
+                        />
+                    </div>
+                </div>
+
+                {/* Footer */}
+                <div className="flex items-center justify-end gap-3 px-6 pb-6">
+                    <button
+                        type="button"
+                        onClick={onClose}
+                        disabled={isLoading}
+                        className="px-4 py-2.5 text-sm text-gray-400 hover:text-white hover:bg-gray-800 rounded-xl transition-colors"
+                    >
+                        Cancelar
+                    </button>
+                    <button
+                        type="button"
+                        onClick={() => onConfirm(reason)}
+                        disabled={isLoading || !reason.trim()}
+                        className="px-5 py-2.5 text-sm font-medium bg-red-500/20 hover:bg-red-500/30 text-red-400 border border-red-500/30 rounded-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                    >
+                        {isLoading ? (
+                            <Loader2 className="w-4 h-4 animate-spin" />
+                        ) : (
+                            <XCircle className="w-4 h-4" />
+                        )}
+                        Confirmar Rejeição
+                    </button>
+                </div>
+            </div>
+        </div>
+    );
+}
+// ─────────────────────────────────────────────────────────────────────────────
+
 export default function BlogManagementPage() {
     const { user } = useAuth();
     const [posts, setPosts] = useState<PostSummary[]>([]);
@@ -74,6 +176,10 @@ export default function BlogManagementPage() {
     const [isApproving, setIsApproving] = useState<string | null>(null);
     const [searchTerm, setSearchTerm] = useState("");
     const [activeFilter, setActiveFilter] = useState<PostStatus | "ALL">("ALL");
+    const [rejectModal, setRejectModal] = useState<{ isOpen: boolean; slug: string | null }>({
+        isOpen: false,
+        slug: null,
+    });
 
     useEffect(() => {
         loadPosts();
@@ -119,14 +225,18 @@ export default function BlogManagementPage() {
         }
     };
 
-    const handleReject = async (slug: string) => {
-        const reason = window.prompt("Motivo da rejeição:");
-        if (reason === null) return;
+    const handleReject = (slug: string) => {
+        setRejectModal({ isOpen: true, slug });
+    };
 
+    const handleRejectConfirm = async (reason: string) => {
+        if (!rejectModal.slug) return;
+        const slug = rejectModal.slug;
         setIsApproving(slug);
         try {
             await rejectPost(slug, reason);
             toast.success("Post rejeitado com sucesso!");
+            setRejectModal({ isOpen: false, slug: null });
             loadPosts();
         } catch (error: unknown) {
             const message = error instanceof Error ? error.message : "Erro ao rejeitar post";
@@ -151,6 +261,12 @@ export default function BlogManagementPage() {
 
     return (
         <div className="p-6 space-y-6">
+            <RejectModal
+                isOpen={rejectModal.isOpen}
+                onClose={() => setRejectModal({ isOpen: false, slug: null })}
+                onConfirm={handleRejectConfirm}
+                isLoading={!!isApproving}
+            />
             {/* Header */}
             <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-6 mb-10">
                 <div className="space-y-2">
