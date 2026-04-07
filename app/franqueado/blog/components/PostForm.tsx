@@ -256,13 +256,15 @@ export default function PostForm({ initialData, isEditing }: PostFormProps) {
                 formDataToSend.append("cover_image_url", formData.cover_image);
             }
 
-            formDataToSend.append("categories", JSON.stringify(categorySlugs));
-            formDataToSend.append("tags", JSON.stringify(tagSlugs));
+            // DRF exige um append() por item para listas em FormData (não JSON stringificado)
+            categorySlugs.forEach(slug => formDataToSend.append("categories", slug));
+            tagSlugs.forEach(slug => formDataToSend.append("tags", slug));
+
 
             // Log do payload final
             console.group("%c[PostForm] === PAYLOAD ENVIADO ===", "color:#60a5fa;font-weight:bold;font-size:13px");
-            console.log("categories (JSON):", JSON.stringify(categorySlugs));
-            console.log("tags (JSON):", JSON.stringify(tagSlugs));
+            console.log("categories (slugs):", categorySlugs);
+            console.log("tags (slugs):", tagSlugs);
             console.log("Todos os campos do FormData:");
             for (const [key, val] of formDataToSend.entries()) {
                 console.log(`  ${key}:`, val instanceof File ? `[File] ${val.name} (${val.size} bytes)` : val);
