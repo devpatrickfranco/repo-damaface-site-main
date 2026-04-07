@@ -21,7 +21,7 @@ export interface Tag {
 export interface Author {
   id: number;
   name: string;
-  avatar: string;
+  img_profile: string;
 }
 
 export interface Post {

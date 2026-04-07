@@ -163,9 +163,9 @@ const BlogPage = () => {
                     <div className="flex items-center justify-between pt-4 border-t border-gray-700/50">
                       <div className="flex items-center space-x-3">
                         <div className="relative w-8 h-8 overflow-hidden rounded-full bg-gray-800">
-                          {post.author?.avatar ? (
+                          {post.author?.img_profile ? (
                             <img
-                              src={getMediaUrl(post.author?.avatar) || "https://ui-avatars.com/api/?name=Author"}
+                              src={getMediaUrl(post.author.img_profile) || "https://ui-avatars.com/api/?name=Author"}
                               alt={post.author?.name || "Author"}
                               className="w-8 h-8 rounded-full border border-pink-500/20"
                             />
