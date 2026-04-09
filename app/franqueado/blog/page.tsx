@@ -34,6 +34,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import toast from "react-hot-toast";
 import { cn } from "@/lib/utils";
+import { useRouter } from "next/navigation"
 
 const statusConfig: Record<PostStatus, {
     label: string;
@@ -169,7 +170,16 @@ function RejectModal({
 // ─────────────────────────────────────────────────────────────────────────────
 
 export default function BlogManagementPage() {
-    const { user } = useAuth();
+    const { user, loading: authLoading, isAuthenticated } = useAuth();
+    const router = useRouter()
+
+    useEffect(() => {
+        if (!authLoading && !isAuthenticated) {
+            router.push("/franqueado")
+        }
+    }, [isAuthenticated, authLoading, router])
+
+
     const [posts, setPosts] = useState<PostSummary[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [isSubmitting, setIsSubmitting] = useState<string | null>(null);
