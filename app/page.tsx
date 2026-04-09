@@ -1,7 +1,7 @@
 import Header from '@/components/Header';
 import Hero from '@/components/Hero';
 import BestSellers from '@/components/BestSellers';
-import Partners from '@/components/partners'; 
+import Partners from '@/components/partners';
 import Categories from '@/components/Categories';
 import Franchise from '@/components/Franchise';
 import Copiloto from '@/components/Copiloto';
@@ -22,11 +22,11 @@ export default function Home() {
         <Hero />
         <BestSellers />
         <Categories />
-        <Partners />
         <Franchise />
         <Copiloto />
         <Studio />
         <About />
+        <Partners />
         <Testimonials />
         <Blog />
         <FAQ />

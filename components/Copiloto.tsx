@@ -56,7 +56,7 @@ const Copiloto = () => {
       {/* Background Glow Effects */}
       <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-emerald-500/5 rounded-full blur-[120px] pointer-events-none" />
       <div className="absolute bottom-0 left-0 w-[500px] h-[500px] bg-emerald-500/5 rounded-full blur-[120px] pointer-events-none" />
-      
+
       <div className="container relative z-10">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
           {/* Left Content */}
@@ -66,12 +66,12 @@ const Copiloto = () => {
                 Exclusivo para Profissionais HOF
               </span>
               <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold mb-6 text-gradient">
-                Copiloto DamaFace: 
-                <span className="block text-emerald-500 mt-2">Inteligência Facial B2B</span>
+                Copiloto DamaFace:
+                <span className="block text-emerald-500 mt-2">Inteligência Avançada</span>
               </h2>
               <p className="text-lg text-gray-300 leading-relaxed mb-8">
-                A ferramenta de HOF mais avançada do mercado. Eleve o padrão das suas consultas 
-                com IA de última geração, garantindo que nenhum detalhe clínico passe despercebido 
+                A ferramenta de HOF mais avançada do mercado. Eleve o padrão das suas consultas
+                com IA de última geração, garantindo que nenhum detalhe clínico passe despercebido
                 pela visão computacional de alta fidelidade.
               </p>
 
@@ -83,7 +83,7 @@ const Copiloto = () => {
                   <span>Acessar Copiloto</span>
                   <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
                 </button>
-                
+
                 <div className="flex items-center gap-3 px-4 py-2 bg-gray-900/50 rounded-full border border-gray-800">
                   <div className="flex -space-x-2">
                     {[1, 2, 3].map((i) => (
@@ -120,7 +120,7 @@ const Copiloto = () => {
                 </div>
               ))}
             </div>
-            
+
             {/* Disclaimer B2B vs B2C */}
             <div className="mt-8 p-6 bg-gradient-to-r from-emerald-500/10 to-transparent rounded-2xl border border-emerald-500/20">
               <div className="flex gap-4 items-center">
