@@ -74,7 +74,7 @@ const Copiloto = () => {
                 com IA de última geração, garantindo que nenhum detalhe clínico passe despercebido
                 pela visão computacional de alta fidelidade.
               </p>
-
+              ``
               <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center">
                 <button
                   onClick={handleCopilotoClick}

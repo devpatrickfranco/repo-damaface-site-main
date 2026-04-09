@@ -25,7 +25,13 @@ import {
   LucideIcon,
   PanelLeft,
   PanelRight,
-  FileText
+  FileText,
+  MessageSquare,
+  MessageCircle,
+  Hash,
+  Send,
+  Library,
+  DollarSign
 } from 'lucide-react'
 import { useRouter, usePathname } from 'next/navigation'
 import { useAuth } from '@/context/AuthContext'
@@ -58,6 +64,14 @@ const MARKETING_SUBMODULES: NavItem[] = [
   { id: 'trafego', name: 'Tráfego', icon: TrendingUp, route: '/franqueado/marketing/trafego' }
 ]
 
+const WHATSAPP_SUBMODULES: NavItem[] = [
+  { id: 'chat', name: 'Chat WhatsApp', icon: MessageCircle, route: '/franqueado/whatsapp' },
+  { id: 'wa-crm', name: 'Contatos (CRM)', icon: Users2, route: '/franqueado/whatsapp/crm' },
+  { id: 'wa-broadcast', name: 'Disparos', icon: Send, route: '/franqueado/whatsapp/broadcast' },
+  { id: 'wa-templates', name: 'Templates', icon: Library, route: '/franqueado/whatsapp/templates' },
+  { id: 'wa-finances', name: 'Financeiro', icon: DollarSign, route: '/franqueado/whatsapp/finances' }
+]
+
 const EXCELENCIA_SUBMODULES: NavItem[] = [
   { id: 'auto-avaliacao', name: 'Auto Avaliação', icon: ClipboardCheck, route: '/franqueado/excelencia/auto-avaliacao', roles: ['FRANQUEADO', 'SUPERADMIN'] },
   { id: 'auditoria', name: 'Auditoria', icon: Search, route: '/franqueado/excelencia/auditoria', roles: ADMIN_ROLES },
@@ -79,6 +93,7 @@ const NAV_LINKS: NavItem[] = [
   { id: 'comunicados', name: 'Comunicados', icon: Newspaper, route: '/franqueado/comunicados', roles: ALL_ROLES },
   //{ id: 'damaai', name: 'Dama.ai', icon: BrainCircuit, route: '/franqueado/damaai', roles: ALL_ROLES },
   { id: 'marketing', name: 'Marketing', icon: Megaphone, route: '/franqueado/marketing', roles: ALL_ROLES, hasSubModules: true, subModules: MARKETING_SUBMODULES },
+  { id: 'whatsapp', name: 'Atendimento WA', icon: MessageSquare, route: '/franqueado/whatsapp', roles: ALL_ROLES, hasSubModules: true, subModules: WHATSAPP_SUBMODULES },
   { id: 'blog', name: 'Blog', icon: FileText, route: '/franqueado/blog', roles: ADMIN_ROLES },
   //{ id: 'excelencia', name: 'Programa de Excelência', icon: Award, route: '/franqueado/excelencia', roles: ['SUPERADMIN', 'FRANQUEADO'], hasSubModules: true, subModules: EXCELENCIA_SUBMODULES },
   { id: 'usuarios', name: 'Usuarios', icon: Users2, route: '/franqueado/usuarios', roles: ADMIN_ROLES },
