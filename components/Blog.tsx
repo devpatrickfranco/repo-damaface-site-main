@@ -5,10 +5,17 @@ import toast from 'react-hot-toast';
 import { newsletter } from '@/lib/utils'
 import { useState } from 'react';
 import { Calendar, ArrowRight, Clock } from 'lucide-react';
+import { PostSummary } from '@/lib/posts';
+import { getMediaUrl } from '@/lib/api-backend';
 
-const Blog = () => {
+interface BlogProps {
+  posts?: PostSummary[];
+}
+
+const Blog = ({ posts: initialPosts }: BlogProps) => {
   const [email, setEmail] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const baseUrl = 'https://www.damaface.com.br';
 
   const handleSubscribe = async () => {
     if (!email.trim()) {
@@ -49,41 +56,19 @@ const Blog = () => {
     }
   };
 
-  const posts = [
-    {
-      id: 1,
-      title: 'Os Benefícios do Botox para Rugas de Expressão', // Título corrigido
-      excerpt: 'Descubra como o botox pode suavizar rugas de expressão de forma natural e segura, proporcionando um visual mais jovem e descansado.', // Excerpt do post completo
-      author: 'Dra. Maria Silva',
-      date: '2024-01-15', // Mantida a mesma data
-      readTime: '5 min',
-      category: 'Procedimentos Faciais', // Categoria corrigida
-      image: 'https://images.pexels.com/photos/3985360/pexels-photo-3985360.jpeg?auto=compress&cs=tinysrgb&w=500&h=300&fit=crop', // Imagem mantida (é a mesma do coverImage)
-      slug: 'beneficios-botox-rugas-expressao' // Slug corrigido
-    },
-    {
-      id: 2,
-      title: 'Harmonização Facial: O que Você Precisa Saber', // Título corrigido
-      excerpt: 'Um guia completo sobre harmonização facial, desde os procedimentos mais comuns até os cuidados pós-tratamento.', // Excerpt do post completo
-      author: 'Dr. João Santos',
-      date: '2024-01-10', // Mantida a mesma data
-      readTime: '4 min',
-      category: 'Harmonização', // Categoria mantida
-      image: 'https://images.pexels.com/photos/3985327/pexels-photo-3985327.jpeg?auto=compress&cs=tinysrgb&w=500&h=300&fit=crop', // Imagem alterada para match do post 2
-      slug: 'harmonizacao-facial-guia-completo' // Slug corrigido
-    },
-    {
-      id: 3,
-      title: 'Cuidados Pós-Procedimento: Dicas Essenciais', // Título corrigido
-      excerpt: 'Saiba quais cuidados são fundamentais após realizar procedimentos estéticos para garantir os melhores resultados.', // Excerpt do post completo
-      author: 'Dr. João Santos',
-      date: '2024-01-05', // Mantida a mesma data
-      readTime: '6 min',
-      category: 'Cuidados', // Categoria mantida
-      image: 'https://images.pexels.com/photos/3985329/pexels-photo-3985329.jpeg?auto=compress&cs=tinysrgb&w=500&h=300&fit=crop', // Imagem alterada para match do post 3
-      slug: 'cuidados-pos-procedimento-dicas' // Slug corrigido
-    }
-  ];
+  const formatDate = (dateString: string | null) => {
+    if (!dateString) return 'Data não disponível';
+    return new Date(dateString).toLocaleDateString('pt-BR');
+  };
+
+  const calculateReadTime = (excerpt: string) => {
+    const wordsPerMinute = 200;
+    const wordCount = excerpt.split(' ').length;
+    return Math.ceil(wordCount / wordsPerMinute);
+  };
+
+  // Use initialPosts or empty array
+  const displayPosts = initialPosts || [];
 
   return (
     <section className="section-padding">
@@ -99,30 +84,30 @@ const Blog = () => {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-12">
-          {posts.map((post, index) => (
+          {displayPosts.map((post, index) => (
             <article
               key={post.id}
               className="card-dark group cursor-pointer animate-on-scroll"
               style={{ animationDelay: `${index * 0.1}s` }}
             >
-              <Link href={`/blog/${post.slug}`}>
+              <Link href={`${baseUrl}/blog/${post.slug}`}>
                 {/* Featured Image */}
                 <div className="relative overflow-hidden rounded-lg mb-4">
                   <div
                     className="w-full h-48 bg-cover bg-center transition-transform duration-300 group-hover:scale-110"
-                    style={{ backgroundImage: `url("${post.image}")` }}
+                    style={{ backgroundImage: `url("${getMediaUrl(post.cover_image)}")` }}
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent"></div>
                   
                   {/* Category Badge */}
                   <div className="absolute top-4 left-4 bg-brand-pink text-white text-xs font-semibold px-3 py-1 rounded-full">
-                    {post.category}
+                    {post.categories[0]?.name || 'Geral'}
                   </div>
                 </div>
 
                 {/* Content */}
                 <div className="space-y-3">
-                  <h3 className="text-xl font-semibold text-white group-hover:text-brand-pink transition-colors leading-tight">
+                  <h3 className="text-xl font-semibold text-white group-hover:text-brand-pink transition-colors leading-tight line-clamp-2">
                     {post.title}
                   </h3>
 
@@ -135,17 +120,17 @@ const Blog = () => {
                     <div className="flex items-center space-x-4">
                       <div className="flex items-center space-x-1">
                         <Calendar className="w-3 h-3" />
-                        <span>{new Date(post.date).toLocaleDateString('pt-BR')}</span>
+                        <span>{formatDate(post.published_at)}</span>
                       </div>
                       <div className="flex items-center space-x-1">
                         <Clock className="w-3 h-3" />
-                        <span>{post.readTime}</span>
+                        <span>{calculateReadTime(post.excerpt)} min</span>
                       </div>
                     </div>
                   </div>
 
                   <div className="flex items-center justify-between pt-2">
-                    <span className="text-gray-500 text-xs">{post.author}</span>
+                    <span className="text-gray-500 text-xs">{post.author?.name || 'Damaface'}</span>
                     <ArrowRight className="w-4 h-4 text-brand-pink group-hover:translate-x-1 transition-transform" />
                   </div>
                 </div>
@@ -172,6 +157,7 @@ const Blog = () => {
                 placeholder="Seu melhor e-mail"
                 disabled={isLoading}
                 className="flex-1 px-4 py-3 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-brand-pink transition-colors"
+                value={email}
               />
               <button 
                 onClick={handleSubscribe} 

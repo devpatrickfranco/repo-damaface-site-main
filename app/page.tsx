@@ -12,9 +12,22 @@ import Blog from '@/components/Blog';
 import FAQ from '@/components/FAQ';
 import Contact from '@/components/Contact';
 import Footer from '@/components/Footer';
+import { getAllPosts } from '@/lib/posts';
 
 
-export default function Home() {
+export default async function Home() {
+  const allPosts = await getAllPosts();
+  
+  // Pegar os 3 posts mais recentes aprovados
+  const recentPosts = allPosts
+    .filter(post => post.status === 'APROVADO')
+    .sort((a, b) => {
+      const dateA = new Date(a.published_at || a.created_at).getTime();
+      const dateB = new Date(b.published_at || b.created_at).getTime();
+      return dateB - dateA;
+    })
+    .slice(0, 3);
+
   return (
     <>
       <Header />
@@ -28,7 +41,7 @@ export default function Home() {
         <About />
         <Partners />
         <Testimonials />
-        <Blog />
+        <Blog posts={recentPosts} />
         <FAQ />
         <Contact />
       </main>
