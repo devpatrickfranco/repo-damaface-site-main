@@ -124,13 +124,12 @@ function PendingState({ onRefresh }: { onRefresh: () => void }) {
                   <div className="w-5 h-5 rounded-full bg-gray-100 border-2 border-gray-200" />
                 )}
               </div>
-              <p className={`text-sm font-medium leading-tight ${
-                step.done
-                  ? 'text-green-700 line-through decoration-green-400'
-                  : step.active
+              <p className={`text-sm font-medium leading-tight ${step.done
+                ? 'text-green-700 line-through decoration-green-400'
+                : step.active
                   ? 'text-amber-700'
                   : 'text-gray-400'
-              }`}>
+                }`}>
                 {step.label}
               </p>
             </div>
@@ -400,7 +399,7 @@ export default function WhatsAppActivationStatus() {
   const fetchStatus = useCallback(async () => {
     try {
       setIsLoading(true)
-      const data = await apiBackend.get<FranchiseWabaStatus>('/api/whatsapp/status/')
+      const data = await apiBackend.get<FranchiseWabaStatus>('/whatsapp/status/')
       setWabaStatus(data)
     } catch {
       // Sem dados → trata como pending
@@ -418,7 +417,7 @@ export default function WhatsAppActivationStatus() {
   const fetchWallet = useCallback(async () => {
     try {
       setIsLoadingWallet(true)
-      const data = await apiBackend.get<WalletBalance>('/api/whatsapp/wallet/balance/')
+      const data = await apiBackend.get<WalletBalance>('/whatsapp/wallet/balance/')
       setWallet(data)
     } catch {
       setWallet(null)
