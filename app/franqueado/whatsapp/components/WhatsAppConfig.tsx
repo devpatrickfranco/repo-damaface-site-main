@@ -331,7 +331,38 @@ export default function WhatsAppConfig() {
     fetchWallet()
   }, [isConnected])
 
-  // --- 3. Embedded Signup via FB.login ---
+  // --- Auxiliar: troca o code OAuth pelo WabaConnection no backend ---
+  const exchangeCodeForConnection = useCallback((code: string) => {
+    apiBackend
+      .post<WabaConnection>('/api/whatsapp/exchange-token/', { code })
+      .then((result) => {
+        setConnection(result)
+        setIsConnected(true)
+      })
+      .catch((err: any) => {
+        const msg = err?.message || 'Erro ao processar a autorização. Tente novamente.'
+        setError(msg)
+      })
+      .finally(() => {
+        setIsConnecting(false)
+      })
+  }, [])
+
+  // --- Auxiliar: executa a desconexão no backend ---
+  const performDisconnect = useCallback(() => {
+    apiBackend
+      .delete('/api/whatsapp/connection/')
+      .then(() => {
+        setIsConnected(false)
+        setConnection(null)
+        setWallet(null)
+      })
+      .catch(() => {
+        setError('Não foi possível desconectar. Tente novamente.')
+      })
+  }, [])
+
+  // --- 3. Embedded Signup via FB.login (callback estritamente síncrono) ---
   const handleConnect = useCallback(() => {
     if (!isSdkLoaded || !window.FB) {
       setError('SDK do Facebook ainda não carregou. Aguarde um momento e tente novamente.')
@@ -343,21 +374,12 @@ export default function WhatsAppConfig() {
 
     const configId = process.env.NEXT_PUBLIC_FACEBOOK_CONFIG_ID || ''
 
+    // ⚠️ O callback do FB.login deve ser síncrono — toda lógica async
+    // fica em exchangeCodeForConnection, chamada via método auxiliar
     window.FB.login(
-      async (response) => {
+      (response) => {
         if (response.authResponse?.code) {
-          const code = response.authResponse.code
-          try {
-            // Enviar code para o backend Django fazer o exchange
-            const result = await apiBackend.post<WabaConnection>('/api/whatsapp/exchange-token/', { code })
-            setConnection(result)
-            setIsConnected(true)
-          } catch (err: any) {
-            const msg = err?.message || 'Erro ao processar a autorização. Tente novamente.'
-            setError(msg)
-          } finally {
-            setIsConnecting(false)
-          }
+          exchangeCodeForConnection(response.authResponse.code)
         } else {
           // Usuário cancelou o popup ou negou permissões
           setError('Autorização cancelada ou negada. Por favor, tente novamente e conceda todas as permissões.')
@@ -370,20 +392,13 @@ export default function WhatsAppConfig() {
         override_default_response_type: true,
       }
     )
-  }, [isSdkLoaded])
+  }, [isSdkLoaded, exchangeCodeForConnection])
 
-  // --- 4. Desconectar ---
-  const handleDisconnect = useCallback(async () => {
+  // --- 4. Desconectar (síncrono — delega ao auxiliar performDisconnect) ---
+  const handleDisconnect = useCallback(() => {
     if (!confirm('Tem certeza que deseja desconectar o WhatsApp desta clínica?')) return
-    try {
-      await apiBackend.delete('/api/whatsapp/connection/')
-      setIsConnected(false)
-      setConnection(null)
-      setWallet(null)
-    } catch {
-      setError('Não foi possível desconectar. Tente novamente.')
-    }
-  }, [])
+    performDisconnect()
+  }, [performDisconnect])
 
   // --- Renderização ---
   if (isCheckingConnection) {
