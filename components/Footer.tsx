@@ -251,9 +251,10 @@ const Footer = () => {
               © 2025 DamaFace Clínica de Estética. Todos os direitos reservados.
             </p>
             
-            <div className="flex space-x-6 mt-4 md:mt-0">
+            <div className="flex flex-wrap gap-x-6 gap-y-2 mt-4 md:mt-0 items-center">
               <Modal 
-                title="Termos de Uso" 
+                title="Termos de Uso"
+                anchor="termsofservice"
                 content={`
               Termos de Uso do Site DamaFace
 
@@ -294,11 +295,12 @@ const Footer = () => {
               Ao continuar a acessar ou usar o site após quaisquer alterações nos Termos de Uso, você concorda em ficar vinculado aos Termos de Uso revisados.
 
               Se tiver alguma dúvida ou preocupação sobre estes Termos de Uso, entre em contato conosco através do e-mail contato@damaface.com.br
-              `} 
+              `}
               />
 
               <Modal 
-                title="Política de Privacidade" 
+                title="Política de Privacidade"
+                anchor="privacypolicy"
                 content={`
               Política de Privacidade do Site DamaFace
 
@@ -321,6 +323,7 @@ const Footer = () => {
               Proteção das Informações:
 
               Tomamos precauções razoáveis para proteger as informações pessoais dos nossos usuários contra acesso não autorizado, alteração, divulgação ou destruição.
+
               Cookies e Tecnologias Semelhantes:
 
               O site DamaFace utiliza cookies e outras tecnologias de rastreamento para personalizar a sua experiência de navegação e para coletar informações sobre como você interage com o site.
@@ -336,8 +339,47 @@ const Footer = () => {
               Alterações na Política de Privacidade:
 
               Reservamo-nos o direito de fazer alterações nesta política de privacidade a qualquer momento, e tais alterações entrarão em vigor imediatamente após serem publicadas no site.
+
               Ao utilizar o site DamaFace, você concorda com esta política de privacidade. Se tiver alguma dúvida ou preocupação sobre esta política, entre em contato conosco através do e-mail contato@damaface.com.br
-              `} 
+              `}
+              />
+
+              <Modal
+                title="Exclusão de Dados"
+                anchor="datadeletion"
+                content={`
+              Política de Exclusão de Dados — DamaFace
+
+              A DamaFace respeita o seu direito à privacidade e ao controle sobre seus dados pessoais, em conformidade com a Lei Geral de Proteção de Dados (LGPD — Lei nº 13.709/2018).
+
+              Newsletter e Cancelamento de Inscrição:
+
+              Ao se inscrever em nossa newsletter, você fornece voluntariamente o seu endereço de e-mail para receber dicas de beleza, novidades e promoções da DamaFace.
+
+              Para cancelar sua inscrição a qualquer momento, basta clicar no link "Cancelar inscrição" (Unsubscribe) presente no rodapé de qualquer e-mail que você receber de nós. O cancelamento é imediato e você não receberá novas comunicações após a confirmação.
+
+              Exclusão dos Dados de Inscrição:
+
+              Ao solicitar o cancelamento da inscrição ou da conta, seus dados pessoais (como endereço de e-mail) são removidos permanentemente de nossa base de dados.
+
+              A DamaFace não retém nem armazena seus dados após a exclusão solicitada pelo usuário. Não realizamos backup ou cópias de segurança de informações após a remoção.
+
+              Após a exclusão, não é possível recuperar os dados, e nenhuma comunicação de marketing será enviada ao e-mail removido.
+
+              Dados de Terceiros:
+
+              Não compartilhamos seus dados com terceiros para fins de marketing. Parceiros de suporte técnico que eventualmente tenham acesso à infraestrutura são contratualmente obrigados a manter a confidencialidade e a não utilizar os dados para fins próprios.
+
+              Como Solicitar a Exclusão:
+
+              Além do link de cancelamento nos e-mails, você pode solicitar a exclusão completa dos seus dados entrando em contato pelo e-mail: contato@damaface.com.br
+
+              Responderemos à sua solicitação em até 15 dias úteis, conforme previsto pela LGPD.
+
+              Dúvidas:
+
+              Se tiver dúvidas sobre o tratamento dos seus dados, entre em contato: contato@damaface.com.br
+              `}
               />
 
               <span>CNPJ: 31.336.419/0001-42</span>

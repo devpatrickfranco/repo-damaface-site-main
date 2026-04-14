@@ -1,20 +1,42 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { X, Sparkles } from 'lucide-react';
 
 interface ModalProps {
   title: string;
   content: string;
+  anchor?: string; // e.g. "privacypolicy" → URL becomes #privacypolicy
 }
 
-export default function Modal({ title, content }: ModalProps) {
+export default function Modal({ title, content, anchor }: ModalProps) {
   const [isOpen, setIsOpen] = useState(false);
+
+  // Open modal if the URL hash matches on mount
+  useEffect(() => {
+    if (anchor && window.location.hash === `#${anchor}`) {
+      setIsOpen(true);
+    }
+  }, [anchor]);
+
+  const open = () => {
+    if (anchor) {
+      window.history.pushState(null, '', `#${anchor}`);
+    }
+    setIsOpen(true);
+  };
+
+  const close = () => {
+    if (anchor && window.location.hash === `#${anchor}`) {
+      window.history.pushState(null, '', window.location.pathname + window.location.search);
+    }
+    setIsOpen(false);
+  };
 
   return (
     <>
       <button
-        onClick={() => setIsOpen(true)}
+        onClick={open}
         className="inline-flex items-center space-x-2 text-pink-500 hover:text-pink-300 font-medium"
       >
         <Sparkles className="w-4 h-4" />
@@ -38,7 +60,7 @@ export default function Modal({ title, content }: ModalProps) {
                   </h2>
                 </div>
                 <button
-                  onClick={() => setIsOpen(false)}
+                  onClick={close}
                   className="w-10 h-10 bg-gray-800/50 hover:bg-red-500/20 rounded-full flex items-center justify-center text-gray-400 hover:text-red-400 transition-colors"
                 >
                   <X className="w-5 h-5" />
@@ -72,7 +94,7 @@ export default function Modal({ title, content }: ModalProps) {
                   DamaFace - Harmonização Facial e Coporal
                 </div>
                 <button
-                  onClick={() => setIsOpen(false)}
+                  onClick={close}
                   className="bg-gradient-to-r from-pink-500 to-pink-600 hover:from-pink-600 hover:to-pink-700 text-white font-semibold px-6 py-2 rounded-full text-sm transition-all duration-200 shadow-lg hover:shadow-xl"
                 >
                   Fechar
