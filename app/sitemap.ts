@@ -1,6 +1,8 @@
 import { MetadataRoute } from 'next'
 import { getAllPosts } from '@/lib/posts'
 
+export const revalidate = 0;
+
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const baseUrl = 'https://www.damaface.com.br'
 

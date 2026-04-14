@@ -47,7 +47,7 @@ export type PostSummary = Omit<Post, 'content' | 'rejection_reason'>;
 // but for consistency with user request to use api-backend in management:
 export async function getAllPosts(): Promise<PostSummary[]> {
   try {
-    return await apiBackend.get("/blog/posts/");
+    return await apiBackend.get("/blog/posts/", { cache: 'no-store' });
   } catch (error) {
     console.error('Error fetching posts:', error);
     return [];
@@ -58,7 +58,7 @@ export async function getAllPosts(): Promise<PostSummary[]> {
 export async function getMyPosts(): Promise<PostSummary[]> {
   try {
     // api-backend already includes credentials
-    return await apiBackend.get("/blog/posts/");
+    return await apiBackend.get("/blog/posts/", { cache: 'no-store' });
   } catch (error) {
     console.error('Error fetching my posts:', error);
     return [];
@@ -67,7 +67,7 @@ export async function getMyPosts(): Promise<PostSummary[]> {
 
 export async function getPostBySlug(slug: string): Promise<Post | null> {
   try {
-    return await apiBackend.get(`/blog/posts/${slug}/`);
+    return await apiBackend.get(`/blog/posts/${slug}/`, { cache: 'no-store' });
   } catch (error) {
     console.error(`Error fetching post ${slug}:`, error);
     return null;

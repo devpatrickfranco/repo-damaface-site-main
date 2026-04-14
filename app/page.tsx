@@ -17,7 +17,7 @@ import { getAllPosts } from '@/lib/posts';
 
 export default async function Home() {
   const allPosts = await getAllPosts();
-  
+
   // Pegar os 3 posts mais recentes aprovados
   const recentPosts = allPosts
     .filter(post => post.status === 'APROVADO')

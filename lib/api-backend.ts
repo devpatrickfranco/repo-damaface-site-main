@@ -50,8 +50,8 @@ export const apiBackend = {
     }
   },
 
-  get<T = any>(path: string): Promise<T> {
-    return this.request<T>(path, { method: "GET" });
+  get<T = any>(path: string, options: RequestInit = {}): Promise<T> {
+    return this.request<T>(path, { ...options, method: "GET" });
   },
 
   post<T = any>(path: string, body?: any): Promise<T> {
