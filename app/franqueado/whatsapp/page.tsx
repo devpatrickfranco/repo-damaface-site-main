@@ -1,6 +1,7 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
+import { useRouter } from 'next/navigation'
 import { 
   Search, 
   Filter, 
@@ -25,9 +26,12 @@ import {
   X,
   Plus,
   Clock,
-  CheckCheck
+  CheckCheck,
+  Loader2,
+  MessageSquare,
 } from 'lucide-react'
 import clsx from 'clsx'
+import { apiBackend } from '@/lib/api-backend'
 
 // Mock Data
 const CONVERSATIONS = [
@@ -47,9 +51,43 @@ const MESSAGES = [
 ]
 
 export default function WhatsAppDashboard() {
+  const router = useRouter()
   const [activeTab, setActiveTab] = useState('Open')
   const [selectedConversation, setSelectedConversation] = useState(CONVERSATIONS[0])
   const [isCrmOpen, setIsCrmOpen] = useState(true)
+
+  // --- Guard: verificar se a franquia tem WhatsApp conectado ---
+  const [isCheckingConnection, setIsCheckingConnection] = useState(true)
+
+  useEffect(() => {
+    const checkConnection = async () => {
+      try {
+        await apiBackend.get('/api/whatsapp/connection/')
+        // Se chegar aqui, existe conexão — renderiza normalmente
+      } catch {
+        // Sem conexão → redireciona para onboarding
+        router.replace('/franqueado/whatsapp/configurar')
+        return
+      } finally {
+        setIsCheckingConnection(false)
+      }
+    }
+    checkConnection()
+  }, [router])
+
+  if (isCheckingConnection) {
+    return (
+      <div className="flex flex-col items-center justify-center h-[calc(100vh-8rem)] space-y-4">
+        <div className="relative">
+          <div className="w-16 h-16 rounded-full border-4 border-green-100 border-t-green-500 animate-spin" />
+          <div className="absolute inset-0 flex items-center justify-center">
+            <MessageSquare className="w-6 h-6 text-green-500" />
+          </div>
+        </div>
+        <p className="text-sm text-gray-500 font-medium animate-pulse">Verificando conexão WhatsApp...</p>
+      </div>
+    )
+  }
 
   return (
     <div className="flex h-[calc(100vh-4rem)] bg-gray-50 overflow-hidden text-gray-800">
