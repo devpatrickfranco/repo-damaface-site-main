@@ -56,16 +56,21 @@ export default function WhatsAppDashboard() {
   const [selectedConversation, setSelectedConversation] = useState(CONVERSATIONS[0])
   const [isCrmOpen, setIsCrmOpen] = useState(true)
 
-  // --- Guard: verificar se a franquia tem WhatsApp conectado ---
+  // --- Guard: verificar se a franquia tem WhatsApp ativo (Single-WABA Multi-tenant) ---
   const [isCheckingConnection, setIsCheckingConnection] = useState(true)
 
   useEffect(() => {
     const checkConnection = async () => {
       try {
-        await apiBackend.get('/api/whatsapp/connection/')
-        // Se chegar aqui, existe conexão — renderiza normalmente
+        const data = await apiBackend.get<{ status: string }>('/api/whatsapp/status/')
+        if (data.status !== 'active') {
+          // Pendente ou suspenso → redireciona para tela de status
+          router.replace('/franqueado/whatsapp/configurar')
+          return
+        }
+        // status === 'active' → renderiza normalmente
       } catch {
-        // Sem conexão → redireciona para onboarding
+        // Erro de rede ou 404 → trata como não ativo
         router.replace('/franqueado/whatsapp/configurar')
         return
       } finally {
