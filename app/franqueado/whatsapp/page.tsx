@@ -62,15 +62,14 @@ export default function WhatsAppDashboard() {
   useEffect(() => {
     const checkConnection = async () => {
       try {
-        const data = await apiBackend.get<{ status: string }>('/api/whatsapp/status/')
-        if (data.status !== 'active') {
-          // Pendente ou suspenso → redireciona para tela de status
+        const data = await apiBackend.get<{ registration_status: string }[]>('/whatsapp/connections/')
+        const hasActive = Array.isArray(data) && data.some((c) => c.registration_status === 'active')
+        if (!hasActive) {
           router.replace('/franqueado/whatsapp/configurar')
           return
         }
-        // status === 'active' → renderiza normalmente
+        // Existe ao menos uma conexão ativa → renderiza normalmente
       } catch {
-        // Erro de rede ou 404 → trata como não ativo
         router.replace('/franqueado/whatsapp/configurar')
         return
       } finally {

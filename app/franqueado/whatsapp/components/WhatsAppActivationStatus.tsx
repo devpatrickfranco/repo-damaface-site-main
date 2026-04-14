@@ -20,18 +20,29 @@ import {
   Building2,
   ArrowRight,
   HeadphonesIcon,
+  Lock,
+  Send,
+  ChevronRight,
 } from 'lucide-react'
 
-// ─────────────────────────────────────────────
-// Tipos
-// ─────────────────────────────────────────────
-type WabaStatus = 'pending' | 'active' | 'suspended'
+// ─────────────────────────────────────────────────────────────
+// Tipos (alinhados com a API que retorna array)
+// ─────────────────────────────────────────────────────────────
 
-interface FranchiseWabaStatus {
-  status: WabaStatus
-  phone_number?: string
+/**
+ * registration_status values:
+ *   'pending'   – solicitação enviada, aguardando aprovação
+ *   'active'    – número ativo, pode usar o módulo
+ *   'suspended' – conta suspensa
+ */
+type RegistrationStatus = 'pending' | 'active' | 'suspended'
+
+interface WabaConnection {
+  id: number
+  phone_number: string
   display_name?: string
   waba_id?: string
+  registration_status: RegistrationStatus
   activated_at?: string
   suspension_reason?: string
 }
@@ -41,9 +52,9 @@ interface WalletBalance {
   currency: string
 }
 
-// ─────────────────────────────────────────────
+// ─────────────────────────────────────────────────────────────
 // Sub-componente: Spinner centralizado
-// ─────────────────────────────────────────────
+// ─────────────────────────────────────────────────────────────
 function CenteredSpinner({ message }: { message?: string }) {
   return (
     <div className="flex flex-col items-center justify-center min-h-[400px] space-y-4">
@@ -60,12 +71,207 @@ function CenteredSpinner({ message }: { message?: string }) {
   )
 }
 
-// ─────────────────────────────────────────────
+// ─────────────────────────────────────────────────────────────
+// Estado 0: SEM CONEXÃO — Formulário de Onboarding
+// Aparece quando connections.length === 0
+// ─────────────────────────────────────────────────────────────
+function WhatsAppOnboardingForm({ onSuccess }: { onSuccess: () => void }) {
+  const [phone, setPhone] = useState('')
+  const [isSending, setIsSending] = useState(false)
+  const [sent, setSent] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+
+  const formatPhone = (value: string) => {
+    // Remove tudo que não é número
+    const digits = value.replace(/\D/g, '').slice(0, 13) // max: 55 + DDD (2) + número (9)
+    if (digits.length <= 2) return `+${digits}`
+    if (digits.length <= 4) return `+${digits.slice(0, 2)} (${digits.slice(2)}`
+    if (digits.length <= 9)
+      return `+${digits.slice(0, 2)} (${digits.slice(2, 4)}) ${digits.slice(4)}`
+    return `+${digits.slice(0, 2)} (${digits.slice(2, 4)}) ${digits.slice(4, 9)}-${digits.slice(9)}`
+  }
+
+  const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setPhone(formatPhone(e.target.value))
+    setError(null)
+  }
+
+  const rawDigits = phone.replace(/\D/g, '')
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (rawDigits.length < 12) {
+      setError('Digite um número completo com DDD e o dígito 9.')
+      return
+    }
+    try {
+      setIsSending(true)
+      setError(null)
+
+      // Envia solicitação de onboarding ao backend
+      await apiBackend.post('/whatsapp/connections/register/', {
+        phone_number: `+${rawDigits}`,
+      })
+
+      setSent(true)
+      // Aguarda 2s e dispara re-fetch no componente pai
+      setTimeout(() => onSuccess(), 2000)
+    } catch (err: any) {
+      const msg =
+        err?.response?.data?.detail ||
+        err?.message ||
+        'Erro ao enviar solicitação. Tente novamente.'
+      setError(msg)
+    } finally {
+      setIsSending(false)
+    }
+  }
+
+  if (sent) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-[calc(100vh-8rem)] px-4 py-12">
+        <div className="w-20 h-20 rounded-full bg-green-100 flex items-center justify-center mb-6">
+          <CheckCircle className="w-10 h-10 text-green-500" />
+        </div>
+        <h2 className="text-2xl font-black text-gray-900 mb-2 text-center">
+          Solicitação enviada!
+        </h2>
+        <p className="text-gray-500 text-center max-w-xs">
+          Nossa equipe irá configurar seu número e você será notificado assim que estiver ativo.
+        </p>
+        <Loader2 className="w-5 h-5 animate-spin text-gray-400 mt-6" />
+      </div>
+    )
+  }
+
+  return (
+    <div className="flex flex-col items-center justify-center min-h-[calc(100vh-8rem)] px-4 py-12">
+      {/* Hero icon */}
+      <div className="relative mb-10">
+        <div className="w-32 h-32 rounded-3xl bg-gradient-to-br from-green-400 to-emerald-600 flex items-center justify-center shadow-2xl shadow-green-200">
+          <svg viewBox="0 0 24 24" className="w-16 h-16 fill-white" xmlns="http://www.w3.org/2000/svg">
+            <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.520-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z" />
+          </svg>
+        </div>
+        <div className="absolute inset-0 rounded-3xl border-2 border-green-400 animate-ping opacity-20" />
+        <div className="absolute -inset-2 rounded-3xl border-2 border-green-300 animate-ping opacity-10 [animation-delay:0.7s]" />
+      </div>
+
+      {/* Título */}
+      <div className="text-center mb-10 max-w-md">
+        <h1 className="text-3xl font-black text-gray-900 mb-3 tracking-tight">
+          Conecte o WhatsApp da Clínica
+        </h1>
+        <p className="text-gray-500 text-base leading-relaxed">
+          Informe o número de telefone da sua clínica. Nossa equipe irá configurar um número WhatsApp Business exclusivo dentro do WABA central DamaFace.
+        </p>
+      </div>
+
+      {/* Formulário */}
+      <form onSubmit={handleSubmit} className="w-full max-w-sm space-y-4">
+        <div className="space-y-1.5">
+          <label className="text-xs font-bold text-gray-500 uppercase tracking-widest flex items-center space-x-1">
+            <Phone className="w-3 h-3" />
+            <span>Número de telefone (WhatsApp)</span>
+          </label>
+          <div className="relative">
+            <input
+              id="whatsapp-phone-input"
+              type="tel"
+              value={phone}
+              onChange={handlePhoneChange}
+              placeholder="+55 (19) 98217-7463"
+              disabled={isSending}
+              className={`
+                w-full px-4 py-3.5 rounded-2xl border text-sm font-medium
+                bg-white placeholder-gray-400 text-gray-900
+                focus:outline-none focus:ring-2 transition-all
+                ${error
+                  ? 'border-red-300 focus:ring-red-200'
+                  : 'border-gray-200 focus:ring-green-200 focus:border-green-400'
+                }
+                disabled:opacity-60 disabled:cursor-not-allowed
+              `}
+            />
+          </div>
+          {error && (
+            <p className="text-xs text-red-600 flex items-center space-x-1">
+              <AlertTriangle className="w-3 h-3 shrink-0" />
+              <span>{error}</span>
+            </p>
+          )}
+          <p className="text-[11px] text-gray-400">
+            Formato: +55 (DDD) 9XXXX-XXXX · Inclua o código do país
+          </p>
+        </div>
+
+        <button
+          id="whatsapp-register-btn"
+          type="submit"
+          disabled={isSending || rawDigits.length < 12}
+          className="
+            w-full flex items-center justify-center space-x-2
+            px-6 py-4 rounded-2xl font-bold text-base
+            bg-green-500 hover:bg-green-600 text-white
+            shadow-xl shadow-green-200
+            disabled:opacity-50 disabled:cursor-not-allowed
+            transform hover:scale-[1.02] active:scale-[0.98]
+            transition-all duration-150
+          "
+        >
+          {isSending ? (
+            <>
+              <Loader2 className="w-5 h-5 animate-spin" />
+              <span>Enviando solicitação...</span>
+            </>
+          ) : (
+            <>
+              <Send className="w-5 h-5" />
+              <span>Solicitar ativação</span>
+            </>
+          )}
+        </button>
+      </form>
+
+      {/* Features preview */}
+      <div className="grid grid-cols-2 gap-3 mt-10 w-full max-w-sm">
+        {[
+          { icon: MessageSquare, label: 'Conversas em tempo real' },
+          { icon: Zap, label: 'Disparos em massa' },
+          { icon: Users, label: 'CRM Integrado' },
+          { icon: ShieldCheck, label: 'WABA Central DamaFace' },
+        ].map(({ icon: Icon, label }) => (
+          <div key={label} className="flex items-center space-x-2 p-3 bg-gray-50 rounded-xl border border-gray-100">
+            <div className="w-7 h-7 rounded-lg bg-green-100 flex items-center justify-center shrink-0">
+              <Icon className="w-3.5 h-3.5 text-green-600" />
+            </div>
+            <p className="text-[11px] font-bold text-gray-700 leading-tight">{label}</p>
+          </div>
+        ))}
+      </div>
+
+      {/* Trust badge */}
+      <div className="flex items-center space-x-2 mt-8 text-[11px] text-gray-400">
+        <ShieldCheck className="w-3.5 h-3.5 text-green-500" />
+        <span>Número gerenciado pela DamaFace · Verificado pela Meta</span>
+      </div>
+    </div>
+  )
+}
+
+// ─────────────────────────────────────────────────────────────
 // Estado 1: PENDING — Aguardando ativação
-// ─────────────────────────────────────────────
-function PendingState({ onRefresh }: { onRefresh: () => void }) {
+// Aparece quando connections[0].registration_status === 'pending'
+// ─────────────────────────────────────────────────────────────
+function PendingState({
+  connection,
+  onRefresh,
+}: {
+  connection: WabaConnection
+  onRefresh: () => void
+}) {
   const steps = [
-    { label: 'Cadastro da franquia recebido', done: true },
+    { label: 'Solicitação de número enviada', done: true },
     { label: 'Número alocado no WABA DamaFace', done: true },
     { label: 'Verificação e configuração do número', done: false, active: true },
     { label: 'Ativação liberada para uso', done: false },
@@ -80,10 +286,8 @@ function PendingState({ onRefresh }: { onRefresh: () => void }) {
             <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.520-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z" />
           </svg>
         </div>
-        {/* Pulse rings */}
         <div className="absolute inset-0 rounded-3xl border-2 border-amber-400 animate-ping opacity-20" />
         <div className="absolute -inset-2 rounded-3xl border-2 border-amber-300 animate-ping opacity-10 [animation-delay:0.7s]" />
-        {/* Badge de status */}
         <div className="absolute -bottom-2 -right-2 w-10 h-10 bg-white rounded-full border-2 border-amber-200 flex items-center justify-center shadow-lg">
           <Clock className="w-4 h-4 text-amber-500" />
         </div>
@@ -96,10 +300,12 @@ function PendingState({ onRefresh }: { onRefresh: () => void }) {
           <span>EM CONFIGURAÇÃO</span>
         </span>
         <h1 className="text-3xl font-black text-gray-900 mb-3 tracking-tight">
-          Seu número WhatsApp está sendo ativado
+          Seu número está sendo ativado
         </h1>
         <p className="text-gray-500 text-base leading-relaxed">
-          A equipe DamaFace está configurando um número WhatsApp Business exclusivo para sua clínica dentro do nosso WABA central. Você será notificado assim que estiver pronto.
+          A equipe DamaFace está configurando o número{' '}
+          <span className="font-bold text-gray-700">{connection.phone_number}</span> dentro do
+          nosso WABA central. Você será notificado assim que estiver pronto.
         </p>
       </div>
 
@@ -124,12 +330,13 @@ function PendingState({ onRefresh }: { onRefresh: () => void }) {
                   <div className="w-5 h-5 rounded-full bg-gray-100 border-2 border-gray-200" />
                 )}
               </div>
-              <p className={`text-sm font-medium leading-tight ${step.done
-                ? 'text-green-700 line-through decoration-green-400'
-                : step.active
+              <p className={`text-sm font-medium leading-tight ${
+                step.done
+                  ? 'text-green-700 line-through decoration-green-400'
+                  : step.active
                   ? 'text-amber-700'
                   : 'text-gray-400'
-                }`}>
+              }`}>
                 {step.label}
               </p>
             </div>
@@ -146,7 +353,6 @@ function PendingState({ onRefresh }: { onRefresh: () => void }) {
           <RefreshCw className="w-4 h-4" />
           <span>Verificar status agora</span>
         </button>
-
         <a
           href="https://wa.me/5519982177463?text=Olá!%20Meu%20WhatsApp%20ainda%20está%20pendente%20de%20ativação."
           target="_blank"
@@ -158,7 +364,6 @@ function PendingState({ onRefresh }: { onRefresh: () => void }) {
         </a>
       </div>
 
-      {/* Info badge */}
       <div className="flex items-center space-x-2 mt-8 text-[11px] text-gray-400">
         <ShieldCheck className="w-3.5 h-3.5 text-green-500" />
         <span>Número alocado no WABA central DamaFace · Gerenciado pela Meta</span>
@@ -167,16 +372,17 @@ function PendingState({ onRefresh }: { onRefresh: () => void }) {
   )
 }
 
-// ─────────────────────────────────────────────
+// ─────────────────────────────────────────────────────────────
 // Estado 2: ACTIVE — Dashboard Ativo
-// ─────────────────────────────────────────────
+// Só renderiza quando registration_status === 'active'
+// ─────────────────────────────────────────────────────────────
 function ActiveDashboard({
-  wabaStatus,
+  connection,
   wallet,
   isLoadingWallet,
   onRefreshWallet,
 }: {
-  wabaStatus: FranchiseWabaStatus
+  connection: WabaConnection
   wallet: WalletBalance | null
   isLoadingWallet: boolean
   onRefreshWallet: () => void
@@ -208,7 +414,7 @@ function ActiveDashboard({
           <div>
             <div className="flex items-center space-x-2 mb-0.5">
               <h2 className="text-base font-black text-gray-900">
-                {wabaStatus.display_name ?? 'Clínica DamaFace'}
+                {connection.display_name ?? 'Clínica DamaFace'}
               </h2>
               <span className="inline-flex items-center space-x-1 px-2 py-0.5 bg-green-100 text-green-700 text-[10px] font-bold rounded-full uppercase tracking-wider">
                 <div className="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse" />
@@ -218,23 +424,27 @@ function ActiveDashboard({
             <div className="flex items-center space-x-3 text-sm text-gray-500">
               <span className="flex items-center space-x-1">
                 <Phone className="w-3 h-3" />
-                <span className="font-medium">{wabaStatus.phone_number ?? '—'}</span>
+                <span className="font-medium">{connection.phone_number}</span>
               </span>
-              {wabaStatus.waba_id && (
+              {connection.waba_id && (
                 <span className="text-[11px] text-gray-400 font-mono">
-                  WABA: {wabaStatus.waba_id}
+                  WABA: {connection.waba_id}
                 </span>
               )}
             </div>
-            {wabaStatus.activated_at && (
+            {connection.activated_at && (
               <p className="text-[10px] text-gray-400 mt-0.5">
-                Ativo desde {new Date(wabaStatus.activated_at).toLocaleDateString('pt-BR', { day: '2-digit', month: 'long', year: 'numeric' })}
+                Ativo desde{' '}
+                {new Date(connection.activated_at).toLocaleDateString('pt-BR', {
+                  day: '2-digit',
+                  month: 'long',
+                  year: 'numeric',
+                })}
               </p>
             )}
           </div>
         </div>
 
-        {/* COEX Badge */}
         <div className="flex flex-col items-end space-y-1">
           <span className="px-2.5 py-1 bg-blue-50 border border-blue-100 text-blue-600 text-[10px] font-bold rounded-lg uppercase tracking-wider flex items-center space-x-1">
             <Building2 className="w-3 h-3" />
@@ -296,7 +506,7 @@ function ActiveDashboard({
         ))}
       </div>
 
-      {/* Features disponíveis */}
+      {/* Features */}
       <div className="grid grid-cols-2 gap-3">
         {[
           { icon: MessageSquare, label: 'Conversas em tempo real', desc: 'Atenda pacientes diretamente pelo painel' },
@@ -304,7 +514,10 @@ function ActiveDashboard({
           { icon: Users, label: 'CRM Integrado', desc: 'Histórico completo de cada contato' },
           { icon: ShieldCheck, label: 'Segurança garantida', desc: 'Dados protegidos e criptografados' },
         ].map(({ icon: Icon, label, desc }) => (
-          <div key={label} className="flex items-start space-x-3 p-4 bg-white rounded-2xl border border-gray-100 shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all">
+          <div
+            key={label}
+            className="flex items-start space-x-3 p-4 bg-white rounded-2xl border border-gray-100 shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all"
+          >
             <div className="w-9 h-9 rounded-xl bg-green-50 flex items-center justify-center shrink-0">
               <Icon className="w-4 h-4 text-green-600" />
             </div>
@@ -316,7 +529,7 @@ function ActiveDashboard({
         ))}
       </div>
 
-      {/* CTA — Ir para atendimento */}
+      {/* CTA */}
       <div className="p-6 bg-gradient-to-r from-green-50 to-emerald-50 rounded-2xl border border-green-100 flex items-center justify-between">
         <div>
           <h3 className="font-bold text-gray-800">Pronto para atender!</h3>
@@ -336,10 +549,14 @@ function ActiveDashboard({
   )
 }
 
-// ─────────────────────────────────────────────
+// ─────────────────────────────────────────────────────────────
 // Estado 3: SUSPENDED — Conta suspensa
-// ─────────────────────────────────────────────
-function SuspendedState({ reason }: { reason?: string }) {
+// ─────────────────────────────────────────────────────────────
+function SuspendedState({
+  connection,
+}: {
+  connection: WabaConnection
+}) {
   return (
     <div className="flex flex-col items-center justify-center min-h-[calc(100vh-8rem)] px-4 py-12">
       <div className="relative mb-8">
@@ -357,19 +574,20 @@ function SuspendedState({ reason }: { reason?: string }) {
           <span>CONTA SUSPENSA</span>
         </span>
         <h1 className="text-3xl font-black text-gray-900 mb-3 tracking-tight">
-          Seu número WhatsApp foi suspenso
+          Número {connection.phone_number} suspenso
         </h1>
         <p className="text-gray-500 text-base leading-relaxed">
-          O acesso ao WhatsApp Business desta clínica foi temporariamente suspenso. Entre em contato com o suporte DamaFace para regularizar sua situação.
+          O acesso ao WhatsApp Business desta clínica foi temporariamente suspenso. Entre em
+          contato com o suporte DamaFace para regularizar sua situação.
         </p>
       </div>
 
-      {reason && (
+      {connection.suspension_reason && (
         <div className="w-full max-w-sm bg-red-50 border border-red-200 rounded-2xl p-4 mb-8">
           <p className="text-xs font-bold text-red-700 uppercase tracking-widest mb-1">
             Motivo da suspensão
           </p>
-          <p className="text-sm text-red-800 leading-relaxed">{reason}</p>
+          <p className="text-sm text-red-800 leading-relaxed">{connection.suspension_reason}</p>
         </div>
       )}
 
@@ -386,34 +604,122 @@ function SuspendedState({ reason }: { reason?: string }) {
   )
 }
 
-// ─────────────────────────────────────────────
+// ─────────────────────────────────────────────────────────────
+// Estado Extra: BLOQUEADO — Conexão existe mas não é 'active'
+// Banner informativo com cards de métricas bloqueados/opacos
+// ─────────────────────────────────────────────────────────────
+function LockedDashboard({ connection }: { connection: WabaConnection }) {
+  return (
+    <div className="space-y-6 max-w-3xl mx-auto">
+      {/* Banner de aviso */}
+      <div className="flex items-start space-x-3 p-4 bg-amber-50 border border-amber-200 rounded-2xl">
+        <div className="w-8 h-8 rounded-xl bg-amber-100 flex items-center justify-center shrink-0 mt-0.5">
+          <Lock className="w-4 h-4 text-amber-600" />
+        </div>
+        <div>
+          <p className="text-sm font-bold text-amber-800">
+            Número em processo de ativação
+          </p>
+          <p className="text-xs text-amber-700 mt-0.5 leading-relaxed">
+            O número <span className="font-bold">{connection.phone_number}</span> foi solicitado
+            e está sendo configurado. As funcionalidades abaixo ficarão disponíveis após a ativação
+            pela equipe DamaFace.
+          </p>
+        </div>
+      </div>
+
+      {/* Status Banner (bloqueado/visual) */}
+      <div className="relative flex items-center justify-between p-5 bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+        <div className="absolute inset-0 bg-white/60 backdrop-blur-[1px] z-10 flex items-center justify-center">
+          <span className="flex items-center space-x-1.5 px-3 py-1.5 bg-amber-100 text-amber-700 rounded-full text-xs font-bold border border-amber-200">
+            <Clock className="w-3 h-3" />
+            <span>Aguardando ativação</span>
+          </span>
+        </div>
+        <div className="flex items-center space-x-4 opacity-40 select-none">
+          <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-green-400 to-emerald-500 flex items-center justify-center">
+            <MessageSquare className="w-7 h-7 text-white" />
+          </div>
+          <div>
+            <p className="text-base font-black text-gray-900">
+              {connection.display_name ?? 'Clínica DamaFace'}
+            </p>
+            <p className="text-sm text-gray-500">{connection.phone_number}</p>
+          </div>
+        </div>
+        <div className="opacity-30 select-none">
+          <ChevronRight className="w-5 h-5 text-gray-400" />
+        </div>
+      </div>
+
+      {/* Quick Stats — bloqueados */}
+      <div className="grid grid-cols-3 gap-4">
+        {[
+          { label: 'Mensagens hoje', icon: MessageSquare, color: 'text-blue-600 bg-blue-50' },
+          { label: 'Conversas ativas', icon: Users, color: 'text-purple-600 bg-purple-50' },
+          { label: 'Taxa de entrega', icon: BarChart3, color: 'text-green-600 bg-green-50' },
+        ].map(({ label, icon: Icon, color }) => (
+          <div
+            key={label}
+            className="relative p-5 bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden"
+          >
+            <div className="absolute inset-0 bg-white/80 backdrop-blur-[2px] z-10 flex items-center justify-center">
+              <Lock className="w-4 h-4 text-gray-300" />
+            </div>
+            <div className="opacity-30 select-none">
+              <div className={`w-10 h-10 rounded-xl ${color} flex items-center justify-center mb-3`}>
+                <Icon className="w-5 h-5" />
+              </div>
+              <p className="text-2xl font-black text-gray-900">—</p>
+              <p className="text-[11px] text-gray-500 font-medium mt-0.5">{label}</p>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {/* Contato suporte */}
+      <a
+        href="https://wa.me/5519982177463?text=Olá!%20Gostaria%20de%20saber%20o%20status%20da%20ativação%20do%20meu%20WhatsApp."
+        target="_blank"
+        rel="noopener noreferrer"
+        className="flex items-center justify-center space-x-2 p-4 bg-white border border-gray-200 rounded-2xl text-sm font-medium text-gray-600 hover:bg-gray-50 transition-all"
+      >
+        <HeadphonesIcon className="w-4 h-4 text-green-600" />
+        <span>Falar com suporte sobre minha ativação</span>
+        <ArrowRight className="w-4 h-4" />
+      </a>
+    </div>
+  )
+}
+
+// ─────────────────────────────────────────────────────────────
 // COMPONENTE PRINCIPAL — WhatsAppActivationStatus
-// ─────────────────────────────────────────────
+// ─────────────────────────────────────────────────────────────
 export default function WhatsAppActivationStatus() {
   const [isLoading, setIsLoading] = useState(true)
-  const [wabaStatus, setWabaStatus] = useState<FranchiseWabaStatus | null>(null)
+  const [connections, setConnections] = useState<WabaConnection[]>([])
   const [wallet, setWallet] = useState<WalletBalance | null>(null)
   const [isLoadingWallet, setIsLoadingWallet] = useState(false)
 
-  // ── Buscar status do WABA ──────────────────
-  const fetchStatus = useCallback(async () => {
+  // ── Buscar lista de conexões da franquia ──────────────
+  const fetchConnections = useCallback(async () => {
     try {
       setIsLoading(true)
-      const data = await apiBackend.get<FranchiseWabaStatus>('/whatsapp/status/')
-      setWabaStatus(data)
+      // A API retorna [] quando não há conexão
+      const data = await apiBackend.get<WabaConnection[]>('/whatsapp/connections/')
+      setConnections(Array.isArray(data) ? data : [])
     } catch {
-      // Sem dados → trata como pending
-      setWabaStatus({ status: 'pending' })
+      setConnections([])
     } finally {
       setIsLoading(false)
     }
   }, [])
 
   useEffect(() => {
-    fetchStatus()
-  }, [fetchStatus])
+    fetchConnections()
+  }, [fetchConnections])
 
-  // ── Buscar wallet quando ativo ─────────────
+  // ── Buscar wallet quando o primeiro número estiver ativo ─
   const fetchWallet = useCallback(async () => {
     try {
       setIsLoadingWallet(true)
@@ -426,39 +732,57 @@ export default function WhatsAppActivationStatus() {
     }
   }, [])
 
+  const activeConnection = connections.find((c) => c.registration_status === 'active')
+
   useEffect(() => {
-    if (wabaStatus?.status === 'active') {
+    if (activeConnection) {
       fetchWallet()
     }
-  }, [wabaStatus?.status, fetchWallet])
+  }, [activeConnection?.id, fetchWallet])
 
-  // ── Polling automático no estado pending ───
+  // ── Polling automático enquanto houver pendente ───────
+  const hasPending = connections.some((c) => c.registration_status === 'pending')
   useEffect(() => {
-    if (wabaStatus?.status !== 'pending') return
-    const interval = setInterval(fetchStatus, 30_000) // a cada 30s
+    if (!hasPending) return
+    const interval = setInterval(fetchConnections, 30_000)
     return () => clearInterval(interval)
-  }, [wabaStatus?.status, fetchStatus])
+  }, [hasPending, fetchConnections])
 
-  // ── Renderização ───────────────────────────
+  // ── Renderização ──────────────────────────────────────
   if (isLoading) {
     return <CenteredSpinner message="Verificando status do WhatsApp..." />
   }
 
-  if (!wabaStatus || wabaStatus.status === 'pending') {
-    return <PendingState onRefresh={fetchStatus} />
+  // 0. Sem nenhuma conexão → formulário de onboarding
+  if (connections.length === 0) {
+    return <WhatsAppOnboardingForm onSuccess={fetchConnections} />
   }
 
-  if (wabaStatus.status === 'suspended') {
-    return <SuspendedState reason={wabaStatus.suspension_reason} />
+  const connection = connections[0]
+
+  // 1. Número suspenso
+  if (connection.registration_status === 'suspended') {
+    return <SuspendedState connection={connection} />
   }
 
-  // status === 'active'
+  // 2. Número ativo → dashboard completo
+  if (connection.registration_status === 'active') {
+    return (
+      <ActiveDashboard
+        connection={connection}
+        wallet={wallet}
+        isLoadingWallet={isLoadingWallet}
+        onRefreshWallet={fetchWallet}
+      />
+    )
+  }
+
+  // 3. Outro status (pending, etc.) → dashboard bloqueado
+  // PendingState detalhado OU LockedDashboard com cards bloqueados
   return (
-    <ActiveDashboard
-      wabaStatus={wabaStatus}
-      wallet={wallet}
-      isLoadingWallet={isLoadingWallet}
-      onRefreshWallet={fetchWallet}
-    />
+    <div className="space-y-8 max-w-3xl mx-auto">
+      <PendingState connection={connection} onRefresh={fetchConnections} />
+      <LockedDashboard connection={connection} />
+    </div>
   )
 }
