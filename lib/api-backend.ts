@@ -54,8 +54,10 @@ export const apiBackend = {
     return this.request<T>(path, { ...options, method: "GET" });
   },
 
-  post<T = any>(path: string, body?: any): Promise<T> {
-    const headers: Record<string, string> = {};
+  post<T = any>(path: string, body?: any, options: RequestInit = {}): Promise<T> {
+    const headers: Record<string, string> = {
+      ...(options.headers as Record<string, string> || {}),
+    };
 
     // Só adiciona Content-Type se não for FormData
     if (!(body instanceof FormData)) {
@@ -63,42 +65,49 @@ export const apiBackend = {
     }
 
     return this.request<T>(path, {
+      ...options,
       method: "POST",
       body: body instanceof FormData ? body : JSON.stringify(body || {}),
       headers,
     });
   },
 
-  put<T = any>(path: string, body?: any): Promise<T> {
-    const headers: Record<string, string> = {};
+  put<T = any>(path: string, body?: any, options: RequestInit = {}): Promise<T> {
+    const headers: Record<string, string> = {
+      ...(options.headers as Record<string, string> || {}),
+    };
 
     if (!(body instanceof FormData)) {
       headers["Content-Type"] = "application/json";
     }
 
     return this.request<T>(path, {
+      ...options,
       method: "PUT",
       body: body instanceof FormData ? body : JSON.stringify(body || {}),
       headers,
     });
   },
 
-  patch<T = any>(path: string, body?: any): Promise<T> {
-    const headers: Record<string, string> = {};
+  patch<T = any>(path: string, body?: any, options: RequestInit = {}): Promise<T> {
+    const headers: Record<string, string> = {
+      ...(options.headers as Record<string, string> || {}),
+    };
 
     if (!(body instanceof FormData)) {
       headers["Content-Type"] = "application/json";
     }
 
     return this.request<T>(path, {
+      ...options,
       method: "PATCH",
       body: body instanceof FormData ? body : JSON.stringify(body || {}),
       headers,
     });
   },
 
-  delete<T = any>(path: string): Promise<T> {
-    return this.request<T>(path, { method: "DELETE" });
+  delete<T = any>(path: string, options: RequestInit = {}): Promise<T> {
+    return this.request<T>(path, { ...options, method: "DELETE" });
   },
 
   // Método para streaming (SSE - Server-Sent Events)
