@@ -77,9 +77,12 @@ function CenteredSpinner({ message }: { message?: string }) {
 // ─────────────────────────────────────────────────────────────
 function WhatsAppOnboardingForm({ onSuccess }: { onSuccess: () => void }) {
   const [phone, setPhone] = useState('')
+  const [otp, setOtp] = useState('')
+  const [step, setStep] = useState<'phone' | 'otp'>('phone')
   const [isSending, setIsSending] = useState(false)
   const [sent, setSent] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [timer, setTimer] = useState(0)
 
   const formatPhone = (value: string) => {
     // Remove tudo que não é número
@@ -98,7 +101,16 @@ function WhatsAppOnboardingForm({ onSuccess }: { onSuccess: () => void }) {
 
   const rawDigits = phone.replace(/\D/g, '')
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  // Efeito para o timer de reenvio
+  useEffect(() => {
+    let interval: NodeJS.Timeout
+    if (timer > 0) {
+      interval = setInterval(() => setTimer((t) => t - 1), 1000)
+    }
+    return () => clearInterval(interval)
+  }, [timer])
+
+  const handleRequestOtp = async (e: React.FormEvent) => {
     e.preventDefault()
     if (rawDigits.length < 12) {
       setError('Digite um número completo com DDD e o dígito 9.')
@@ -108,14 +120,13 @@ function WhatsAppOnboardingForm({ onSuccess }: { onSuccess: () => void }) {
       setIsSending(true)
       setError(null)
 
-      // Envia solicitação de onboarding ao backend
-      await apiBackend.post('/whatsapp/connections/register/', {
+      // Envia solicitação de OTP ao backend
+      await apiBackend.post('/whatsapp/register/request-otp/', {
         phone_number: `+${rawDigits}`,
       })
 
-      setSent(true)
-      // Aguarda 2s e dispara re-fetch no componente pai
-      setTimeout(() => onSuccess(), 2000)
+      setStep('otp')
+      setTimer(60) // 60 segundos para reenvio
     } catch (err: any) {
       const msg =
         err?.response?.data?.detail ||
@@ -127,19 +138,49 @@ function WhatsAppOnboardingForm({ onSuccess }: { onSuccess: () => void }) {
     }
   }
 
+  const handleVerifyOtp = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (otp.length < 4) {
+      setError('O código deve ter pelo menos 4 dígitos.')
+      return
+    }
+    try {
+      setIsSending(true)
+      setError(null)
+
+      // Envia o código para verificação
+      await apiBackend.post('/whatsapp/register/verify-otp/', {
+        phone_number: `+${rawDigits}`,
+        code: otp,
+      })
+
+      setSent(true)
+      // Aguarda 2s e dispara re-fetch no componente pai
+      setTimeout(() => onSuccess(), 2000)
+    } catch (err: any) {
+      const msg =
+        err?.response?.data?.detail ||
+        err?.message ||
+        'Código inválido ou expirado.'
+      setError(msg)
+    } finally {
+      setIsSending(false)
+    }
+  }
+
   if (sent) {
     return (
       <div className="flex flex-col items-center justify-center min-h-[calc(100vh-8rem)] px-4 py-12">
-        <div className="w-20 h-20 rounded-full bg-green-100 flex items-center justify-center mb-6">
+        <div className="w-20 h-20 rounded-full bg-green-100 flex items-center justify-center mb-6 shadow-xl shadow-green-100">
           <CheckCircle className="w-10 h-10 text-green-500" />
         </div>
-        <h2 className="text-2xl font-black text-gray-900 mb-2 text-center">
-          Solicitação enviada!
+        <h2 className="text-2xl font-black text-gray-900 mb-2 text-center tracking-tight">
+          Número verificado!
         </h2>
-        <p className="text-gray-500 text-center max-w-xs">
-          Nossa equipe irá configurar seu número e você será notificado assim que estiver ativo.
+        <p className="text-gray-500 text-center max-w-xs font-medium">
+          Seu WhatsApp foi conectado com sucesso. Redirecionando para o dashboard...
         </p>
-        <Loader2 className="w-5 h-5 animate-spin text-gray-400 mt-6" />
+        <Loader2 className="w-5 h-5 animate-spin text-green-500 mt-8" />
       </div>
     )
   }
@@ -168,70 +209,162 @@ function WhatsAppOnboardingForm({ onSuccess }: { onSuccess: () => void }) {
       </div>
 
       {/* Formulário */}
-      <form onSubmit={handleSubmit} className="w-full max-w-sm space-y-4">
-        <div className="space-y-1.5">
-          <label className="text-xs font-bold text-gray-500 uppercase tracking-widest flex items-center space-x-1">
-            <Phone className="w-3 h-3" />
-            <span>Número de telefone (WhatsApp)</span>
-          </label>
-          <div className="relative">
-            <input
-              id="whatsapp-phone-input"
-              type="tel"
-              value={phone}
-              onChange={handlePhoneChange}
-              placeholder="+55 (19) 98217-7463"
-              disabled={isSending}
-              className={`
-                w-full px-4 py-3.5 rounded-2xl border text-sm font-medium
-                bg-white placeholder-gray-400 text-gray-900
-                focus:outline-none focus:ring-2 transition-all
-                ${error
-                  ? 'border-red-300 focus:ring-red-200'
-                  : 'border-gray-200 focus:ring-green-200 focus:border-green-400'
-                }
-                disabled:opacity-60 disabled:cursor-not-allowed
-              `}
-            />
-          </div>
-          {error && (
-            <p className="text-xs text-red-600 flex items-center space-x-1">
-              <AlertTriangle className="w-3 h-3 shrink-0" />
-              <span>{error}</span>
-            </p>
-          )}
-          <p className="text-[11px] text-gray-400">
-            Formato: +55 (DDD) 9XXXX-XXXX · Inclua o código do país
-          </p>
-        </div>
+      <div className="w-full max-w-sm">
+        {step === 'phone' ? (
+          <form onSubmit={handleRequestOtp} className="space-y-4">
+            <div className="space-y-1.5">
+              <label className="text-xs font-bold text-gray-500 uppercase tracking-widest flex items-center space-x-1">
+                <Phone className="w-3 h-3" />
+                <span>Número de telefone (WhatsApp)</span>
+              </label>
+              <div className="relative">
+                <input
+                  id="whatsapp-phone-input"
+                  type="tel"
+                  value={phone}
+                  onChange={handlePhoneChange}
+                  placeholder="+55 (19) 98217-7463"
+                  disabled={isSending}
+                  className={`
+                    w-full px-4 py-3.5 rounded-2xl border text-sm font-medium
+                    bg-white placeholder-gray-400 text-gray-900
+                    focus:outline-none focus:ring-2 transition-all
+                    ${error
+                      ? 'border-red-300 focus:ring-red-200'
+                      : 'border-gray-200 focus:ring-green-200 focus:border-green-400'
+                    }
+                    disabled:opacity-60 disabled:cursor-not-allowed
+                  `}
+                />
+              </div>
+              {error && (
+                <p className="text-xs text-red-600 flex items-center space-x-1">
+                  <AlertTriangle className="w-3 h-3 shrink-0" />
+                  <span>{error}</span>
+                </p>
+              )}
+              <p className="text-[11px] text-gray-400">
+                Formato: +55 (DDD) 9XXXX-XXXX · Inclua o código do país
+              </p>
+            </div>
 
-        <button
-          id="whatsapp-register-btn"
-          type="submit"
-          disabled={isSending || rawDigits.length < 12}
-          className="
-            w-full flex items-center justify-center space-x-2
-            px-6 py-4 rounded-2xl font-bold text-base
-            bg-green-500 hover:bg-green-600 text-white
-            shadow-xl shadow-green-200
-            disabled:opacity-50 disabled:cursor-not-allowed
-            transform hover:scale-[1.02] active:scale-[0.98]
-            transition-all duration-150
-          "
-        >
-          {isSending ? (
-            <>
-              <Loader2 className="w-5 h-5 animate-spin" />
-              <span>Enviando solicitação...</span>
-            </>
-          ) : (
-            <>
-              <Send className="w-5 h-5" />
-              <span>Solicitar ativação</span>
-            </>
-          )}
-        </button>
-      </form>
+            <button
+              id="whatsapp-request-otp-btn"
+              type="submit"
+              disabled={isSending || rawDigits.length < 12}
+              className="
+                w-full flex items-center justify-center space-x-2
+                px-6 py-4 rounded-2xl font-bold text-base
+                bg-green-500 hover:bg-green-600 text-white
+                shadow-xl shadow-green-200
+                disabled:opacity-50 disabled:cursor-not-allowed
+                transform hover:scale-[1.02] active:scale-[0.98]
+                transition-all duration-150
+              "
+            >
+              {isSending ? (
+                <>
+                  <Loader2 className="w-5 h-5 animate-spin" />
+                  <span>Enviando...</span>
+                </>
+              ) : (
+                <>
+                  <Send className="w-5 h-5" />
+                  <span>Receber código por SMS</span>
+                </>
+              )}
+            </button>
+          </form>
+        ) : (
+          <form onSubmit={handleVerifyOtp} className="space-y-4">
+            <div className="space-y-1.5">
+              <label className="text-xs font-bold text-gray-500 uppercase tracking-widest flex items-center justify-between">
+                <div className="flex items-center space-x-1">
+                  <Lock className="w-3 h-3" />
+                  <span>Código de Verificação</span>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setStep('phone')}
+                  className="text-pink-600 hover:text-pink-700 normal-case font-bold"
+                >
+                  Alterar número
+                </button>
+              </label>
+              <div className="relative">
+                <input
+                  id="whatsapp-otp-input"
+                  type="text"
+                  maxLength={6}
+                  value={otp}
+                  onChange={(e) => setOtp(e.target.value.replace(/\D/g, ''))}
+                  placeholder="000000"
+                  disabled={isSending}
+                  className={`
+                    w-full px-4 py-4 rounded-2xl border text-2xl font-black text-center tracking-[0.5em]
+                    bg-white placeholder-gray-200 text-gray-900
+                    focus:outline-none focus:ring-2 transition-all
+                    ${error
+                      ? 'border-red-300 focus:ring-red-200'
+                      : 'border-gray-200 focus:ring-green-200 focus:border-green-400'
+                    }
+                    disabled:opacity-60 disabled:cursor-not-allowed
+                  `}
+                />
+              </div>
+              {error && (
+                <p className="text-xs text-red-600 flex items-center space-x-1">
+                  <AlertTriangle className="w-3 h-3 shrink-0" />
+                  <span>{error}</span>
+                </p>
+              )}
+              <p className="text-[11px] text-gray-500 text-center font-medium">
+                Enviamos um SMS para <span className="text-gray-900 font-bold">{phone}</span>
+              </p>
+            </div>
+
+            <button
+              id="whatsapp-verify-otp-btn"
+              type="submit"
+              disabled={isSending || otp.length < 4}
+              className="
+                w-full flex items-center justify-center space-x-2
+                px-6 py-4 rounded-2xl font-bold text-base
+                bg-green-500 hover:bg-green-600 text-white
+                shadow-xl shadow-green-200
+                disabled:opacity-50 disabled:cursor-not-allowed
+                transform hover:scale-[1.02] active:scale-[0.98]
+                transition-all duration-150
+              "
+            >
+              {isSending ? (
+                <>
+                  <Loader2 className="w-5 h-5 animate-spin" />
+                  <span>Verificando...</span>
+                </>
+              ) : (
+                <>
+                  <CheckCircle className="w-5 h-5" />
+                  <span>Confirmar e Ativar</span>
+                </>
+              )}
+            </button>
+
+            <button
+              type="button"
+              disabled={isSending || timer > 0}
+              onClick={handleRequestOtp}
+              className="w-full text-center py-2 text-sm font-bold text-gray-500 hover:text-gray-700 disabled:opacity-50 transition-colors"
+            >
+              {timer > 0 ? (
+                <span>Reenviar em {timer}s</span>
+              ) : (
+                <span>Não recebi o código. Reenviar agora.</span>
+              )}
+            </button>
+          </form>
+        )}
+      </div>
 
       {/* Features preview */}
       <div className="grid grid-cols-2 gap-3 mt-10 w-full max-w-sm">
