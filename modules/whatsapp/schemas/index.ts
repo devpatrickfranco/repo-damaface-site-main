@@ -16,7 +16,7 @@ export const RegistrationStatusSchema = z.enum([
  * Schema for /whatsapp/status/ endpoint
  */
 export const WabaConnectionSchema = z.object({
-  id: z.number().optional(),
+  id: z.string().uuid().optional(),
   phone_number: z.string().nullable().optional(),
   display_name: z.string().nullable().optional(),
   waba_id: z.string().nullable().optional(),
