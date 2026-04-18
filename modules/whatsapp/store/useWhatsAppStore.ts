@@ -19,7 +19,7 @@ interface WhatsAppStore extends WhatsAppState {
   
   // Actions
   fetchStatus: () => Promise<void>;
-  connect: (code: string) => Promise<void>;
+  connect: (accessToken: string) => Promise<void>;
   sendMessage: (payload: MessagePayload) => Promise<void>;
   resetError: () => void;
   setOperationPending: (pending: boolean) => void;
@@ -103,7 +103,7 @@ export const useWhatsAppStore = create<WhatsAppStore>()(
       /**
        * Embedded Signup Connection Flow with Failsafe
        */
-      connect: async (code: string) => {
+      connect: async (accessToken: string) => {
         if (get().isOperationPending) return;
 
         if (!get().featureFlags.coexEnabled) {
@@ -117,10 +117,10 @@ export const useWhatsAppStore = create<WhatsAppStore>()(
         set({ isOperationPending: true, error: null, loading: true });
         
         try {
-          const response = await whatsappApi.exchangeEmbeddedToken(code, cid);
+          const response = await whatsappApi.exchangeEmbeddedToken(accessToken, cid);
           
           if (response.success) {
-            logger.trackEvent('coex_token_exchanged', null, cid);
+            logger.trackEvent('coex_token_received', null, cid);
             await get().fetchStatus();
           } else {
             throw new Error(response.message || 'Falha na conexão');
@@ -128,7 +128,7 @@ export const useWhatsAppStore = create<WhatsAppStore>()(
         } catch (error: any) {
           const mappedError = mapError(error);
           set({ error: mappedError });
-          logger.error('COEX', 'Erro na troca de token', mappedError, cid);
+          logger.error('COEX', 'Erro ao enviar token para o backend', mappedError, cid);
         } finally {
           set({ isOperationPending: false, loading: false });
         }
