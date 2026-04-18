@@ -72,7 +72,7 @@ class MetaSDKService {
    */
   public async launchSignup(cid: string): Promise<{ code: string; waba_id?: string; phone_number_id?: string }> {
     return new Promise((resolve, reject) => {
-      const redirectUri = 'https://www.damaface.com.br/franqueado/whatsapp';
+      const redirectUri = 'https://www.facebook.com/';
       const clientId = '1455707326041548';
       const configId = '706297902568044';
 
@@ -111,41 +111,37 @@ class MetaSDKService {
         const allowedOrigins = ['https://www.facebook.com', 'https://www.damaface.com.br'];
         if (!allowedOrigins.includes(event.origin)) return;
 
-        // Event for Auth Code
+        // Event for Auth Code (code arrives here)
         if (event.data?.type === 'WA_EMBEDDED_SIGNUP_CODE') {
-          const { code, waba_id, phone_number_id } = event.data;
+          const { code } = event.data;
           if (code) {
-            logger.info('COEX', 'Código de autorização recebido', null, cid);
             result.code = code;
-            result.waba_id = waba_id;
-            result.phone_number_id = phone_number_id;
-            cleanup();
-            popup.close();
-            resolve(result as { code: string; waba_id?: string; phone_number_id?: string });
+            logger.info('COEX', 'Code recebido', null, cid);
+            // Resolve immediately if FINISH already arrived with the IDs
+            if (result.waba_id && result.phone_number_id) {
+              cleanup();
+              resolve(result as { code: string; waba_id?: string; phone_number_id?: string });
+            }
           }
         }
 
-        // Event for Metadata (waba_id, phone_number_id)
+        // Event for Metadata (waba_id, phone_number_id arrive here via FINISH)
         if (event.data?.type === 'WA_EMBEDDED_SIGNUP') {
           try {
-            const parsed = typeof event.data === 'string' 
-              ? JSON.parse(event.data) 
-              : event.data;
-              
+            const parsed = typeof event.data === 'string' ? JSON.parse(event.data) : event.data;
             if (parsed.event === 'FINISH') {
               const { waba_id, phone_number_id } = parsed.data;
-              logger.info('COEX', 'Evento FINISH recebido', { waba_id, phone_number_id }, cid);
               result.waba_id = waba_id;
               result.phone_number_id = phone_number_id;
-
-              // If we already have the code, we can resolve
+              logger.info('COEX', 'FINISH recebido', { waba_id, phone_number_id }, cid);
+              // Resolve immediately if code already arrived
               if (result.code) {
                 cleanup();
                 resolve(result as { code: string; waba_id?: string; phone_number_id?: string });
               }
             }
           } catch (e) {
-            logger.error('COEX', 'Erro ao processar mensagem WA_EMBEDDED_SIGNUP', e, cid);
+            logger.error('COEX', 'Erro ao processar FINISH', e, cid);
           }
         }
       };
