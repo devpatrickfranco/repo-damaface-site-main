@@ -38,10 +38,10 @@ export const whatsappApi = {
   /**
    * Exchanges Embedded Signup code for a WABA connection
    */
-  async exchangeEmbeddedToken(accessToken: string, cid?: string): Promise<ExchangeCodeResponse> {
+  async exchangeEmbeddedToken(code: string, cid?: string): Promise<ExchangeCodeResponse> {
     try {
       const options = cid ? { headers: { 'X-Correlation-ID': cid } } : {};
-      const data = await apiBackend.post('/whatsapp/embedded-signup/exchange/', { access_token: accessToken }, options);
+      const data = await apiBackend.post('/whatsapp/embedded-signup/exchange/', { code }, options);
       const result = ExchangeCodeResponseSchema.safeParse(data);
 
       if (!result.success) {

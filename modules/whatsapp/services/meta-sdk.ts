@@ -106,13 +106,13 @@ class MetaSDKService {
         logger.trackEvent('coex_popup_callback', { duration, status: response.status }, cid);
 
         if (response.authResponse) {
-          const accessToken = response.authResponse.accessToken;
-          if (accessToken) {
-            logger.info('COEX', 'Access Token recebido com sucesso', null, cid);
-            resolve(accessToken);
+          const code = response.authResponse.code;
+          if (code) {
+            logger.info('COEX', 'Código de autorização recebido', null, cid);
+            resolve(code);
           } else {
-            logger.error('COEX', 'accessToken ausente na resposta da Meta', response, cid);
-            reject(new Error('Token de acesso não recebido da Meta.'));
+            logger.error('COEX', 'Código ausente na resposta da Meta', response, cid);
+            reject(new Error('Código de autorização não recebido da Meta.'));
           }
         } else {
           // Abandonment / Cancel logic
@@ -122,7 +122,7 @@ class MetaSDKService {
         }
       }, {
         config_id: process.env.NEXT_PUBLIC_FACEBOOK_CONFIG_ID || '', 
-        response_type: 'token',
+        response_type: 'code',
         override_default_response_type: true,
       });
     });
