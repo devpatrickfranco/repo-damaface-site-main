@@ -67,66 +67,90 @@ class MetaSDKService {
   }
 
   /**
-   * Opens the Embedded Signup Popup with abandonment & intelligent timeout detection
+   * Opens the Embedded Signup Popup manually (bypass SDK)
+   * This provides better control over redirect_uri and avoids adblock issues.
    */
   public async launchSignup(cid: string): Promise<string> {
-    try {
-      await this.loadSDK();
-    } catch (err) {
-      throw err;
-    }
-
     return new Promise((resolve, reject) => {
-      // @ts-ignore
-      if (!window.FB) {
-         reject(new Error('SDK do Facebook não disponível'));
-         return;
+      const redirectUri = 'https://www.damaface.com.br/franqueado/whatsapp';
+      const clientId = '1455707326041548';
+      const configId = '706297902568044';
+
+      const params = new URLSearchParams({
+        client_id: clientId,
+        config_id: configId,
+        response_type: 'code',
+        redirect_uri: redirectUri,
+        display: 'popup',
+        override_default_response_type: 'true',
+        extras: JSON.stringify({ sessionInfoVersion: '3', version: 'v4' })
+      });
+
+      const url = `https://www.facebook.com/v21.0/dialog/oauth?${params.toString()}`;
+      
+      logger.info('COEX', 'Abrindo popup manual da Meta...', { url }, cid);
+
+      const popup = window.open(
+        url,
+        'fb-signup',
+        'width=600,height=700,status=no,resizable=yes,scrollbars=yes'
+      );
+
+      if (!popup) {
+        reject(new Error('popup: O popup foi bloqueado pelo navegador. Por favor, permita popups para este site.'));
+        return;
       }
 
-      this.lastPopupTime = Date.now();
-      let popupHandled = false;
-
-      // Intelligent Timeout: Adapts if user is active
-      const timeoutLimit = 60000; // 1 min
-      const timeout = setTimeout(() => {
-        if (!popupHandled) {
-          logger.error('COEX', 'Fluxo abandonado ou timeout de rede na Meta', { cid });
-          reject(new Error('popup: O fluxo demorou demais para responder. Verifique se o popup foi bloqueado ou fechado manualmente.'));
-        }
-      }, timeoutLimit);
-
-      logger.info('COEX', 'Disparando FB.login...', null, cid);
-
-      // @ts-ignore
-      window.FB.login((response: any) => {
-        popupHandled = true;
-        clearTimeout(timeout);
-        
-        const duration = Date.now() - this.lastPopupTime;
-        logger.trackEvent('coex_popup_callback', { duration, status: response.status }, cid);
-
-        if (response.authResponse) {
-          const code = response.authResponse.code;
+      // Intelligent Timeout & Abandonment detection
+      const timeoutLimit = 300000; // 5 min for manual flow (more flexible)
+      const startTime = Date.now();
+      
+      const handleMessage = (event: MessageEvent) => {
+        // Security: Check origin if needed, but since we control the redirect_uri, 
+        // we can check the message type which is unique to our app.
+        if (event.data?.type === 'WA_EMBEDDED_SIGNUP_CODE') {
+          const { code } = event.data;
+          
           if (code) {
-            logger.info('COEX', 'Código de autorização recebido', null, cid);
+            logger.info('COEX', 'Código recebido via postMessage', null, cid);
+            cleanup();
             resolve(code);
           } else {
-            logger.error('COEX', 'Código ausente na resposta da Meta', response, cid);
-            reject(new Error('Código de autorização não recebido da Meta.'));
+            logger.error('COEX', 'Código ausente na mensagem do popup', null, cid);
+            cleanup();
+            reject(new Error('Código de autorização não recebido.'));
           }
-        } else {
-          // Abandonment / Cancel logic
-          const isQuickClose = duration < 3000; // User closed it in less than 3s
-          logger.warn('COEX', isQuickClose ? 'Popup fechado rapidamente (possível abandono)' : 'Login cancelado pelo usuário', null, cid);
-          reject(new Error(isQuickClose ? 'Fluxo interrompido prematuramente.' : 'Interação com a Meta cancelada pelo usuário.'));
         }
-      }, {
-        config_id: process.env.NEXT_PUBLIC_FACEBOOK_CONFIG_ID || '', 
-        response_type: 'code',
-        override_default_response_type: true,
-      });
+      };
+
+      const cleanup = () => {
+        window.removeEventListener('message', handleMessage);
+        clearInterval(checkClosed);
+        clearTimeout(timeout);
+      };
+
+      const timeout = setTimeout(() => {
+        cleanup();
+        reject(new Error('timeout: O fluxo demorou demais para responder.'));
+      }, timeoutLimit);
+
+      // Check if popup was closed manually
+      const checkClosed = setInterval(() => {
+        if (popup.closed) {
+          const duration = Date.now() - startTime;
+          cleanup();
+          if (duration < 5000) {
+             reject(new Error('Fluxo interrompido prematuramente.'));
+          } else {
+             reject(new Error('Interação cancelada pelo usuário.'));
+          }
+        }
+      }, 1000);
+
+      window.addEventListener('message', handleMessage);
     });
   }
 }
 
 export const metaSDK = MetaSDKService.getInstance();
+
