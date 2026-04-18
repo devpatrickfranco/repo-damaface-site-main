@@ -90,6 +90,7 @@ class MetaSDKService {
 
       const url = `https://www.facebook.com/v21.0/dialog/oauth?${params.toString()}`;
 
+      console.log('%c[COEX] 🚀 STEP 1 — Popup sendo aberto', 'color: #4CAF50; font-weight: bold;', { url, redirectUri, configId });
       logger.info('COEX', 'Abrindo popup manual da Meta...', { url }, cid);
 
       const popup = window.open(
@@ -99,60 +100,109 @@ class MetaSDKService {
       );
 
       if (!popup) {
+        console.error('[COEX] ❌ Popup bloqueado pelo navegador!');
         reject(new Error('popup: O popup foi bloqueado pelo navegador. Por favor, permita popups para este site.'));
         return;
       }
+
+      console.log('%c[COEX] ✅ STEP 2 — Popup aberto com sucesso. Aguardando eventos postMessage...', 'color: #4CAF50; font-weight: bold;');
+      console.log('%c[COEX] 👂 Listener de postMessage registrado. Origens aceitas: facebook.com, damaface.com.br', 'color: #2196F3;');
 
       // Intelligent Timeout & Abandonment detection
       const timeoutLimit = 300000; // 5 min for manual flow (more flexible)
       const startTime = Date.now();
 
       const handleMessage = (event: MessageEvent) => {
+        // Log EVERY message before filtering — to see if Meta is sending on a different origin
+        console.log('%c[COEX] 📨 postMessage recebido (raw)', 'color: #FF9800; font-weight: bold;', {
+          origin: event.origin,
+          type: typeof event.data,
+          data: event.data,
+          timestamp: new Date().toISOString(),
+        });
+
         const allowedOrigins = ['https://www.facebook.com', 'https://www.damaface.com.br'];
-        if (!allowedOrigins.includes(event.origin)) return;
+        if (!allowedOrigins.includes(event.origin)) {
+          console.log('%c[COEX] ⏭️ Mensagem ignorada — origem não permitida:', 'color: #9E9E9E;', event.origin);
+          return;
+        }
+
+        console.log('%c[COEX] ✅ Origem permitida — processando mensagem...', 'color: #4CAF50;', { origin: event.origin, type: event.data?.type });
 
         // Event for Auth Code (code arrives here)
         if (event.data?.type === 'WA_EMBEDDED_SIGNUP_CODE') {
+          console.log('%c[COEX] 🔑 STEP 3a — Evento WA_EMBEDDED_SIGNUP_CODE recebido', 'color: #9C27B0; font-weight: bold;', event.data);
           const { code } = event.data;
           if (code) {
             result.code = code;
             logger.info('COEX', 'Code recebido', null, cid);
+            console.log('%c[COEX] 🔑 Code capturado! Estado atual do result:', 'color: #9C27B0;', { ...result });
+            console.log('%c[COEX] ⏳ Aguardando evento FINISH com waba_id e phone_number_id...', 'color: #FF9800;');
             // Resolve immediately if FINISH already arrived with the IDs
             if (result.waba_id && result.phone_number_id) {
+              console.log('%c[COEX] 🎯 FINISH já havia chegado antes! Resolvendo promise com dados completos.', 'color: #4CAF50; font-weight: bold;', { ...result });
               cleanup();
               resolve(result as { code: string; waba_id?: string; phone_number_id?: string });
             }
+          } else {
+            console.warn('[COEX] ⚠️ WA_EMBEDDED_SIGNUP_CODE recebido MAS sem campo "code"', event.data);
           }
         }
 
         // Event for Metadata (waba_id, phone_number_id arrive here via FINISH)
         if (event.data?.type === 'WA_EMBEDDED_SIGNUP') {
+          console.log('%c[COEX] 🏁 STEP 3b — Evento WA_EMBEDDED_SIGNUP recebido', 'color: #E91E63; font-weight: bold;', event.data);
           try {
             const parsed = typeof event.data === 'string' ? JSON.parse(event.data) : event.data;
+            console.log('%c[COEX] 🔍 WA_EMBEDDED_SIGNUP parsed:', 'color: #E91E63;', { event: parsed.event, data: parsed.data });
+
             if (parsed.event === 'FINISH') {
+              console.log('%c[COEX] 🏁 STEP 4 — Evento FINISH detectado!', 'color: #E91E63; font-weight: bold;', parsed.data);
               const { waba_id, phone_number_id } = parsed.data;
+
+              if (waba_id) {
+                console.log('%c[COEX] ✅ waba_id ENCONTRADO:', 'color: #4CAF50; font-weight: bold;', waba_id);
+              } else {
+                console.warn('[COEX] ⚠️ waba_id está AUSENTE no evento FINISH! parsed.data:', parsed.data);
+              }
+              if (phone_number_id) {
+                console.log('%c[COEX] ✅ phone_number_id ENCONTRADO:', 'color: #4CAF50; font-weight: bold;', phone_number_id);
+              } else {
+                console.warn('[COEX] ⚠️ phone_number_id está AUSENTE no evento FINISH! parsed.data:', parsed.data);
+              }
+
               result.waba_id = waba_id;
               result.phone_number_id = phone_number_id;
               logger.info('COEX', 'FINISH recebido', { waba_id, phone_number_id }, cid);
+              console.log('%c[COEX] 📊 Estado do result após FINISH:', 'color: #E91E63;', { ...result });
+
               // Resolve immediately if code already arrived
               if (result.code) {
+                console.log('%c[COEX] 🎯 STEP 5 — Code já havia chegado antes! Resolvendo promise com dados completos.', 'color: #4CAF50; font-weight: bold;', { ...result });
                 cleanup();
                 resolve(result as { code: string; waba_id?: string; phone_number_id?: string });
+              } else {
+                console.log('%c[COEX] ⏳ FINISH recebido, mas ainda esperando o Code...', 'color: #FF9800;');
               }
+            } else {
+              console.log('%c[COEX] ℹ️ Evento WA_EMBEDDED_SIGNUP recebido (não é FINISH):', 'color: #9E9E9E;', { event: parsed.event });
             }
           } catch (e) {
+            console.error('[COEX] ❌ Erro ao fazer parse do evento WA_EMBEDDED_SIGNUP:', e, event.data);
             logger.error('COEX', 'Erro ao processar FINISH', e, cid);
           }
         }
       };
 
       const cleanup = () => {
+        console.log('%c[COEX] 🧹 Cleanup — removendo listener e timers', 'color: #9E9E9E;');
         window.removeEventListener('message', handleMessage);
         clearInterval(checkClosed);
         clearTimeout(timeout);
       };
 
       const timeout = setTimeout(() => {
+        console.error('[COEX] ⏰ TIMEOUT — Fluxo não respondeu em 5 minutos.');
         cleanup();
         reject(new Error('timeout: O fluxo demorou demais para responder.'));
       }, timeoutLimit);
@@ -161,22 +211,34 @@ class MetaSDKService {
       const checkClosed = setInterval(() => {
         if (popup.closed) {
           const duration = Date.now() - startTime;
+          console.log('%c[COEX] 🪟 Popup foi fechado', 'color: #FF9800; font-weight: bold;', {
+            duration: `${(duration / 1000).toFixed(1)}s`,
+            resultAtClose: { ...result },
+          });
           cleanup();
-          
+
           if (result.code) {
+            if (!result.waba_id || !result.phone_number_id) {
+              console.warn('[COEX] ⚠️ Popup fechou COM code mas SEM waba_id/phone_number_id! Backend usará fallback.', { ...result });
+            } else {
+              console.log('%c[COEX] ✅ Popup fechou com todos os dados. Resolvendo.', 'color: #4CAF50;', { ...result });
+            }
             // If we have at least the code, resolve even if FINISH didn't arrive or failed
             resolve(result as { code: string; waba_id?: string; phone_number_id?: string });
             return;
           }
 
           if (duration < 5000) {
+            console.error('[COEX] ❌ Popup fechou muito cedo (< 5s) — provavelmente bloqueado ou erro.');
             reject(new Error('Fluxo interrompido prematuramente.'));
           } else {
+            console.warn('[COEX] ⚠️ Popup fechado pelo usuário sem completar o fluxo.');
             reject(new Error('Interação cancelada pelo usuário.'));
           }
         }
       }, 1000);
 
+      console.log('%c[COEX] 👂 Listener ativo. Complete o fluxo no popup para ver os próximos logs.', 'color: #2196F3; font-weight: bold;');
       window.addEventListener('message', handleMessage);
     });
   }
