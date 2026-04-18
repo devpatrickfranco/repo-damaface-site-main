@@ -15,8 +15,8 @@ export function EmbeddedSignupButton() {
     logger.trackEvent('coex_button_clicked', { status }, cid);
 
     try {
-      const code = await metaSDK.launchSignup(cid);
-      await connect(code);
+      const result = await metaSDK.launchSignup(cid);
+      await connect(result);
     } catch (err: any) {
       logger.error('UI', 'Erro no fluxo de signup', err, cid);
     }

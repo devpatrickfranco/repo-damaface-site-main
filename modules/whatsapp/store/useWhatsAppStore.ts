@@ -19,7 +19,7 @@ interface WhatsAppStore extends WhatsAppState {
   
   // Actions
   fetchStatus: () => Promise<void>;
-  connect: (code: string) => Promise<void>;
+  connect: (data: { code: string; waba_id?: string; phone_number_id?: string }) => Promise<void>;
   sendMessage: (payload: MessagePayload) => Promise<void>;
   resetError: () => void;
   setOperationPending: (pending: boolean) => void;
@@ -103,7 +103,7 @@ export const useWhatsAppStore = create<WhatsAppStore>()(
       /**
        * Embedded Signup Connection Flow with Failsafe
        */
-      connect: async (code: string) => {
+      connect: async (data: { code: string; waba_id?: string; phone_number_id?: string }) => {
         if (get().isOperationPending) return;
 
         if (!get().featureFlags.coexEnabled) {
@@ -117,7 +117,7 @@ export const useWhatsAppStore = create<WhatsAppStore>()(
         set({ isOperationPending: true, error: null, loading: true });
         
         try {
-          const response = await whatsappApi.exchangeEmbeddedToken(code, cid);
+          const response = await whatsappApi.exchangeEmbeddedToken(data, cid);
           
           if (response.success) {
             logger.trackEvent('coex_token_exchanged', null, cid);

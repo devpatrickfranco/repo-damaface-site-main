@@ -35,11 +35,14 @@ export const whatsappApi = {
     }
   },
 
-  async exchangeEmbeddedToken(code: string, cid?: string): Promise<ExchangeCodeResponse> {
+  async exchangeEmbeddedToken(
+    data: { code: string; waba_id?: string; phone_number_id?: string }, 
+    cid?: string
+  ): Promise<ExchangeCodeResponse> {
     try {
       const options = cid ? { headers: { 'X-Correlation-ID': cid } } : {};
-      const data = await apiBackend.post('/whatsapp/embedded-signup/exchange/', { code }, options);
-      const result = ExchangeCodeResponseSchema.safeParse(data);
+      const response = await apiBackend.post('/whatsapp/embedded-signup/exchange/', data, options);
+      const result = ExchangeCodeResponseSchema.safeParse(response);
 
       if (!result.success) {
         throw new Error('Falha ao processar resposta do Embedded Signup');

@@ -7,7 +7,7 @@ class MetaSDKService {
   private loadError: string | null = null;
   private lastPopupTime: number = 0;
 
-  private constructor() {}
+  private constructor() { }
 
   public static getInstance(): MetaSDKService {
     if (!MetaSDKService.instance) {
@@ -70,11 +70,13 @@ class MetaSDKService {
    * Opens the Embedded Signup Popup manually (bypass SDK)
    * This provides better control over redirect_uri and avoids adblock issues.
    */
-  public async launchSignup(cid: string): Promise<string> {
+  public async launchSignup(cid: string): Promise<{ code: string; waba_id?: string; phone_number_id?: string }> {
     return new Promise((resolve, reject) => {
       const redirectUri = 'https://www.damaface.com.br/franqueado/whatsapp';
       const clientId = '1455707326041548';
       const configId = '706297902568044';
+
+      let result: { code?: string; waba_id?: string; phone_number_id?: string } = {};
 
       const params = new URLSearchParams({
         client_id: clientId,
@@ -87,7 +89,7 @@ class MetaSDKService {
       });
 
       const url = `https://www.facebook.com/v21.0/dialog/oauth?${params.toString()}`;
-      
+
       logger.info('COEX', 'Abrindo popup manual da Meta...', { url }, cid);
 
       const popup = window.open(
@@ -104,21 +106,40 @@ class MetaSDKService {
       // Intelligent Timeout & Abandonment detection
       const timeoutLimit = 300000; // 5 min for manual flow (more flexible)
       const startTime = Date.now();
-      
+
       const handleMessage = (event: MessageEvent) => {
-        // Security: Check origin if needed, but since we control the redirect_uri, 
-        // we can check the message type which is unique to our app.
+        if (event.origin !== 'https://www.facebook.com') return;
+
+        // Event for Auth Code
         if (event.data?.type === 'WA_EMBEDDED_SIGNUP_CODE') {
           const { code } = event.data;
-          
           if (code) {
-            logger.info('COEX', 'Código recebido via postMessage', null, cid);
-            cleanup();
-            resolve(code);
-          } else {
-            logger.error('COEX', 'Código ausente na mensagem do popup', null, cid);
-            cleanup();
-            reject(new Error('Código de autorização não recebido.'));
+            logger.info('COEX', 'Código de autorização recebido', null, cid);
+            result.code = code;
+          }
+        }
+
+        // Event for Metadata (waba_id, phone_number_id)
+        if (event.data?.type === 'WA_EMBEDDED_SIGNUP') {
+          try {
+            const parsed = typeof event.data === 'string' 
+              ? JSON.parse(event.data) 
+              : event.data;
+              
+            if (parsed.event === 'FINISH') {
+              const { waba_id, phone_number_id } = parsed.data;
+              logger.info('COEX', 'Evento FINISH recebido', { waba_id, phone_number_id }, cid);
+              result.waba_id = waba_id;
+              result.phone_number_id = phone_number_id;
+
+              // If we already have the code, we can resolve
+              if (result.code) {
+                cleanup();
+                resolve(result as { code: string; waba_id?: string; phone_number_id?: string });
+              }
+            }
+          } catch (e) {
+            logger.error('COEX', 'Erro ao processar mensagem WA_EMBEDDED_SIGNUP', e, cid);
           }
         }
       };
@@ -139,10 +160,17 @@ class MetaSDKService {
         if (popup.closed) {
           const duration = Date.now() - startTime;
           cleanup();
+          
+          if (result.code) {
+            // If we have at least the code, resolve even if FINISH didn't arrive or failed
+            resolve(result as { code: string; waba_id?: string; phone_number_id?: string });
+            return;
+          }
+
           if (duration < 5000) {
-             reject(new Error('Fluxo interrompido prematuramente.'));
+            reject(new Error('Fluxo interrompido prematuramente.'));
           } else {
-             reject(new Error('Interação cancelada pelo usuário.'));
+            reject(new Error('Interação cancelada pelo usuário.'));
           }
         }
       }, 1000);

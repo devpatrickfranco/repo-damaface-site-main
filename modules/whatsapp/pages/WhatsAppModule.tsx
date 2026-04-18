@@ -27,13 +27,15 @@ export function WhatsAppModule() {
     logger.info('Module', 'Montado. Iniciando busca de status Source of Truth...', { cid });
     fetchStatus();
 
-    // Capturar código do Embedded Signup se estiver em um popup
+    // Capturar código do Embedded Signup se estiver em um popup (fluxo redirect)
     const urlParams = new URLSearchParams(window.location.search);
     const code = urlParams.get('code');
     
     if (code && window.opener) {
-      logger.info('Module', 'Código detectado no popup. Enviando para opener...', { cid });
-      window.opener.postMessage({ type: 'WA_EMBEDDED_SIGNUP_CODE', code }, '*');
+      const waba_id = urlParams.get('waba_id') || undefined;
+      const phone_number_id = urlParams.get('phone_number_id') || undefined;
+      logger.info('Module', 'Código detectado no popup. Enviando para opener...', { cid, waba_id, phone_number_id });
+      window.opener.postMessage({ type: 'WA_EMBEDDED_SIGNUP_CODE', code, waba_id, phone_number_id }, '*');
       window.close();
     }
   }, [fetchStatus, currentCorrelationId, startFlow]);
