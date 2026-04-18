@@ -72,7 +72,7 @@ class MetaSDKService {
    */
   public async launchSignup(cid: string): Promise<{ code: string; waba_id?: string; phone_number_id?: string }> {
     return new Promise((resolve, reject) => {
-      const redirectUri = 'https://www.facebook.com/';
+      const redirectUri = 'https://www.damaface.com.br/franqueado/whatsapp';
       const clientId = '1455707326041548';
       const configId = '706297902568044';
 
