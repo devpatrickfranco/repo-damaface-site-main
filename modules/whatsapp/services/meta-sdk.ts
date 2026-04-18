@@ -108,14 +108,20 @@ class MetaSDKService {
       const startTime = Date.now();
 
       const handleMessage = (event: MessageEvent) => {
-        if (event.origin !== 'https://www.facebook.com') return;
+        const allowedOrigins = ['https://www.facebook.com', 'https://www.damaface.com.br'];
+        if (!allowedOrigins.includes(event.origin)) return;
 
         // Event for Auth Code
         if (event.data?.type === 'WA_EMBEDDED_SIGNUP_CODE') {
-          const { code } = event.data;
+          const { code, waba_id, phone_number_id } = event.data;
           if (code) {
             logger.info('COEX', 'Código de autorização recebido', null, cid);
             result.code = code;
+            result.waba_id = waba_id;
+            result.phone_number_id = phone_number_id;
+            cleanup();
+            popup.close();
+            resolve(result as { code: string; waba_id?: string; phone_number_id?: string });
           }
         }
 
