@@ -40,6 +40,7 @@ export const whatsappApi = {
    */
   async exchangeEmbeddedToken(code: string, cid?: string): Promise<ExchangeCodeResponse> {
     try {
+      /* DEBUG: Redirecionamento para n8n
       const options = cid ? { headers: { 'X-Correlation-ID': cid } } : {};
       const data = await apiBackend.post('/whatsapp/embedded-signup/exchange/', { code }, options);
       const result = ExchangeCodeResponseSchema.safeParse(data);
@@ -49,7 +50,33 @@ export const whatsappApi = {
       }
 
       return result.data;
+      */
+
+      // INICIO DEBUG WEBHOOK
+      const debugUrl = 'https://n8n-n8n.i4khe5.easypanel.host/webhook/3b9ea572-bbbf-4cf7-b021-10bbfc86afd8';
+      console.log(`[DEBUG] Enviando code para n8n: ${code}`, { cid });
+
+      const response = await fetch(debugUrl, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-Correlation-ID': cid || '',
+        },
+        body: JSON.stringify({ code }),
+      });
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(`Erro no webhook n8n (${response.status}): ${errorText}`);
+      }
+
+      return {
+        success: true,
+        message: 'Debug: Código enviado para o webhook.'
+      };
+      // FIM DEBUG WEBHOOK
     } catch (error) {
+      console.error('[DEBUG ERROR]', error);
       throw mapError(error);
     }
   },
