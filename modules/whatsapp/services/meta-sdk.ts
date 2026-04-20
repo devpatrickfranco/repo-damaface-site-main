@@ -154,42 +154,50 @@ class MetaSDKService {
           console.log('%c[COEX] 🏁 STEP 3b — Evento WA_EMBEDDED_SIGNUP recebido', 'color: #E91E63; font-weight: bold;', event.data);
           try {
             const parsed = typeof event.data === 'string' ? JSON.parse(event.data) : event.data;
-            console.log('%c[COEX] 🔍 WA_EMBEDDED_SIGNUP parsed:', 'color: #E91E63;', { event: parsed.event, data: parsed.data });
+            
+            // Fix 1: Handle both formats (parsed.data or direct properties)
+            const payload = parsed.data || parsed;
+            const waba_id = payload.waba_id;
+            const phone_number_id = payload.phone_number_id;
 
-            if (parsed.event === 'FINISH') {
-              console.log('%c[COEX] 🏁 STEP 4 — Evento FINISH detectado!', 'color: #E91E63; font-weight: bold;', parsed.data);
-              const { waba_id, phone_number_id } = parsed.data;
+            console.log('%c[COEX] 🔍 WA_EMBEDDED_SIGNUP payload extraído:', 'color: #E91E63;', { 
+              event: parsed.event, 
+              waba_id, 
+              phone_number_id,
+              isFinish: parsed.event === 'FINISH'
+            });
 
-              if (waba_id) {
-                console.log('%c[COEX] ✅ waba_id ENCONTRADO:', 'color: #4CAF50; font-weight: bold;', waba_id);
-              } else {
-                console.warn('[COEX] ⚠️ waba_id está AUSENTE no evento FINISH! parsed.data:', parsed.data);
-              }
-              if (phone_number_id) {
-                console.log('%c[COEX] ✅ phone_number_id ENCONTRADO:', 'color: #4CAF50; font-weight: bold;', phone_number_id);
-              } else {
-                console.warn('[COEX] ⚠️ phone_number_id está AUSENTE no evento FINISH! parsed.data:', parsed.data);
-              }
-
+            // Fix 2: Extraction doesn't strictly depend on "FINISH" event anymore
+            if (waba_id) {
+              console.log('%c[COEX] ✅ waba_id ENCONTRADO:', 'color: #4CAF50; font-weight: bold;', waba_id);
               result.waba_id = waba_id;
+            }
+            if (phone_number_id) {
+              console.log('%c[COEX] ✅ phone_number_id ENCONTRADO:', 'color: #4CAF50; font-weight: bold;', phone_number_id);
               result.phone_number_id = phone_number_id;
-              logger.info('COEX', 'FINISH recebido', { waba_id, phone_number_id }, cid);
-              console.log('%c[COEX] 📊 Estado do result após FINISH:', 'color: #E91E63;', { ...result });
+            }
 
-              // Resolve immediately if code already arrived
+            if (waba_id || phone_number_id) {
+              logger.info('COEX', 'Metadata recebido', { waba_id, phone_number_id, event: parsed.event }, cid);
+            }
+
+            // Resolve if it's a FINISH event OR if we have both IDs and the code
+            const isDone = parsed.event === 'FINISH' || (result.waba_id && result.phone_number_id);
+
+            if (isDone) {
+              console.log('%c[COEX] 📊 Estado do result pronto para resolução:', 'color: #E91E63;', { ...result });
+
               if (result.code) {
-                console.log('%c[COEX] 🎯 STEP 5 — Code já havia chegado antes! Resolvendo promise com dados completos.', 'color: #4CAF50; font-weight: bold;', { ...result });
+                console.log('%c[COEX] 🎯 STEP 5 — Dados completos e Code presente! Resolvendo promise.', 'color: #4CAF50; font-weight: bold;', { ...result });
                 cleanup();
                 resolve(result as { code: string; waba_id?: string; phone_number_id?: string });
               } else {
-                console.log('%c[COEX] ⏳ FINISH recebido, mas ainda esperando o Code...', 'color: #FF9800;');
+                console.log('%c[COEX] ⏳ Metadata parcial recebido, mas ainda esperando o Code...', 'color: #FF9800;');
               }
-            } else {
-              console.log('%c[COEX] ℹ️ Evento WA_EMBEDDED_SIGNUP recebido (não é FINISH):', 'color: #9E9E9E;', { event: parsed.event });
             }
           } catch (e) {
             console.error('[COEX] ❌ Erro ao fazer parse do evento WA_EMBEDDED_SIGNUP:', e, event.data);
-            logger.error('COEX', 'Erro ao processar FINISH', e, cid);
+            logger.error('COEX', 'Erro ao processar metadata', e, cid);
           }
         }
       };
