@@ -48,3 +48,45 @@ export const ExchangeCodeResponseSchema = z.object({
   message: z.string().optional(),
   connection: WabaConnectionSchema.optional(),
 });
+
+// ─────────────────────────────────────────────
+// WhatsApp Messages
+// ─────────────────────────────────────────────
+
+export const MessageDirectionSchema = z.enum(['IN', 'OUT']);
+
+export const MessageStatusSchema = z.enum([
+  'sent',
+  'delivered',
+  'read',
+  'failed',
+  'pending',
+  'received',
+]).catch('pending');
+
+/**
+ * Schema for a single WhatsApp message returned by GET /whatsapp/messages/
+ */
+export const WhatsAppMessageSchema = z.object({
+  id: z.union([z.string(), z.number()]).transform(String),
+  to: z.string().optional().catch(undefined),
+  from: z.string().optional().catch(undefined),
+  contact: z.string().nullable().optional(),
+  content: z.string().nullable().optional(),
+  type: z.enum(['text', 'template', 'media']).catch('text'),
+  direction: MessageDirectionSchema,
+  status: MessageStatusSchema,
+  created_at: z.string(),
+  wamid: z.string().nullable().optional(),
+});
+
+export const WhatsAppMessagesResponseSchema = z.array(WhatsAppMessageSchema);
+
+/**
+ * Query params for GET /whatsapp/messages/
+ */
+export const MessagesQueryParamsSchema = z.object({
+  since: z.string().optional(),
+  direction: MessageDirectionSchema.optional(),
+  contact: z.string().optional(),
+});

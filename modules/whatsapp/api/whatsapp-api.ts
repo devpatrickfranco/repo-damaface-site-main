@@ -2,9 +2,11 @@ import { apiBackend } from '@/lib/api-backend';
 import {
   WabaStatusResponseSchema,
   ExchangeCodeResponseSchema,
-  WabaConnectionSchema
+  WabaConnectionSchema,
+  WhatsAppMessagesResponseSchema,
+  WhatsAppMessageSchema,
 } from '../schemas';
-import { WabaConnection, MessagePayload, ExchangeCodeResponse } from '../types';
+import { WabaConnection, MessagePayload, ExchangeCodeResponse, WhatsAppMessage, MessagesQueryParams } from '../types';
 import { mapError } from '../utils/error-mapper';
 
 /**
@@ -55,9 +57,56 @@ export const whatsappApi = {
     }
   },
 
+  /**
+   * Fetches messages list with optional filters
+   * GET /whatsapp/messages/?since=…&direction=…&contact=…
+   */
+  async getMessages(params?: MessagesQueryParams, cid?: string): Promise<WhatsAppMessage[]> {
+    try {
+      const qp = new URLSearchParams();
+      if (params?.since) qp.set('since', params.since);
+      if (params?.direction) qp.set('direction', params.direction);
+      if (params?.contact) qp.set('contact', params.contact);
+
+      const query = qp.toString() ? `?${qp.toString()}` : '';
+      const options = cid ? { headers: { 'X-Correlation-ID': cid } } : {};
+      const data = await apiBackend.get(`/whatsapp/messages/${query}`, options);
+      const result = WhatsAppMessagesResponseSchema.safeParse(data);
+
+      if (!result.success) {
+        console.error('[WhatsApp API] Schema validation failed for getMessages', result.error);
+        return [];
+      }
+
+      return result.data;
+    } catch (error) {
+      throw mapError(error);
+    }
+  },
+
+  /**
+   * Fetches a single message by ID
+   * GET /whatsapp/messages/{id}/
+   */
+  async getMessage(id: string, cid?: string): Promise<WhatsAppMessage> {
+    try {
+      const options = cid ? { headers: { 'X-Correlation-ID': cid } } : {};
+      const data = await apiBackend.get(`/whatsapp/messages/${id}/`, options);
+      const result = WhatsAppMessageSchema.safeParse(data);
+
+      if (!result.success) {
+        throw new Error('Formato de mensagem inválido');
+      }
+
+      return result.data;
+    } catch (error) {
+      throw mapError(error);
+    }
+  },
 
   /**
    * Sends a message (text or template)
+   * POST /whatsapp/messages/send/
    */
   async sendMessage(payload: MessagePayload, cid?: string): Promise<any> {
     try {
