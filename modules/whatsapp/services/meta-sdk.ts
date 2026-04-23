@@ -121,7 +121,7 @@ class MetaSDKService {
           timestamp: new Date().toISOString(),
         });
 
-        const allowedOrigins = ['https://www.facebook.com', 'https://www.damaface.com.br'];
+        const allowedOrigins = ['https://www.facebook.com', 'https://facebook.com', 'https://www.damaface.com.br'];
         if (!allowedOrigins.includes(event.origin)) {
           console.log('%c[COEX] ⏭️ Mensagem ignorada — origem não permitida:', 'color: #9E9E9E;', event.origin);
           return;
@@ -154,15 +154,16 @@ class MetaSDKService {
           console.log('%c[COEX] 🏁 STEP 3b — Evento WA_EMBEDDED_SIGNUP recebido', 'color: #E91E63; font-weight: bold;', event.data);
           try {
             const parsed = typeof event.data === 'string' ? JSON.parse(event.data) : event.data;
-            
-            // Fix 1: Handle both formats (parsed.data or direct properties)
-            const payload = parsed.data || parsed;
+
+            // Fix 1: Handle all known formats (sessionInfo > data > direct properties)
+            // sessionInfo is the standard in Coex v4+ / newer Meta flows
+            const payload = parsed.sessionInfo || parsed.data || parsed;
             const waba_id = payload.waba_id;
             const phone_number_id = payload.phone_number_id;
 
-            console.log('%c[COEX] 🔍 WA_EMBEDDED_SIGNUP payload extraído:', 'color: #E91E63;', { 
-              event: parsed.event, 
-              waba_id, 
+            console.log('%c[COEX] 🔍 WA_EMBEDDED_SIGNUP payload extraído:', 'color: #E91E63;', {
+              event: parsed.event,
+              waba_id,
               phone_number_id,
               isFinish: parsed.event === 'FINISH'
             });
@@ -253,4 +254,3 @@ class MetaSDKService {
 }
 
 export const metaSDK = MetaSDKService.getInstance();
-
