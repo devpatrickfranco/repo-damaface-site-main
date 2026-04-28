@@ -58,6 +58,7 @@ interface NavItem {
 const ALL_ROLES = ['SUPERADMIN', 'ADMIN', 'FRANQUEADO', 'FUNCIONARIO']
 const ADMIN_ROLES = ['SUPERADMIN']
 const FRANQUEADO_ROLES = ['SUPERADMIN', 'FRANQUEADO']
+const SUPERADMIN_ROLES = ['SUPERADMIN']
 
 const MARKETING_SUBMODULES: NavItem[] = [
   { id: 'drive', name: 'Drive', icon: FolderOpen, route: '/franqueado/marketing/drive' },
@@ -93,7 +94,7 @@ const NAV_LINKS: NavItem[] = [
   { id: 'comunicados', name: 'Comunicados', icon: Newspaper, route: '/franqueado/comunicados', roles: ALL_ROLES },
   //{ id: 'damaai', name: 'Dama.ai', icon: BrainCircuit, route: '/franqueado/damaai', roles: ALL_ROLES },
   { id: 'marketing', name: 'Marketing', icon: Megaphone, route: '/franqueado/marketing', roles: ALL_ROLES, hasSubModules: true, subModules: MARKETING_SUBMODULES },
-  { id: 'whatsapp', name: 'Atendimento WA', icon: MessageSquare, route: '/franqueado/whatsapp', roles: ALL_ROLES, hasSubModules: true, subModules: WHATSAPP_SUBMODULES },
+  { id: 'whatsapp', name: 'Atendimento WA', icon: MessageSquare, route: '/franqueado/whatsapp', roles: SUPERADMIN_ROLES, hasSubModules: true, subModules: WHATSAPP_SUBMODULES },
   { id: 'blog', name: 'Blog', icon: FileText, route: '/franqueado/blog', roles: ADMIN_ROLES },
   //{ id: 'excelencia', name: 'Programa de Excelência', icon: Award, route: '/franqueado/excelencia', roles: ['SUPERADMIN', 'FRANQUEADO'], hasSubModules: true, subModules: EXCELENCIA_SUBMODULES },
   { id: 'usuarios', name: 'Usuarios', icon: Users2, route: '/franqueado/usuarios', roles: ADMIN_ROLES },
