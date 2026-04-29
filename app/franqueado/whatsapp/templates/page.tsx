@@ -1,133 +1,321 @@
-'use client'
+'use client';
 
-import { useState } from 'react'
-import { 
-  Plus, 
-  Search, 
-  RefreshCw, 
-  CheckCircle2, 
-  Clock, 
-  XCircle, 
-  Eye, 
-  MoreVertical, 
-  Copy, 
-  LayoutList,
-  MessageSquare,
-  FileText,
-  Image as ImageIcon,
-  ChevronRight
-} from 'lucide-react'
-import clsx from 'clsx'
+import { useState, useMemo } from 'react';
+import { useRouter } from 'next/navigation';
+import {
+  Plus, Search, RefreshCw, Eye, Pencil, Trash2,
+  Library, Clock, ChevronRight, AlertCircle, Filter,
+  Loader2
+} from 'lucide-react';
+import clsx from 'clsx';
+import toast from 'react-hot-toast';
+import { useAuth } from '@/context/AuthContext';
+import { useTemplates, useDeleteTemplate, useSyncTemplates } from '@/modules/whatsapp/hooks/useTemplates';
+import { StatusBadge } from '@/modules/whatsapp/components/templates/StatusBadge';
+import { DeleteModal } from '@/modules/whatsapp/components/templates/DeleteModal';
+import { TemplateSkeleton } from '@/modules/whatsapp/components/templates/TemplateSkeleton';
+import type { TemplateStatus, WhatsAppTemplate } from '@/modules/whatsapp/types/templates';
 
-const TEMPLATES = [
-  { id: 1, name: 'winter_promo_2024', status: 'approved', category: 'MARKETING', language: 'pt_BR', lastUpdated: '2 days ago', type: 'TEXT' },
-  { id: 2, name: 'appointment_reminder', status: 'approved', category: 'UTILITY', language: 'pt_BR', lastUpdated: '1 month ago', type: 'TEXT' },
-  { id: 3, name: 'new_procedures_v2', status: 'pending', category: 'MARKETING', language: 'pt_BR', lastUpdated: '5 hours ago', type: 'IMAGE' },
-  { id: 4, name: 'welcome_package', status: 'approved', category: 'MARKETING', language: 'en_US', lastUpdated: '15 days ago', type: 'DOCUMENT' },
-  { id: 5, name: 'black_friday_vip', status: 'rejected', category: 'MARKETING', language: 'pt_BR', lastUpdated: '6 months ago', type: 'TEXT' },
-  { id: 6, name: 'post_service_survey', status: 'approved', category: 'UTILITY', language: 'pt_BR', lastUpdated: '10 days ago', type: 'TEXT' },
-]
+const STATUS_FILTERS: { label: string; value: TemplateStatus | 'ALL' }[] = [
+  { label: 'Todos', value: 'ALL' },
+  { label: 'Aprovados', value: 'APPROVED' },
+  { label: 'Pendentes', value: 'PENDING' },
+  { label: 'Rejeitados', value: 'REJECTED' },
+  { label: 'Pausados', value: 'PAUSED' },
+];
 
-export default function WhatsAppTemplates() {
+const CATEGORY_LABELS: Record<string, string> = {
+  MARKETING: 'Marketing',
+  UTILITY: 'Utilitário',
+  AUTHENTICATION: 'Autenticação',
+};
+
+export default function WhatsAppTemplatesPage() {
+  const router = useRouter();
+  const { user } = useAuth();
+  const isAdmin = user?.role === 'SUPERADMIN' || user?.role === 'ADMIN';
+
+  const [search, setSearch] = useState('');
+  const [statusFilter, setStatusFilter] = useState<TemplateStatus | 'ALL'>('ALL');
+  const [franchiseFilter, setFranchiseFilter] = useState('');
+  const [deleteTarget, setDeleteTarget] = useState<WhatsAppTemplate | null>(null);
+
+  const queryParams = useMemo(() => ({
+    ...(statusFilter !== 'ALL' ? { status: statusFilter } : {}),
+    ...(search ? { search } : {}),
+    ...(franchiseFilter ? { franchise_id: franchiseFilter } : {}),
+  }), [statusFilter, search, franchiseFilter]);
+
+  const { templates, isLoading, error, revalidate } = useTemplates(queryParams);
+  const { deleteTemplate, isLoading: isDeleting } = useDeleteTemplate();
+  const { syncTemplates, isLoading: isSyncing } = useSyncTemplates();
+
+  const handleSync = async () => {
+    try {
+      const res = await syncTemplates();
+      toast.success(
+        res?.message ?? 'Templates sincronizados com sucesso!'
+      );
+    } catch (err: any) {
+      toast.error(err?.message ?? 'Falha ao sincronizar com a Meta');
+    }
+  };
+
+  const handleDelete = async () => {
+    if (!deleteTarget) return;
+    try {
+      await deleteTemplate(deleteTarget.id);
+      toast.success(`Template "${deleteTarget.name}" deletado com sucesso`);
+      setDeleteTarget(null);
+    } catch (err: any) {
+      toast.error(err?.message ?? 'Erro ao deletar template');
+    }
+  };
+
+  const formatDate = (dateStr?: string | null) => {
+    if (!dateStr) return '—';
+    try {
+      return new Date(dateStr).toLocaleDateString('pt-BR', {
+        day: '2-digit', month: '2-digit', year: '2-digit', hour: '2-digit', minute: '2-digit',
+      });
+    } catch {
+      return dateStr;
+    }
+  };
+
   return (
-    <div className="p-8 max-w-7xl mx-auto space-y-8 bg-gray-50 min-h-screen">
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 border-b border-gray-200 pb-8">
-        <div>
-          <h1 className="text-3xl font-black text-gray-900 tracking-tight flex items-center gap-3">
-             <LayoutList className="w-8 h-8 text-pink-600" />
-             Templates Library
-          </h1>
-          <p className="text-gray-500 text-sm font-medium mt-1">Official Meta Business templates (HSM) synchronized with your account.</p>
+    <div className="min-h-screen bg-gray-950 p-6 lg:p-8 space-y-6">
+      {/* ── Header ── */}
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div className="flex items-center gap-4">
+          <div className="p-3 rounded-2xl bg-gradient-to-br from-pink-600 to-rose-600 shadow-lg shadow-pink-500/20">
+            <Library className="w-6 h-6 text-white" />
+          </div>
+          <div>
+            <h1 className="text-2xl font-black text-white tracking-tight">Templates WhatsApp</h1>
+            <p className="text-sm text-gray-500 mt-0.5">
+              Gerencie seus templates HSM da Meta Business
+            </p>
+          </div>
         </div>
+
         <div className="flex items-center gap-3">
-          <button className="flex items-center space-x-2 px-4 py-2.5 bg-white border border-gray-200 rounded-xl text-xs font-black text-gray-600 hover:bg-gray-50 transition-all shadow-sm group">
-            <RefreshCw className="w-4 h-4 group-hover:rotate-180 transition-transform duration-500" />
-            <span>Sync with Meta</span>
+          <button
+            onClick={handleSync}
+            disabled={isSyncing}
+            className="flex items-center gap-2 px-4 py-2.5 bg-gray-800 border border-gray-700 rounded-xl text-sm font-semibold text-gray-300 hover:bg-gray-700 hover:text-white transition-all disabled:opacity-60"
+          >
+            {isSyncing ? (
+              <Loader2 className="w-4 h-4 animate-spin" />
+            ) : (
+              <RefreshCw className="w-4 h-4" />
+            )}
+            {isSyncing ? 'Sincronizando...' : 'Sincronizar com Meta'}
           </button>
-          <button className="flex items-center space-x-3 px-6 py-2.5 bg-gray-900 text-white rounded-xl text-sm font-black hover:bg-gray-800 transition-all shadow-xl shadow-gray-200">
-            <Plus className="w-5 h-5" />
-            <span>Create New Template</span>
+
+          <button
+            onClick={() => router.push('/franqueado/whatsapp/templates/new')}
+            className="flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-pink-600 to-rose-600 hover:from-pink-500 hover:to-rose-500 text-white rounded-xl text-sm font-bold shadow-lg shadow-pink-500/25 transition-all"
+          >
+            <Plus className="w-4 h-4" />
+            Novo Template
           </button>
         </div>
       </div>
 
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <div className="relative flex-1 max-w-md">
-          <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-          <input 
-            type="text" 
-            placeholder="Search templates by name..." 
-            className="w-full pl-11 pr-4 py-3 bg-white border border-gray-200 rounded-2xl text-sm focus:ring-2 focus:ring-pink-500/10 focus:border-pink-500 transition-all outline-none shadow-sm"
+      {/* ── Filters ── */}
+      <div className="flex flex-col md:flex-row gap-3">
+        {/* Search */}
+        <div className="relative flex-1 max-w-sm">
+          <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
+          <input
+            type="text"
+            value={search}
+            onChange={e => setSearch(e.target.value)}
+            placeholder="Buscar por nome..."
+            className="w-full pl-10 pr-4 py-2.5 bg-gray-900 border border-gray-700 rounded-xl text-sm text-gray-200 placeholder-gray-600 focus:outline-none focus:ring-2 focus:ring-pink-500/30 focus:border-pink-600 transition-all"
           />
         </div>
-        <div className="flex items-center gap-2">
-            {['All', 'Approved', 'Pending', 'Rejected'].map(filter => (
-                <button key={filter} className={clsx(
-                    'px-4 py-2 rounded-xl text-xs font-black uppercase tracking-wider transition-all',
-                    filter === 'All' ? 'bg-pink-600 text-white shadow-lg shadow-pink-100' : 'bg-white text-gray-500 border border-gray-200 hover:bg-gray-50'
-                )}>
-                    {filter}
-                </button>
-            ))}
+
+        {/* Status filters */}
+        <div className="flex items-center gap-2 flex-wrap">
+          {STATUS_FILTERS.map(f => (
+            <button
+              key={f.value}
+              onClick={() => setStatusFilter(f.value)}
+              className={clsx(
+                'px-3 py-2 rounded-xl text-xs font-bold uppercase tracking-wide transition-all',
+                statusFilter === f.value
+                  ? 'bg-pink-600 text-white shadow-lg shadow-pink-500/20'
+                  : 'bg-gray-800 border border-gray-700 text-gray-400 hover:border-gray-600 hover:text-gray-300'
+              )}
+            >
+              {f.label}
+            </button>
+          ))}
         </div>
-      </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {TEMPLATES.map((tpl) => (
-          <div key={tpl.id} className="bg-white rounded-[2rem] border border-gray-100 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 group">
-            <div className="p-6">
-               <div className="flex justify-between items-start mb-6">
-                  <div className={clsx(
-                    'px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-widest border flex items-center gap-1.5 shadow-sm',
-                    tpl.status === 'approved' ? 'bg-green-50 text-green-700 border-green-100' :
-                    tpl.status === 'pending' ? 'bg-yellow-50 text-yellow-700 border-yellow-100' : 'bg-red-50 text-red-700 border-red-100'
-                  )}>
-                    {tpl.status === 'approved' && <CheckCircle2 className="w-3 h-3" />}
-                    {tpl.status === 'pending' && <Clock className="w-3 h-3" />}
-                    {tpl.status === 'rejected' && <XCircle className="w-3 h-3" />}
-                    {tpl.status}
-                  </div>
-                  <button className="p-1.5 text-gray-300 hover:text-gray-900 transition-colors"><MoreVertical className="w-5 h-5" /></button>
-               </div>
-
-               <h3 className="text-lg font-black text-gray-900 group-hover:text-pink-600 transition-colors truncate mb-1 uppercase tracking-tight">{tpl.name}</h3>
-               <div className="flex items-center gap-2 mb-6">
-                  <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">{tpl.category}</span>
-                  <span className="w-1 h-1 bg-gray-200 rounded-full" />
-                  <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">{tpl.language}</span>
-               </div>
-
-               <div className="bg-gray-50 rounded-2xl p-4 mb-6 border border-gray-100 shadow-inner group-hover:bg-white transition-colors">
-                  <div className="flex items-center gap-3 text-gray-400 group-hover:text-pink-600 transition-colors">
-                     {tpl.type === 'TEXT' && <MessageSquare className="w-5 h-5" />}
-                     {tpl.type === 'IMAGE' && <ImageIcon className="w-5 h-5" />}
-                     {tpl.type === 'DOCUMENT' && <FileText className="w-5 h-5" />}
-                     <span className="text-[10px] font-black uppercase tracking-widest">{tpl.type} Primary Content</span>
-                  </div>
-                  <p className="mt-2 text-xs text-gray-500 line-clamp-2 italic leading-relaxed">
-                    {"Hello {{1}}! We have an update regarding your appointment on {{2}}. Please confirm..."}
-                  </p>
-               </div>
-
-               <div className="flex items-center justify-between pt-4 border-t border-gray-50">
-                  <span className="text-[10px] font-bold text-gray-300 uppercase tracking-widest flex items-center gap-1.5">
-                    <Clock className="w-3.5 h-3.5" />
-                    Updated {tpl.lastUpdated}
-                  </span>
-                  <div className="flex items-center gap-2">
-                     <button className="p-2 text-gray-400 hover:text-pink-600 hover:bg-pink-50 rounded-xl transition-all shadow-sm border border-gray-100" title="Copy ID">
-                        <Copy className="w-4 h-4" />
-                     </button>
-                     <button className="flex items-center gap-2 px-4 py-2 bg-gray-900 text-white rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-pink-600 transition-all shadow-lg shadow-gray-100 group-hover:shadow-pink-100">
-                        <Eye className="w-4 h-4" />
-                        <span>Preview</span>
-                     </button>
-                  </div>
-               </div>
-            </div>
+        {/* Admin: franchise filter */}
+        {isAdmin && (
+          <div className="flex items-center gap-2">
+            <Filter className="w-4 h-4 text-gray-500" />
+            <input
+              type="text"
+              value={franchiseFilter}
+              onChange={e => setFranchiseFilter(e.target.value)}
+              placeholder="ID da franquia..."
+              className="w-40 px-3 py-2.5 bg-gray-900 border border-gray-700 rounded-xl text-xs text-gray-300 placeholder-gray-600 focus:outline-none focus:ring-2 focus:ring-pink-500/30 focus:border-pink-600 transition-all"
+            />
           </div>
-        ))}
+        )}
       </div>
+
+      {/* ── Content ── */}
+      {isLoading ? (
+        <TemplateSkeleton />
+      ) : error ? (
+        <div className="flex items-center gap-3 p-6 bg-red-500/10 border border-red-500/20 rounded-2xl text-red-400">
+          <AlertCircle className="w-5 h-5 flex-shrink-0" />
+          <div>
+            <p className="font-semibold">Falha ao carregar templates</p>
+            <p className="text-sm text-red-400/70 mt-0.5">{error?.message}</p>
+          </div>
+          <button
+            onClick={() => revalidate()}
+            className="ml-auto text-sm text-red-400 hover:text-red-300 underline"
+          >
+            Tentar novamente
+          </button>
+        </div>
+      ) : templates.length === 0 ? (
+        <div className="flex flex-col items-center justify-center py-20 gap-4 text-center">
+          <div className="p-5 rounded-3xl bg-gray-800/50 border border-gray-700">
+            <Library className="w-10 h-10 text-gray-600" />
+          </div>
+          <div>
+            <p className="text-gray-400 font-semibold">Nenhum template encontrado</p>
+            <p className="text-gray-600 text-sm mt-1">
+              {search || statusFilter !== 'ALL'
+                ? 'Tente ajustar os filtros'
+                : 'Crie seu primeiro template para começar'}
+            </p>
+          </div>
+          {!search && statusFilter === 'ALL' && (
+            <button
+              onClick={() => router.push('/franqueado/whatsapp/templates/new')}
+              className="flex items-center gap-2 px-5 py-2.5 bg-pink-600 hover:bg-pink-500 text-white rounded-xl text-sm font-bold transition-all"
+            >
+              <Plus className="w-4 h-4" />
+              Criar Template
+            </button>
+          )}
+        </div>
+      ) : (
+        <div className="rounded-2xl border border-gray-800 overflow-hidden">
+          {/* Table header */}
+          <div className="grid grid-cols-[1fr_130px_120px_80px_160px_120px] gap-4 px-6 py-3 bg-gray-900/50 border-b border-gray-800">
+            {['Nome', 'Status', 'Categoria', 'Versão', 'Última sync', 'Ações'].map(h => (
+              <span key={h} className="text-[10px] font-bold text-gray-500 uppercase tracking-widest">
+                {h}
+              </span>
+            ))}
+          </div>
+
+          {/* Rows */}
+          <div className="divide-y divide-gray-800/60">
+            {templates.map(tpl => (
+              <div
+                key={tpl.id}
+                className="grid grid-cols-[1fr_130px_120px_80px_160px_120px] gap-4 items-center px-6 py-4 hover:bg-gray-800/30 transition-colors group"
+              >
+                {/* Name */}
+                <div className="min-w-0">
+                  <button
+                    onClick={() => router.push(`/franqueado/whatsapp/templates/${tpl.id}`)}
+                    className="text-sm font-semibold text-white hover:text-pink-400 transition-colors text-left truncate flex items-center gap-1.5 group/name"
+                  >
+                    <span className="truncate font-mono tracking-tight">{tpl.name}</span>
+                    <ChevronRight className="w-3.5 h-3.5 text-gray-600 group-hover/name:text-pink-400 opacity-0 group-hover/name:opacity-100 transition-all flex-shrink-0" />
+                  </button>
+                  <p className="text-[10px] text-gray-600 mt-0.5">{tpl.language}</p>
+                </div>
+
+                {/* Status */}
+                <div>
+                  <StatusBadge status={tpl.status} size="sm" />
+                  {tpl.rejection_reason && (
+                    <p className="text-[9px] text-red-400/70 mt-0.5 truncate" title={tpl.rejection_reason}>
+                      {tpl.rejection_reason}
+                    </p>
+                  )}
+                </div>
+
+                {/* Category */}
+                <span className="text-xs text-gray-400 font-medium">
+                  {CATEGORY_LABELS[tpl.category] ?? tpl.category}
+                </span>
+
+                {/* Version */}
+                <span className="text-xs text-gray-400 font-mono">
+                  v{tpl.version ?? 1}
+                </span>
+
+                {/* Last sync */}
+                <div className="flex items-center gap-1.5 text-xs text-gray-600">
+                  <Clock className="w-3 h-3 flex-shrink-0" />
+                  <span className="truncate">{formatDate(tpl.synced_at)}</span>
+                </div>
+
+                {/* Actions */}
+                <div className="flex items-center gap-1.5">
+                  {/* View */}
+                  <button
+                    onClick={() => router.push(`/franqueado/whatsapp/templates/${tpl.id}`)}
+                    title="Ver detalhes"
+                    className="p-2 text-gray-500 hover:text-white hover:bg-gray-700 rounded-lg transition-all"
+                  >
+                    <Eye className="w-4 h-4" />
+                  </button>
+
+                  {/* Edit (versioning) */}
+                  <button
+                    onClick={() => router.push(`/franqueado/whatsapp/templates/${tpl.id}/edit`)}
+                    title="Editar (nova versão)"
+                    className="p-2 text-gray-500 hover:text-blue-400 hover:bg-blue-500/10 rounded-lg transition-all"
+                  >
+                    <Pencil className="w-4 h-4" />
+                  </button>
+
+                  {/* Delete */}
+                  <button
+                    onClick={() => setDeleteTarget(tpl)}
+                    title="Deletar"
+                    className="p-2 text-gray-500 hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-all"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Stats bar */}
+      {!isLoading && templates.length > 0 && (
+        <p className="text-xs text-gray-600 text-center">
+          {templates.length} template{templates.length !== 1 ? 's' : ''} encontrado{templates.length !== 1 ? 's' : ''}
+        </p>
+      )}
+
+      {/* Delete Modal */}
+      <DeleteModal
+        isOpen={!!deleteTarget}
+        templateName={deleteTarget?.name ?? ''}
+        isLoading={isDeleting}
+        onConfirm={handleDelete}
+        onCancel={() => setDeleteTarget(null)}
+      />
     </div>
-  )
+  );
 }
