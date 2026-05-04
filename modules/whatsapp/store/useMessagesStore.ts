@@ -84,7 +84,7 @@ interface MessagesState {
 interface MessagesActions {
   fetchMessages: (params?: MessagesQueryParams) => Promise<void>;
   pollNewMessages: () => Promise<void>;
-  sendMessage: (to: string, content: string) => Promise<void>;
+  sendMessage: (to: string, content: string, templateData?: { template_name: string; language_code?: string; components?: any[] }) => Promise<void>;
   setActiveContact: (phone: string) => void;
   clearActiveContact: () => void;
   markContactRead: (phone: string) => void;
@@ -162,14 +162,27 @@ export const useMessagesStore = create<MessagesStore>((set, get) => ({
   },
 
   /**
-   * Send a text message
+   * Send a text or template message
    */
-  sendMessage: async (to: string, content: string) => {
-    if (!to.trim() || !content.trim()) return;
+  sendMessage: async (to: string, content: string, templateData?: { template_name: string; language_code?: string; components?: any[] }) => {
+    if (!to.trim() || (!content.trim() && !templateData)) return;
 
     set({ sending: true, error: null });
     try {
-      await whatsappApi.sendMessage({ to: to.replace(/\D/g, ''), type: 'text', content });
+      const payload: any = {
+        to: to.replace(/\D/g, ''),
+        type: templateData ? 'template' : 'text',
+      };
+
+      if (templateData) {
+        payload.template_name = templateData.template_name;
+        payload.language_code = templateData.language_code || 'pt_BR';
+        payload.components = templateData.components || [];
+      } else {
+        payload.content = content;
+      }
+
+      await whatsappApi.sendMessage(payload);
 
       // Optimistically add an outbound message to the conversation
       const optimistic: WhatsAppMessage = {

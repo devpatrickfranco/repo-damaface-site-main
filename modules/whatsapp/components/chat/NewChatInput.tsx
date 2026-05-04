@@ -49,7 +49,20 @@ export function NewChatInput({ onClose }: NewChatInputProps) {
   const handleSend = async () => {
     if (!canSend) return;
     setSent(false);
-    await sendMessage(phone, message.trim());
+    
+    let templateData;
+    if (mode === 'template' && selectedTemplateId) {
+      const tpl = templates.find(t => t.id === selectedTemplateId);
+      if (tpl) {
+        templateData = {
+          template_name: tpl.name,
+          language_code: tpl.language || 'pt_BR',
+          components: [], // Empty for now, to be populated if variables are supported
+        };
+      }
+    }
+
+    await sendMessage(phone, message.trim(), templateData);
     setSent(true);
     setMessage('');
     setTimeout(() => setSent(false), 3000);

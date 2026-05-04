@@ -38,6 +38,7 @@ export const MessagePayloadSchema = z.object({
   template_name: z.string().optional(),
   language_code: z.string().optional(),
   media_url: z.string().optional(),
+  components: z.array(z.any()).optional(),
 });
 
 /**
