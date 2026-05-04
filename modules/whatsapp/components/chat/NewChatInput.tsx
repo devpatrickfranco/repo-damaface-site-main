@@ -1,8 +1,9 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Phone, Send, Loader2, X, AlertCircle, CheckCircle2 } from 'lucide-react';
+import { Phone, Send, Loader2, X, AlertCircle, CheckCircle2, FileText, Type } from 'lucide-react';
 import { useMessagesStore } from '../../store/useMessagesStore';
+import { useTemplates } from '../../hooks/useTemplates';
 
 function formatPhoneInput(raw: string): string {
   const digits = raw.replace(/\D/g, '');
@@ -29,8 +30,14 @@ export function NewChatInput({ onClose }: NewChatInputProps) {
   const [message, setMessage] = useState('');
   const [sent, setSent] = useState(false);
 
+  const [mode, setMode] = useState<'text' | 'template'>('text');
+  const [selectedTemplateId, setSelectedTemplateId] = useState<string>('');
+  const { templates, isLoading: loadingTemplates } = useTemplates({ status: 'APPROVED' });
+
   const phoneValid = validateBrazilianPhone(phone);
-  const canSend = phoneValid && message.trim().length > 0 && !sending;
+  const canSend = mode === 'text' 
+    ? phoneValid && message.trim().length > 0 && !sending
+    : phoneValid && selectedTemplateId !== '' && !sending;
 
   const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const raw = e.target.value.replace(/\D/g, '').slice(0, 13);
@@ -60,22 +67,44 @@ export function NewChatInput({ onClose }: NewChatInputProps) {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <div className="w-8 h-8 rounded-full bg-[#25D366]/15 flex items-center justify-center">
+          <div className="w-8 h-8 rounded-full bg-[#128C7E]/20 flex items-center justify-center">
             <Phone className="w-4 h-4 text-[#25D366]" />
           </div>
           <div>
-            <p className="text-sm font-bold text-gray-800">Nova Mensagem</p>
+            <p className="text-sm font-bold text-gray-200">Nova Mensagem</p>
             <p className="text-[11px] text-gray-400">Enviar para qualquer número</p>
           </div>
         </div>
         {onClose && (
           <button
             onClick={onClose}
-            className="p-1.5 rounded-lg hover:bg-gray-100 text-gray-400 hover:text-gray-600 transition-colors"
+            className="p-1.5 rounded-lg hover:bg-gray-800 text-gray-400 hover:text-gray-200 transition-colors"
           >
             <X className="w-4 h-4" />
           </button>
         )}
+      </div>
+
+      {/* Mode Toggle */}
+      <div className="flex p-1 bg-gray-800 rounded-xl">
+        <button
+          onClick={() => setMode('text')}
+          className={`flex-1 flex items-center justify-center gap-2 py-1.5 text-xs font-semibold rounded-lg transition-all ${
+            mode === 'text' ? 'bg-gray-700 text-gray-200 shadow' : 'text-gray-400 hover:text-gray-300'
+          }`}
+        >
+          <Type className="w-3.5 h-3.5" />
+          Texto Livre
+        </button>
+        <button
+          onClick={() => setMode('template')}
+          className={`flex-1 flex items-center justify-center gap-2 py-1.5 text-xs font-semibold rounded-lg transition-all ${
+            mode === 'template' ? 'bg-[#128C7E]/20 text-[#25D366] shadow' : 'text-gray-400 hover:text-gray-300'
+          }`}
+        >
+          <FileText className="w-3.5 h-3.5" />
+          Usar Template
+        </button>
       </div>
 
       {/* Phone input */}
@@ -97,8 +126,8 @@ export function NewChatInput({ onClose }: NewChatInputProps) {
             className={`
               w-full pl-12 pr-10 py-2.5 text-sm rounded-xl border transition-all outline-none
               ${phoneValid
-                ? 'border-[#25D366]/50 bg-[#25D366]/5 focus:ring-2 focus:ring-[#25D366]/30'
-                : 'border-gray-200 bg-gray-50 focus:ring-2 focus:ring-gray-300/50'}
+                ? 'border-[#25D366]/50 bg-[#128C7E]/10 text-gray-200 focus:ring-1 focus:ring-[#25D366]/30'
+                : 'border-gray-700 bg-gray-800 text-gray-200 focus:ring-1 focus:ring-gray-600'}
             `}
           />
           {phone.length > 0 && (
@@ -117,36 +146,70 @@ export function NewChatInput({ onClose }: NewChatInputProps) {
       </div>
 
       {/* Message input */}
-      <div className="space-y-1.5">
-        <label htmlFor="wa-new-chat-message" className="text-xs font-bold text-gray-600 uppercase tracking-wide">
-          Mensagem
-        </label>
-        <div className="relative bg-white border border-gray-200 rounded-xl overflow-hidden focus-within:ring-2 focus-within:ring-[#25D366]/30 transition-all">
-          <textarea
-            id="wa-new-chat-message"
-            value={message}
-            onChange={e => setMessage(e.target.value)}
-            onKeyDown={handleKeyDown}
-            placeholder="Digite sua mensagem... (Enter para enviar)"
-            rows={3}
-            style={{ resize: 'none' }}
-            disabled={!phoneValid}
-            className="w-full px-3.5 py-2.5 text-sm bg-transparent border-0 outline-none focus:ring-0 disabled:opacity-40 disabled:cursor-not-allowed"
-          />
-          <div className="flex items-center justify-between px-3 pb-2">
-            <span className="text-[10px] text-gray-400">
-              {message.length > 0 ? `${message.length} caracteres` : 'Shift+Enter para nova linha'}
-            </span>
-            <span className="text-[10px] font-bold text-gray-300 uppercase">Texto</span>
+      {mode === 'text' ? (
+        <div className="space-y-1.5">
+          <label htmlFor="wa-new-chat-message" className="text-xs font-bold text-gray-500 uppercase tracking-wide">
+            Mensagem
+          </label>
+          <div className="relative bg-gray-800 border border-gray-700 rounded-xl overflow-hidden focus-within:ring-1 focus-within:ring-[#25D366]/50 transition-all">
+            <textarea
+              id="wa-new-chat-message"
+              value={message}
+              onChange={e => setMessage(e.target.value)}
+              onKeyDown={handleKeyDown}
+              placeholder="Digite sua mensagem... (Enter para enviar)"
+              rows={3}
+              style={{ resize: 'none' }}
+              disabled={!phoneValid}
+              className="w-full px-3.5 py-2.5 text-sm bg-transparent border-0 outline-none focus:ring-0 disabled:opacity-40 disabled:cursor-not-allowed text-gray-200 placeholder-gray-500"
+            />
+            <div className="flex items-center justify-between px-3 pb-2">
+              <span className="text-[10px] text-gray-500">
+                {message.length > 0 ? `${message.length} caracteres` : 'Shift+Enter para nova linha'}
+              </span>
+              <span className="text-[10px] font-bold text-gray-500 uppercase">Texto</span>
+            </div>
           </div>
         </div>
-      </div>
+      ) : (
+        <div className="space-y-1.5">
+          <label htmlFor="wa-template-select" className="text-xs font-bold text-gray-500 uppercase tracking-wide">
+            Template Aprovado
+          </label>
+          <select
+            id="wa-template-select"
+            value={selectedTemplateId}
+            onChange={e => {
+              setSelectedTemplateId(e.target.value);
+              const tpl = templates.find(t => t.id === e.target.value);
+              if (tpl) {
+                const bodyComp = tpl.components.find(c => c.type === 'BODY');
+                setMessage(bodyComp?.text || `Template: ${tpl.name}`);
+              }
+            }}
+            disabled={loadingTemplates || !phoneValid}
+            className="w-full px-3 py-2.5 text-sm bg-gray-800 border border-gray-700 rounded-xl text-gray-200 focus:ring-1 focus:ring-[#25D366]/50 outline-none disabled:opacity-40"
+          >
+            <option value="">Selecione um template...</option>
+            {templates.map(t => (
+              <option key={t.id} value={t.id}>{t.name}</option>
+            ))}
+          </select>
+          {selectedTemplateId && (
+             <div className="p-3 bg-gray-800/50 rounded-xl border border-gray-700/50 mt-2">
+               <p className="text-xs text-gray-400 mb-1">Pré-visualização do corpo:</p>
+               <p className="text-sm text-gray-300 italic whitespace-pre-wrap">{message}</p>
+               <p className="text-[10px] text-amber-500 mt-2">* O envio usará o texto base do template.</p>
+             </div>
+          )}
+        </div>
+      )}
 
       {/* Error */}
       {error && (
-        <div className="flex items-center gap-2 p-3 bg-red-50 border border-red-100 rounded-xl animate-in slide-in-from-top-1">
-          <AlertCircle className="w-4 h-4 text-red-500 shrink-0" />
-          <p className="text-xs text-red-700 font-medium">{error}</p>
+        <div className="flex items-center gap-2 p-3 bg-red-900/20 border border-red-800/30 rounded-xl animate-in slide-in-from-top-1">
+          <AlertCircle className="w-4 h-4 text-red-400 shrink-0" />
+          <p className="text-xs text-red-400 font-medium">{error}</p>
         </div>
       )}
 
@@ -166,8 +229,8 @@ export function NewChatInput({ onClose }: NewChatInputProps) {
         className={`
           w-full flex items-center justify-center gap-2 py-2.5 rounded-xl font-bold text-sm transition-all
           ${canSend
-            ? 'bg-[#25D366] text-white shadow-lg shadow-green-100 hover:bg-[#128C7E] active:scale-[0.98]'
-            : 'bg-gray-100 text-gray-400 cursor-not-allowed'}
+            ? 'bg-[#00a884] text-white shadow hover:bg-[#008f6f] active:scale-[0.98]'
+            : 'bg-gray-800 text-gray-500 cursor-not-allowed'}
         `}
       >
         {sending

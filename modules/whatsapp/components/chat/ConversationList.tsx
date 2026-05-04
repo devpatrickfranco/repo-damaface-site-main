@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Search, MessageCircle, Clock } from 'lucide-react';
+import { Search, MessageCircle, Clock, Archive } from 'lucide-react';
 import { useMessagesStore } from '../../store/useMessagesStore';
 import { Conversation } from '../../types';
 
@@ -36,16 +36,16 @@ function ConversationItem({
     <button
       onClick={onClick}
       className={`
-        w-full text-left px-4 py-3 flex items-center gap-3 transition-all duration-150 group border-b border-gray-100/60
+        w-full text-left px-4 py-3 flex items-center gap-3 transition-all duration-150 group border-b border-gray-700/60
         ${isActive
-          ? 'bg-[#25D366]/10 border-l-4 border-l-[#25D366]'
-          : 'hover:bg-gray-50 border-l-4 border-l-transparent'}
+          ? 'bg-gray-800 border-l-4 border-l-[#25D366]'
+          : 'hover:bg-gray-800/50 border-l-4 border-l-transparent'}
       `}
     >
       {/* Avatar */}
       <div className={`
         relative shrink-0 w-11 h-11 rounded-full flex items-center justify-center text-sm font-bold
-        ${isActive ? 'bg-[#25D366] text-white' : 'bg-gray-200 text-gray-600 group-hover:bg-[#25D366]/20'}
+        ${isActive ? 'bg-[#25D366] text-white' : 'bg-gray-700 text-gray-300 group-hover:bg-gray-600'}
         transition-colors
       `}>
         {conv.displayName.replace(/[^0-9]/g, '').slice(-2) || '??'}
@@ -58,7 +58,7 @@ function ConversationItem({
       {/* Content */}
       <div className="flex-1 min-w-0">
         <div className="flex items-center justify-between gap-2">
-          <span className={`text-sm font-semibold truncate ${isActive ? 'text-[#128C7E]' : 'text-gray-900'}`}>
+          <span className={`text-sm font-semibold truncate ${isActive ? 'text-[#128C7E]' : 'text-gray-200'}`}>
             {conv.displayName}
           </span>
           <div className="flex items-center gap-1 shrink-0">
@@ -102,7 +102,7 @@ export function ConversationList() {
   return (
     <div className="flex flex-col h-full">
       {/* Search */}
-      <div className="p-3 border-b border-gray-100">
+      <div className="p-3 border-b border-gray-700 space-y-3">
         <div className="relative">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
           <input
@@ -110,33 +110,45 @@ export function ConversationList() {
             type="text"
             value={search}
             onChange={e => setSearch(e.target.value)}
-            placeholder="Buscar conversa..."
-            className="w-full pl-9 pr-3 py-2 text-sm bg-gray-100 rounded-xl border-0 focus:ring-2 focus:ring-[#25D366]/30 focus:bg-white transition-all outline-none"
+            placeholder="Pesquisar ou começar uma nova conversa"
+            className="w-full pl-9 pr-3 py-2 text-sm bg-gray-800 text-gray-200 placeholder-gray-500 rounded-xl border-0 focus:ring-2 focus:ring-[#25D366]/30 focus:bg-gray-900 transition-all outline-none"
           />
+        </div>
+        <div className="flex items-center gap-2 px-1">
+          <button className="px-3 py-1 rounded-full bg-[#128C7E]/20 text-[#25D366] text-xs font-semibold">Tudo</button>
+          <button className="px-3 py-1 rounded-full bg-gray-800 text-gray-400 hover:bg-gray-700 text-xs font-medium transition-colors">Não lidas 118</button>
+          <button className="px-3 py-1 rounded-full bg-gray-800 text-gray-400 hover:bg-gray-700 text-xs font-medium transition-colors">Favoritas</button>
         </div>
       </div>
 
       {/* List */}
       <div className="flex-1 overflow-y-auto">
+        <button className="w-full px-5 py-4 flex items-center justify-between hover:bg-gray-800/50 transition-colors border-b border-gray-700/60">
+          <div className="flex items-center gap-5">
+            <Archive className="w-5 h-5 text-gray-400" />
+            <span className="text-[15px] font-medium text-gray-200">Arquivadas</span>
+          </div>
+          <span className="text-xs text-[#25D366] font-medium">1</span>
+        </button>
         {loading && filtered.length === 0 ? (
           <div className="space-y-1 p-3">
             {[1, 2, 3].map(i => (
               <div key={i} className="flex items-center gap-3 p-2 animate-pulse">
-                <div className="w-11 h-11 rounded-full bg-gray-200" />
+                <div className="w-11 h-11 rounded-full bg-gray-800" />
                 <div className="flex-1 space-y-2">
-                  <div className="h-3 bg-gray-200 rounded w-2/3" />
-                  <div className="h-2 bg-gray-100 rounded w-full" />
+                  <div className="h-3 bg-gray-800 rounded w-2/3" />
+                  <div className="h-2 bg-gray-700 rounded w-full" />
                 </div>
               </div>
             ))}
           </div>
         ) : filtered.length === 0 ? (
           <div className="flex flex-col items-center justify-center h-full py-12 text-center px-6">
-            <div className="w-14 h-14 rounded-full bg-gray-100 flex items-center justify-center mb-3">
-              <MessageCircle className="w-7 h-7 text-gray-300" />
+            <div className="w-14 h-14 rounded-full bg-gray-800 flex items-center justify-center mb-3">
+              <MessageCircle className="w-7 h-7 text-gray-500" />
             </div>
-            <p className="text-sm font-semibold text-gray-500">Sem conversas</p>
-            <p className="text-xs text-gray-400 mt-1">
+            <p className="text-sm font-semibold text-gray-400">Sem conversas</p>
+            <p className="text-xs text-gray-500 mt-1">
               {search ? 'Nenhum resultado para sua busca.' : 'Envie a primeira mensagem para começar.'}
             </p>
           </div>

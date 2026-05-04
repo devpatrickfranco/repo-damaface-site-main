@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useEffect, useRef, useState } from 'react';
-import { Send, Loader2, MessageSquareOff, MoreVertical, RefreshCw } from 'lucide-react';
+import { Send, Loader2, MessageSquareOff, MoreVertical, RefreshCw, FileText, UserPlus, Bot } from 'lucide-react';
 import { useMessagesStore } from '../../store/useMessagesStore';
 import { WhatsAppMessage } from '../../types';
 
@@ -30,8 +30,8 @@ function MessageBubble({ msg }: { msg: WhatsAppMessage }) {
         className={`
           max-w-[75%] px-3.5 py-2 rounded-2xl shadow-sm relative
           ${isOut
-            ? 'bg-[#dcf8c6] text-gray-800 rounded-br-sm'
-            : 'bg-white text-gray-800 rounded-bl-sm border border-gray-100'}
+            ? 'bg-[#005c4b] text-gray-100 rounded-br-sm'
+            : 'bg-gray-800 text-gray-200 rounded-bl-sm border border-gray-700/50'}
         `}
       >
         <p className="text-sm leading-relaxed whitespace-pre-wrap break-words">
@@ -64,11 +64,11 @@ function DateDivider({ date }: { date: string }) {
 
   return (
     <div className="flex items-center gap-3 my-4">
-      <div className="flex-1 h-px bg-gray-200" />
-      <span className="text-[11px] font-semibold text-gray-400 bg-gray-50 px-3 py-0.5 rounded-full border border-gray-200">
+      <div className="flex-1 h-px bg-gray-700/50" />
+      <span className="text-[11px] font-semibold text-gray-400 bg-gray-800 px-3 py-0.5 rounded-full border border-gray-700">
         {label}
       </span>
-      <div className="flex-1 h-px bg-gray-200" />
+      <div className="flex-1 h-px bg-gray-700/50" />
     </div>
   );
 }
@@ -121,13 +121,36 @@ export function ChatWindow() {
 
   if (!activeContact) {
     return (
-      <div className="flex flex-col items-center justify-center h-full bg-[#f0f2f5] gap-4">
-        <div className="w-20 h-20 rounded-full bg-white shadow-lg flex items-center justify-center">
-          <MessageSquareOff className="w-9 h-9 text-gray-300" />
+      <div className="flex flex-col items-center justify-center h-full bg-[#0B141A] border-l border-gray-800 gap-8">
+        <div className="text-center space-y-2">
+          <p className="text-2xl font-light text-gray-200">WhatsApp para Negócios</p>
+          <p className="text-sm text-gray-400">Selecione uma conversa ou inicie uma nova com as ferramentas abaixo.</p>
         </div>
-        <div className="text-center">
-          <p className="text-base font-semibold text-gray-500">Nenhuma conversa selecionada</p>
-          <p className="text-sm text-gray-400 mt-1">Selecione uma conversa ou inicie uma nova</p>
+        
+        <div className="flex gap-4">
+          <button 
+            onClick={() => document.getElementById('wa-new-chat-btn')?.click()}
+            className="flex flex-col items-center gap-3 p-6 bg-gray-800 rounded-2xl hover:bg-gray-700 transition-colors w-32 border border-gray-700"
+          >
+            <div className="w-12 h-12 rounded-full bg-[#128C7E]/20 text-[#25D366] flex items-center justify-center">
+              <FileText className="w-6 h-6" />
+            </div>
+            <span className="text-xs font-semibold text-gray-300 text-center leading-tight">Iniciar com<br/>Template</span>
+          </button>
+
+          <button className="flex flex-col items-center gap-3 p-6 bg-gray-800 rounded-2xl hover:bg-gray-700 transition-colors w-32 border border-gray-700">
+            <div className="w-12 h-12 rounded-full bg-blue-500/20 text-blue-400 flex items-center justify-center">
+              <UserPlus className="w-6 h-6" />
+            </div>
+            <span className="text-xs font-semibold text-gray-300 text-center leading-tight">Adicionar<br/>Contato</span>
+          </button>
+
+          <button className="flex flex-col items-center gap-3 p-6 bg-gray-800 rounded-2xl hover:bg-gray-700 transition-colors w-32 border border-gray-700">
+            <div className="w-12 h-12 rounded-full bg-purple-500/20 text-purple-400 flex items-center justify-center">
+              <Bot className="w-6 h-6" />
+            </div>
+            <span className="text-xs font-semibold text-gray-300 text-center leading-tight">Perguntar à<br/>Meta AI</span>
+          </button>
         </div>
       </div>
     );
@@ -136,22 +159,22 @@ export function ChatWindow() {
   return (
     <div className="flex flex-col h-full">
       {/* Header */}
-      <div className="flex items-center gap-3 px-4 py-3 bg-[#f0f2f5] border-b border-gray-200">
+      <div className="flex items-center gap-3 px-4 py-3 bg-gray-800 border-b border-gray-700">
         <div className="w-10 h-10 rounded-full bg-[#25D366] text-white flex items-center justify-center text-sm font-bold shrink-0">
           {conv?.displayName.replace(/[^0-9]/g, '').slice(-2) ?? '??'}
         </div>
         <div className="flex-1 min-w-0">
-          <p className="text-sm font-semibold text-gray-900 truncate">{conv?.displayName ?? activeContact}</p>
-          <p className="text-xs text-gray-500">{activeContact}</p>
+          <p className="text-sm font-semibold text-gray-200 truncate">{conv?.displayName ?? activeContact}</p>
+          <p className="text-xs text-gray-400">{activeContact}</p>
         </div>
         <button
           onClick={() => fetchMessages({ contact: activeContact })}
           title="Recarregar mensagens"
-          className="p-2 rounded-full hover:bg-gray-200 transition-colors text-gray-500"
+          className="p-2 rounded-full hover:bg-gray-700 transition-colors text-gray-400"
         >
           <RefreshCw className="w-4 h-4" />
         </button>
-        <button className="p-2 rounded-full hover:bg-gray-200 transition-colors text-gray-500">
+        <button className="p-2 rounded-full hover:bg-gray-700 transition-colors text-gray-400">
           <MoreVertical className="w-4 h-4" />
         </button>
       </div>
@@ -160,17 +183,17 @@ export function ChatWindow() {
       <div
         className="flex-1 overflow-y-auto px-4 py-4 space-y-0.5"
         style={{
-          backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='60' height='60'%3E%3Ccircle cx='30' cy='30' r='1' fill='%2325D36610'/%3E%3C/svg%3E")`,
-          backgroundColor: '#efeae2',
+          backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='60' height='60'%3E%3Ccircle cx='30' cy='30' r='1' fill='%23ffffff08'/%3E%3C/svg%3E")`,
+          backgroundColor: '#0B141A',
         }}
       >
         {messages.length === 0 ? (
           <div className="flex flex-col items-center justify-center h-full gap-3">
-            <div className="w-16 h-16 rounded-full bg-white/80 flex items-center justify-center shadow">
-              <MessageSquareOff className="w-8 h-8 text-gray-300" />
+            <div className="w-16 h-16 rounded-full bg-gray-800/80 flex items-center justify-center shadow">
+              <MessageSquareOff className="w-8 h-8 text-gray-400" />
             </div>
-            <p className="text-sm text-gray-500 font-medium">Sem mensagens ainda</p>
-            <p className="text-xs text-gray-400">Comece a conversa abaixo</p>
+            <p className="text-sm text-gray-400 font-medium">Sem mensagens ainda</p>
+            <p className="text-xs text-gray-500">Comece a conversa abaixo</p>
           </div>
         ) : (
           groupedMessages.map((group, gi) => (
@@ -186,18 +209,18 @@ export function ChatWindow() {
       </div>
 
       {/* Input */}
-      <div className="flex items-end gap-2 px-3 py-3 bg-[#f0f2f5] border-t border-gray-200">
-        <div className="flex-1 bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden focus-within:ring-2 focus-within:ring-[#25D366]/30 transition-all">
+      <div className="flex items-end gap-2 px-3 py-3 bg-gray-800 border-t border-gray-700">
+        <div className="flex-1 bg-gray-900 rounded-2xl border border-gray-700 shadow-sm overflow-hidden focus-within:ring-1 focus-within:ring-[#25D366]/50 transition-all">
           <textarea
             ref={textareaRef}
             id="wa-chat-message-input"
             value={text}
             onChange={e => setText(e.target.value)}
             onKeyDown={handleKeyDown}
-            placeholder="Digite uma mensagem... (Enter para enviar)"
+            placeholder="Digite uma mensagem..."
             rows={1}
             style={{ resize: 'none', maxHeight: '120px', overflowY: 'auto' }}
-            className="w-full px-4 py-2.5 text-sm bg-transparent border-0 outline-none focus:ring-0"
+            className="w-full px-4 py-2.5 text-sm bg-transparent border-0 outline-none focus:ring-0 text-gray-200 placeholder-gray-500"
           />
         </div>
         <button
@@ -207,8 +230,8 @@ export function ChatWindow() {
           className={`
             shrink-0 w-11 h-11 rounded-full flex items-center justify-center transition-all
             ${!text.trim() || sending
-              ? 'bg-gray-200 text-gray-400 cursor-not-allowed'
-              : 'bg-[#25D366] text-white shadow-lg shadow-green-200 hover:bg-[#128C7E] active:scale-95'}
+              ? 'bg-gray-700 text-gray-500 cursor-not-allowed'
+              : 'bg-[#00a884] text-white shadow-lg hover:bg-[#008f6f] active:scale-95'}
           `}
         >
           {sending

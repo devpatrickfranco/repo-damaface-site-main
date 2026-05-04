@@ -61,9 +61,9 @@ export function ChatPanel() {
   }, [showNewChat]);
 
   return (
-    <div className="relative flex flex-col h-full rounded-2xl overflow-hidden border border-gray-200 shadow-xl bg-white">
+    <div className="relative flex flex-col h-full rounded-2xl overflow-hidden border border-gray-700 shadow-xl bg-gray-900">
       {/* ─── Top bar ──────────────────────────────────────────────── */}
-      <div className="flex items-center justify-between px-4 py-3 bg-[#075E54] text-white shrink-0">
+      <div className="flex items-center justify-between px-4 py-3 bg-gray-800 text-gray-200 shrink-0 border-b border-gray-700">
         <div className="flex items-center gap-3">
           {/* Mobile back button */}
           {activeContact && (
@@ -111,8 +111,8 @@ export function ChatPanel() {
             className={`
               flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold transition-all
               ${showNewChat
-                ? 'bg-white text-[#075E54]'
-                : 'bg-white/15 text-white hover:bg-white/25'}
+                ? 'bg-gray-700 text-white'
+                : 'bg-white/10 text-gray-300 hover:bg-white/20'}
             `}
           >
             <MessageSquarePlus className="w-4 h-4" />
@@ -127,7 +127,7 @@ export function ChatPanel() {
         {/* Conversation sidebar */}
         <div
           className={`
-            shrink-0 border-r border-gray-200 flex flex-col bg-white overflow-hidden transition-all duration-300
+            shrink-0 border-r border-gray-700 flex flex-col bg-gray-900 overflow-hidden transition-all duration-300
             ${activeContact ? 'hidden sm:flex sm:w-72 lg:w-80' : 'flex w-full sm:w-72 lg:w-80'}
           `}
         >
@@ -149,7 +149,7 @@ export function ChatPanel() {
           ref={panelRef}
           className={`
             absolute top-0 right-0 bottom-0 z-30
-            w-full sm:w-80 bg-white border-l border-gray-200 shadow-2xl
+            w-full sm:w-80 bg-gray-900 border-l border-gray-700 shadow-2xl
             transition-transform duration-300 ease-in-out
             ${showNewChat ? 'translate-x-0' : 'translate-x-full'}
           `}
@@ -169,7 +169,7 @@ export function ChatPanel() {
       </div>
 
       {/* ─── Status bar ───────────────────────────────────────────── */}
-      <div className="shrink-0 flex items-center justify-between px-4 py-1.5 bg-gray-50 border-t border-gray-100">
+      <div className="shrink-0 flex items-center justify-between px-4 py-1.5 bg-gray-800 border-t border-gray-700">
         <div className="flex items-center gap-1.5 text-[10px] text-gray-400 font-medium">
           <Wifi className="w-3 h-3 text-[#25D366]" />
           <span>Conectado via WhatsApp Business API</span>
