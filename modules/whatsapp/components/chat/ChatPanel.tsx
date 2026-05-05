@@ -7,11 +7,13 @@ import {
   Wifi,
   WifiOff,
   ChevronLeft,
+  FlaskConical,
 } from 'lucide-react';
 import { useMessagesStore } from '../../store/useMessagesStore';
 import { ConversationList } from './ConversationList';
 import { ChatWindow } from './ChatWindow';
 import { NewChatInput } from './NewChatInput';
+import { TestSendMessage } from '../../../app/franqueado/whatsapp/components/TestSendMessage';
 
 /**
  * Main Chat Panel — combines all chat sub-components
@@ -132,6 +134,18 @@ export function ChatPanel() {
           `}
         >
           <ConversationList />
+
+          {/* Dev tool: test send message */}
+          <details className="shrink-0 border-t border-gray-700 group">
+            <summary className="flex items-center gap-2 px-4 py-2.5 cursor-pointer hover:bg-gray-800/50 transition-colors text-xs font-semibold text-gray-400 hover:text-gray-300 select-none">
+              <FlaskConical className="w-3.5 h-3.5 text-amber-400" />
+              <span>Teste de Envio (Meta)</span>
+              <span className="ml-auto text-[10px] text-gray-600 group-open:rotate-90 transition-transform">▶</span>
+            </summary>
+            <div className="px-3 pb-3">
+              <TestSendMessage />
+            </div>
+          </details>
         </div>
 
         {/* Chat window */}
