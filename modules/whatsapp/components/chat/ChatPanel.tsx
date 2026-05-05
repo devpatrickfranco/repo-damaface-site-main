@@ -13,7 +13,7 @@ import { useMessagesStore } from '../../store/useMessagesStore';
 import { ConversationList } from './ConversationList';
 import { ChatWindow } from './ChatWindow';
 import { NewChatInput } from './NewChatInput';
-import { TestSendMessage } from '../../../app/franqueado/whatsapp/components/TestSendMessage';
+import { TestSendMessage } from '@/app/franqueado/whatsapp/components/TestSendMessage';
 
 /**
  * Main Chat Panel — combines all chat sub-components
