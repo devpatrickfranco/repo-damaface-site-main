@@ -85,12 +85,16 @@ class MetaSDKService {
         redirect_uri: redirectUri,
         display: 'popup',
         override_default_response_type: 'true',
-        extras: JSON.stringify({ sessionInfoVersion: '3', version: 'v4' })
+        extras: JSON.stringify({
+          setup: {},
+          featureType: 'whatsapp_business_app_onboarding', // Ativa o fluxo Coex (Business App + Cloud API simultâneos)
+          sessionInfoVersion: '3',
+        })
       });
 
       const url = `https://www.facebook.com/v21.0/dialog/oauth?${params.toString()}`;
 
-      console.log('%c[COEX] 🚀 STEP 1 — Popup sendo aberto', 'color: #4CAF50; font-weight: bold;', { url, redirectUri, configId });
+      console.log('%c[COEX] 🚀 STEP 1 — Popup sendo aberto [modo: whatsapp_business_app_onboarding]', 'color: #4CAF50; font-weight: bold;', { url, redirectUri, configId });
       logger.info('COEX', 'Abrindo popup manual da Meta...', { url }, cid);
 
       const popup = window.open(
