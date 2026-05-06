@@ -122,7 +122,7 @@ export default function RenderHome() {
       {/* Header */}
       <div className="text-center mb-8">
         <h1 className="text-3xl md:text-4xl font-bold text-white mb-4">
-          DamaFace Academy
+          Damaface Academy
         </h1>
         <p className="text-gray-400 text-lg max-w-2xl mx-auto">
           Desenvolva suas habilidades e domine todos os aspectos do seu negócio com nossos cursos especializados

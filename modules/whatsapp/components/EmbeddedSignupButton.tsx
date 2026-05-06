@@ -46,7 +46,7 @@ export function EmbeddedSignupButton() {
         <p className="text-gray-500 text-sm font-medium leading-relaxed">
           {isConnected 
             ? 'Seu número está pronto para uso centralizado. Você pode gerenciar todas as conversas aqui.'
-            : 'Utilize o fluxo oficial da Meta para conectar o número da sua clínica ao WABA Central da DamaFace.'}
+            : 'Utilize o fluxo oficial da Meta para conectar o número da sua clínica ao WABA Central da Damaface.'}
         </p>
       </div>
 

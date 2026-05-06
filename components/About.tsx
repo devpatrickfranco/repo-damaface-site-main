@@ -19,7 +19,7 @@ const About = () => {
       image: '/images/about/Wellison-Santos.png',
       description: 'Especialista em expansão de negócios com foco em franquias, atuando há 10 anos no setor'
     },
-    
+
   ];
 
   const differentials = [
@@ -53,17 +53,17 @@ const About = () => {
           <div className="animate-on-scroll">
             <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold mb-6">
               <span className="text-gradient">Sobre a</span>
-              <span className="block text-brand-pink">DamaFace</span>
+              <span className="block text-brand-pink">Damaface</span>
             </h2>
             <p className="text-lg text-gray-300 mb-6 leading-relaxed">
-              Com mais de 5 anos de experiência no mercado de estética, 
-              a DamaFace se consolidou como referência em tratamentos faciais 
+              Com mais de 5 anos de experiência no mercado de estética,
+              a Damaface se consolidou como referência em tratamentos faciais
               e corporais, oferecendo resultados naturais e duradouros.
             </p>
             <p className="text-gray-300 mb-8 leading-relaxed">
-              Nossa missão é realçar a beleza natural de cada cliente através 
-              de procedimentos seguros, personalizados e executados por uma 
-              equipe altamente qualificada. Utilizamos apenas produtos e 
+              Nossa missão é realçar a beleza natural de cada cliente através
+              de procedimentos seguros, personalizados e executados por uma
+              equipe altamente qualificada. Utilizamos apenas produtos e
               tecnologias de última geração, garantindo os melhores resultados.
             </p>
 
@@ -105,7 +105,7 @@ const About = () => {
             </p>
           </div>
 
-            <div className="flex flex-wrap justify-center items-stretch gap-8">
+          <div className="flex flex-wrap justify-center items-stretch gap-8">
             {team.map((member, index) => (
               <div
                 key={member.name}
@@ -132,7 +132,7 @@ const About = () => {
                 </p>
               </div>
             ))}
-            </div>
+          </div>
         </div>
 
         {/* Differentials */}
@@ -169,7 +169,7 @@ const About = () => {
         </div>
       </div>
       <div className="flex justify-center gap-6 text-center mt-12 animate-on-scroll">
-        <CtaButtonWhatsapp className='mt-12'/>
+        <CtaButtonWhatsapp className='mt-12' />
       </div>
     </section>
   );

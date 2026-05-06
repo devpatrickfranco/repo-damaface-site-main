@@ -218,7 +218,7 @@ export default function ConsultantPage() {
                         </div>
                         <div>
                             <h1 className="text-sm font-bold text-gray-100 tracking-tight">
-                                DamaFace
+                                Damaface
                             </h1>
                             <p className="text-[11px] text-gray-400">
                                 Consultoria Comercial
@@ -293,7 +293,7 @@ export default function ConsultantPage() {
             <footer className="shrink-0 py-2 border-t border-gray-800">
                 <div className="flex items-center justify-between">
                     <span className="text-[11px] text-gray-500">
-                        DamaFace Consultoria Virtual
+                        Damaface Consultoria Virtual
                     </span>
                     <span className="text-[11px] text-gray-500">
                         Atendimento seguro e profissional

@@ -179,7 +179,7 @@ const Partners = () => {
               Garantia de Qualidade e Segurança
             </h3>
             <p className="text-gray-300 mb-6 leading-relaxed">
-              Todos os produtos utilizados na DamaFace são originais, importados diretamente dos fabricantes
+              Todos os produtos utilizados na Damaface são originais, importados diretamente dos fabricantes
               e possuem registro na ANVISA. Nossa equipe é constantemente treinada e certificada pelas marcas parceiras,
               garantindo que você receba sempre o melhor tratamento com os mais altos padrões de segurança.
             </p>

@@ -17,8 +17,8 @@ const inter = Inter({
 
 export const metadata: Metadata = {
   title: {
-    default: "DamaFace - Clínica de Estética Facial e Corporal",
-    template: "%s | DamaFace",
+    default: "Damaface - Clínica de Estética Facial e Corporal",
+    template: "%s | Damaface",
   },
   description:
     "Especialistas em estética facial e corporal com resultados naturais. Botox, preenchimento, bioestimulador e tratamentos não invasivos.",
@@ -31,27 +31,27 @@ export const metadata: Metadata = {
     "tratamentos faciais",
     "procedimentos estéticos",
   ],
-  authors: [{ name: "DamaFace" }],
-  creator: "DamaFace",
+  authors: [{ name: "Damaface" }],
+  creator: "Damaface",
   openGraph: {
     type: "website",
     locale: "pt_BR",
     url: "https://damaface.com.br",
-    siteName: "DamaFace",
-    title: "DamaFace - Clínica de Estética Facial e Corporal",
+    siteName: "Damaface",
+    title: "Damaface - Clínica de Estética Facial e Corporal",
     description: "Especialistas em estética facial e corporal com resultados naturais.",
     images: [
       {
         url: "/og-image.jpg",
         width: 1200,
         height: 630,
-        alt: "DamaFace - Clínica de Estética",
+        alt: "Damaface - Clínica de Estética",
       },
     ],
   },
   twitter: {
     card: "summary_large_image",
-    title: "DamaFace - Clínica de Estética Facial e Corporal",
+    title: "Damaface - Clínica de Estética Facial e Corporal",
     description: "Especialistas em estética facial e corporal com resultados naturais.",
     images: ["/og-image.jpg"],
   },
@@ -69,7 +69,7 @@ export const metadata: Metadata = {
   verification: {
     google: "your-google-site-verification",
   },
-    generator: 'DamaFace - technology'
+    generator: 'Damaface - technology'
 }
 
 export default function RootLayout({

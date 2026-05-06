@@ -105,7 +105,7 @@ const Footer = () => {
             <Link href="/" className="inline-block mb-6">
               <Image
                 src="http://damaface.com.br/LOGO-DAMAFACE-HORIZONTAL-BRANCO.png"
-                alt="DamaFace"
+                alt="Damaface"
                 width={200}
                 height={60}
                 className="h-12 w-auto"
@@ -248,7 +248,7 @@ const Footer = () => {
         <div className="border-t border-gray-800 py-6">
           <div className="flex flex-col md:flex-row items-center justify-between text-sm text-gray-500">
             <p>
-              © 2025 DamaFace Clínica de Estética. Todos os direitos reservados.
+              © 2025 Damaface Clínica de Estética. Todos os direitos reservados.
             </p>
             
             <div className="flex flex-wrap gap-x-6 gap-y-2 mt-4 md:mt-0 items-center">
@@ -256,13 +256,13 @@ const Footer = () => {
                 title="Termos de Uso"
                 anchor="termsofservice"
                 content={`
-              Termos de Uso do Site DamaFace
+              Termos de Uso do Site Damaface
 
-              Estes Termos de Uso regem o uso do site DamaFace (damaface.com). Ao acessar ou usar o site, você concorda com estes termos e condições.
+              Estes Termos de Uso regem o uso do site Damaface (damaface.com). Ao acessar ou usar o site, você concorda com estes termos e condições.
 
               Uso do Site:
 
-              Você concorda em usar o site DamaFace apenas para fins legais e de acordo com estes Termos de Uso.
+              Você concorda em usar o site Damaface apenas para fins legais e de acordo com estes Termos de Uso.
 
               Você é responsável por garantir que todas as informações fornecidas durante o uso do site sejam precisas, completas e atualizadas.
 
@@ -270,19 +270,19 @@ const Footer = () => {
 
               Propriedade Intelectual:
 
-              O site DamaFace e todo o seu conteúdo, incluindo textos, gráficos, logotipos, imagens, vídeos, áudios e software, são de propriedade exclusiva ou licenciados para nós e estão protegidos por leis de direitos autorais e outras leis de propriedade intelectual.
+              O site Damaface e todo o seu conteúdo, incluindo textos, gráficos, logotipos, imagens, vídeos, áudios e software, são de propriedade exclusiva ou licenciados para nós e estão protegidos por leis de direitos autorais e outras leis de propriedade intelectual.
 
               Você concorda em não reproduzir, distribuir, modificar, criar trabalhos derivados, exibir publicamente, realizar publicamente, republicar, baixar, armazenar ou transmitir qualquer parte do conteúdo do site sem a nossa autorização prévia por escrito.
 
               Links para Outros Sites:
 
-              O site DamaFace pode conter links para sites de terceiros que não são controlados ou operados por nós. Não nos responsabilizamos pelo conteúdo, políticas de privacidade ou práticas de qualquer site de terceiros.
+              O site Damaface pode conter links para sites de terceiros que não são controlados ou operados por nós. Não nos responsabilizamos pelo conteúdo, políticas de privacidade ou práticas de qualquer site de terceiros.
 
               O uso de sites de terceiros está sujeito aos termos e condições e políticas de privacidade desses sites.
 
               Limitação de Responsabilidade:
 
-              O site DamaFace é fornecido "como está" e "conforme disponível", sem garantias de qualquer tipo, expressas ou implícitas.
+              O site Damaface é fornecido "como está" e "conforme disponível", sem garantias de qualquer tipo, expressas ou implícitas.
 
               Não garantimos que o site seja livre de erros ou que seu acesso será ininterrupto.
 
@@ -302,9 +302,9 @@ const Footer = () => {
                 title="Política de Privacidade"
                 anchor="privacypolicy"
                 content={`
-              Política de Privacidade do Site DamaFace
+              Política de Privacidade do Site Damaface
 
-              A privacidade dos nossos visitantes é extremamente importante para nós. Esta política de privacidade descreve os tipos de informações pessoais que são recebidas e coletadas pelo site DamaFace (damaface.com) e como essas informações são utilizadas.
+              A privacidade dos nossos visitantes é extremamente importante para nós. Esta política de privacidade descreve os tipos de informações pessoais que são recebidas e coletadas pelo site Damaface (damaface.com) e como essas informações são utilizadas.
 
               Informações que Coletamos:
 
@@ -326,7 +326,7 @@ const Footer = () => {
 
               Cookies e Tecnologias Semelhantes:
 
-              O site DamaFace utiliza cookies e outras tecnologias de rastreamento para personalizar a sua experiência de navegação e para coletar informações sobre como você interage com o site.
+              O site Damaface utiliza cookies e outras tecnologias de rastreamento para personalizar a sua experiência de navegação e para coletar informações sobre como você interage com o site.
 
               Você pode controlar o uso de cookies nas configurações do seu navegador. No entanto, desativar os cookies pode afetar a sua capacidade de utilizar algumas partes do site.
 
@@ -340,7 +340,7 @@ const Footer = () => {
 
               Reservamo-nos o direito de fazer alterações nesta política de privacidade a qualquer momento, e tais alterações entrarão em vigor imediatamente após serem publicadas no site.
 
-              Ao utilizar o site DamaFace, você concorda com esta política de privacidade. Se tiver alguma dúvida ou preocupação sobre esta política, entre em contato conosco através do e-mail contato@damaface.com.br
+              Ao utilizar o site Damaface, você concorda com esta política de privacidade. Se tiver alguma dúvida ou preocupação sobre esta política, entre em contato conosco através do e-mail contato@damaface.com.br
               `}
               />
 
@@ -348,13 +348,13 @@ const Footer = () => {
                 title="Exclusão de Dados"
                 anchor="datadeletion"
                 content={`
-              Política de Exclusão de Dados — DamaFace
+              Política de Exclusão de Dados — Damaface
 
-              A DamaFace respeita o seu direito à privacidade e ao controle sobre seus dados pessoais, em conformidade com a Lei Geral de Proteção de Dados (LGPD — Lei nº 13.709/2018).
+              A Damaface respeita o seu direito à privacidade e ao controle sobre seus dados pessoais, em conformidade com a Lei Geral de Proteção de Dados (LGPD — Lei nº 13.709/2018).
 
               Newsletter e Cancelamento de Inscrição:
 
-              Ao se inscrever em nossa newsletter, você fornece voluntariamente o seu endereço de e-mail para receber dicas de beleza, novidades e promoções da DamaFace.
+              Ao se inscrever em nossa newsletter, você fornece voluntariamente o seu endereço de e-mail para receber dicas de beleza, novidades e promoções da Damaface.
 
               Para cancelar sua inscrição a qualquer momento, basta clicar no link "Cancelar inscrição" (Unsubscribe) presente no rodapé de qualquer e-mail que você receber de nós. O cancelamento é imediato e você não receberá novas comunicações após a confirmação.
 
@@ -362,7 +362,7 @@ const Footer = () => {
 
               Ao solicitar o cancelamento da inscrição ou da conta, seus dados pessoais (como endereço de e-mail) são removidos permanentemente de nossa base de dados.
 
-              A DamaFace não retém nem armazena seus dados após a exclusão solicitada pelo usuário. Não realizamos backup ou cópias de segurança de informações após a remoção.
+              A Damaface não retém nem armazena seus dados após a exclusão solicitada pelo usuário. Não realizamos backup ou cópias de segurança de informações após a remoção.
 
               Após a exclusão, não é possível recuperar os dados, e nenhuma comunicação de marketing será enviada ao e-mail removido.
 

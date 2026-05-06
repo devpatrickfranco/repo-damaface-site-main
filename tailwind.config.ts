@@ -10,7 +10,7 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
-        // DamaFace Brand Colors
+        // Damaface Brand Colors
         'brand-pink': '#fa1571',
         'dark-base': 'rgba(17,24,39,.9)',
         'dark-solid': '#000000',

@@ -180,7 +180,7 @@ const AIHelpPage = () => {
             )}
           </div>
           <p className="text-gray-400 text-sm ml-14">
-            Assistente inteligente para ajudar você a navegar pelo sistema DamaFace
+            Assistente inteligente para ajudar você a navegar pelo sistema Damaface
           </p>
         </div>
 

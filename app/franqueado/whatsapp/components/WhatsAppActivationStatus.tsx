@@ -204,7 +204,7 @@ function WhatsAppOnboardingForm({ onSuccess }: { onSuccess: () => void }) {
           Conecte o WhatsApp da Clínica
         </h1>
         <p className="text-gray-500 text-base leading-relaxed">
-          Informe o número de telefone da sua clínica. Nossa equipe irá configurar um número WhatsApp Business exclusivo dentro do WABA central DamaFace.
+          Informe o número de telefone da sua clínica. Nossa equipe irá configurar um número WhatsApp Business exclusivo dentro do WABA central Damaface.
         </p>
       </div>
 
@@ -372,7 +372,7 @@ function WhatsAppOnboardingForm({ onSuccess }: { onSuccess: () => void }) {
           { icon: MessageSquare, label: 'Conversas em tempo real' },
           { icon: Zap, label: 'Disparos em massa' },
           { icon: Users, label: 'CRM Integrado' },
-          { icon: ShieldCheck, label: 'WABA Central DamaFace' },
+          { icon: ShieldCheck, label: 'WABA Central Damaface' },
         ].map(({ icon: Icon, label }) => (
           <div key={label} className="flex items-center space-x-2 p-3 bg-gray-50 rounded-xl border border-gray-100">
             <div className="w-7 h-7 rounded-lg bg-green-100 flex items-center justify-center shrink-0">
@@ -386,7 +386,7 @@ function WhatsAppOnboardingForm({ onSuccess }: { onSuccess: () => void }) {
       {/* Trust badge */}
       <div className="flex items-center space-x-2 mt-8 text-[11px] text-gray-400">
         <ShieldCheck className="w-3.5 h-3.5 text-green-500" />
-        <span>Número gerenciado pela DamaFace · Verificado pela Meta</span>
+        <span>Número gerenciado pela Damaface · Verificado pela Meta</span>
       </div>
     </div>
   )
@@ -405,7 +405,7 @@ function PendingState({
 }) {
   const steps = [
     { label: 'Solicitação de número enviada', done: true },
-    { label: 'Número alocado no WABA DamaFace', done: true },
+    { label: 'Número alocado no WABA Damaface', done: true },
     { label: 'Verificação e configuração do número', done: false, active: true },
     { label: 'Ativação liberada para uso', done: false },
   ]
@@ -436,7 +436,7 @@ function PendingState({
           Seu número está sendo ativado
         </h1>
         <p className="text-gray-500 text-base leading-relaxed">
-          A equipe DamaFace está configurando o número{' '}
+          A equipe Damaface está configurando o número{' '}
           <span className="font-bold text-gray-700">{connection.phone_number}</span> dentro do
           nosso WABA central. Você será notificado assim que estiver pronto.
         </p>
@@ -492,13 +492,13 @@ function PendingState({
           className="w-full flex items-center justify-center space-x-2 px-6 py-3 bg-white border border-gray-200 text-gray-600 rounded-2xl font-medium text-sm hover:bg-gray-50 transition-all"
         >
           <HeadphonesIcon className="w-4 h-4 text-green-600" />
-          <span>Falar com suporte DamaFace</span>
+          <span>Falar com suporte Damaface</span>
         </a>
       </div>
 
       <div className="flex items-center space-x-2 mt-8 text-[11px] text-gray-400">
         <ShieldCheck className="w-3.5 h-3.5 text-green-500" />
-        <span>Número alocado no WABA central DamaFace · Gerenciado pela Meta</span>
+        <span>Número alocado no WABA central Damaface · Gerenciado pela Meta</span>
       </div>
     </div>
   )
@@ -546,7 +546,7 @@ function ActiveDashboard({
           <div>
             <div className="flex items-center space-x-2 mb-0.5">
               <h2 className="text-base font-black text-gray-900">
-                {connection.display_name ?? 'Clínica DamaFace'}
+                {connection.display_name ?? 'Clínica Damaface'}
               </h2>
               <span className="inline-flex items-center space-x-1 px-2 py-0.5 bg-green-100 text-green-700 text-[10px] font-bold rounded-full uppercase tracking-wider">
                 <div className="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse" />
@@ -582,7 +582,7 @@ function ActiveDashboard({
             <Building2 className="w-3 h-3" />
             <span>COEX · WABA Central</span>
           </span>
-          <span className="text-[10px] text-gray-400">Gerenciado pela DamaFace</span>
+          <span className="text-[10px] text-gray-400">Gerenciado pela Damaface</span>
         </div>
       </div>
 
@@ -710,7 +710,7 @@ function SuspendedState({
         </h1>
         <p className="text-gray-500 text-base leading-relaxed">
           O acesso ao WhatsApp Business desta clínica foi temporariamente suspenso. Entre em
-          contato com o suporte DamaFace para regularizar sua situação.
+          contato com o suporte Damaface para regularizar sua situação.
         </p>
       </div>
 
@@ -730,7 +730,7 @@ function SuspendedState({
         className="flex items-center space-x-2 px-8 py-4 bg-red-600 text-white rounded-2xl font-bold text-base hover:bg-red-700 transition-all transform hover:scale-[1.02] active:scale-[0.98] shadow-xl shadow-red-200"
       >
         <HeadphonesIcon className="w-5 h-5" />
-        <span>Falar com suporte DamaFace</span>
+        <span>Falar com suporte Damaface</span>
       </a>
     </div>
   )
@@ -755,7 +755,7 @@ function LockedDashboard({ connection }: { connection: WabaConnection }) {
           <p className="text-xs text-amber-700 mt-0.5 leading-relaxed">
             O número <span className="font-bold">{connection.phone_number}</span> foi solicitado
             e está sendo configurado. As funcionalidades abaixo ficarão disponíveis após a ativação
-            pela equipe DamaFace.
+            pela equipe Damaface.
           </p>
         </div>
       </div>
@@ -774,7 +774,7 @@ function LockedDashboard({ connection }: { connection: WabaConnection }) {
           </div>
           <div>
             <p className="text-base font-black text-gray-900">
-              {connection.display_name ?? 'Clínica DamaFace'}
+              {connection.display_name ?? 'Clínica Damaface'}
             </p>
             <p className="text-sm text-gray-500">{connection.phone_number}</p>
           </div>

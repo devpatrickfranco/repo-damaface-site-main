@@ -107,11 +107,11 @@ const Studio = () => {
                 Experiência B2C para Pacientes
               </span>
               <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold mb-6 text-gradient">
-                DamaFace Studio: 
+                Damaface Studio: 
                 <span className="block text-brand-pink mt-2">Sua Clínica Digital</span>
               </h2>
               <p className="text-lg text-gray-300 leading-relaxed mb-10">
-                Tenha sua jornada de beleza na palma da mão. Com o DamaFace Studio, 
+                Tenha sua jornada de beleza na palma da mão. Com o Damaface Studio, 
                 você realiza sua própria análise facial por IA, acompanha sua evolução 
                 mensal e acessa seu plano personalizado a qualquer momento.
               </p>

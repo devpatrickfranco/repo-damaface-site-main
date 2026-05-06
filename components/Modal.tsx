@@ -91,7 +91,7 @@ export default function Modal({ title, content, anchor }: ModalProps) {
             <div className="p-6 bg-gray-800/30 border-t border-gray-700/50 flex-shrink-0">
               <div className="flex items-center justify-between">
                 <div className="text-sm text-gray-400">
-                  DamaFace - Harmonização Facial e Coporal
+                  Damaface - Harmonização Facial e Coporal
                 </div>
                 <button
                   onClick={close}

@@ -58,7 +58,7 @@ export function ConsultantVideo({
             {isSessionActive && iframeUrl ? (
                 <iframe
                     src={iframeUrl}
-                    title="Consultor virtual DamaFace"
+                    title="Consultor virtual Damaface"
                     className="w-full h-full border-0 absolute inset-0"
                     allow="microphone; camera; autoplay; encrypted-media"
                     allowFullScreen

@@ -54,7 +54,7 @@ const Franchise = () => {
               </span>
               <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold mb-6 text-gradient">
                 Seja um Franqueado
-                <span className="block text-brand-pink">DamaFace</span>
+                <span className="block text-brand-pink">Damaface</span>
               </h2>
               <p className="text-lg text-gray-300 leading-relaxed">
                 Faça parte da rede de clínicas de estética que mais cresce no Brasil. 

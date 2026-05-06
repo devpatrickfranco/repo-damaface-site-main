@@ -153,7 +153,7 @@ const EditarImagemPage = () => {
         },
         {
             icon: Edit,
-            text: 'Adicione o logo da DamaFace no canto superior',
+            text: 'Adicione o logo da Damaface no canto superior',
             category: 'Branding'
         },
         {

@@ -153,7 +153,7 @@ export function WhatsAppModule() {
               </h3>
               <p className="text-xs text-gray-400 mt-1 max-w-xs">
                 {isSyncing 
-                  ? 'Aguarde enquanto validamos a "Source of Truth" com o servidor central DamaFace.' 
+                  ? 'Aguarde enquanto validamos a "Source of Truth" com o servidor central Damaface.' 
                   : 'Conecte seu WhatsApp Business via fluxo oficial da Meta para liberar as ferramentas de CRM.'}
               </p>
             </div>

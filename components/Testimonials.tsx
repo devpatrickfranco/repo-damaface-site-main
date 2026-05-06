@@ -14,7 +14,7 @@ const Testimonials = () => {
       age: 32,
       treatment: 'Botox + Preenchimento Labial',
       rating: 5,
-      comment: 'Resultado incrível! Fiquei com uma aparência muito natural e rejuvenescida. A equipe da DamaFace é excepcional, me senti muito segura durante todo o procedimento.',
+      comment: 'Resultado incrível! Fiquei com uma aparência muito natural e rejuvenescida. A equipe da Damaface é excepcional, me senti muito segura durante todo o procedimento.',
       image: '/images/testimonials/depoimento-1.png',
     },
     {
@@ -32,7 +32,7 @@ const Testimonials = () => {
       age: 35,
       treatment: 'Fios de Sustentação',
       rating: 5,
-      comment: 'Efeito lifting incrível sem cirurgia! Recuperei a firmeza do rosto de forma natural. Indico a DamaFace para todas as minhas amigas.',
+      comment: 'Efeito lifting incrível sem cirurgia! Recuperei a firmeza do rosto de forma natural. Indico a Damaface para todas as minhas amigas.',
       image: '/images/testimonials/depoimento-3.png',
     },
     {
