@@ -16,6 +16,7 @@ const inter = Inter({
 })
 
 export const metadata: Metadata = {
+  metadataBase: new URL("https://www.damaface.com.br"),
   title: {
     default: "Damaface - Clínica de Estética Facial e Corporal",
     template: "%s | Damaface",
@@ -81,7 +82,6 @@ export default function RootLayout({
     <html lang="pt-BR" className="dark">
       <head>
         <link rel="shortcut icon" href="/favicon.ico" type="image/x-icon" />
-        <link rel="canonical" href="https://damaface.com.br" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
       </head>
       <body className={inter.className}>
