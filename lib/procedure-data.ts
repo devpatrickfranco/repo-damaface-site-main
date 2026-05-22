@@ -124,17 +124,13 @@ export const procedures: { [key: string]: any } = {
     "title": "Harmonização Facial Full-Face",
     "subtitle": "Realce Sua Beleza de Forma Completa",
     "description": "Conjunto de procedimentos estéticos que visam equilibrar e realçar os traços do rosto, abordando múltiplas áreas para proporcionar uma aparência mais harmônica, rejuvenescida e atraente.",
-    "heroImage": "/collagen-biostimulator-facial-treatment.png",
+    "heroImage": "/images/procedimentos/full-face/gerais/full-face-1.png",
     "category": "Facial",
     "duration": "60-90 minutos",
     "sessions": "Variável",
     "results": "6-18 meses",
     "price": "Preço sobre consulta",
-    "beforeAfterImages": [
-      { "src": "/images/procedimentos/harmonizacao/antes-x-depois/HARMONIZACAO-1.png", "alt": "Harmonização Facial Antes e Depois" },
-      { "src": "/images/procedimentos/harmonizacao/antes-x-depois/HARMONIZACAO-2.png", "alt": "Harmonização Facial Resultado 2" },
-      { "src": "/images/procedimentos/harmonizacao/antes-x-depois/HARMONIZACAO-3.png", "alt": "Harmonização Facial Antes e Depois 3" }
-    ],
+    "beforeAfterImages": [],
     "pricingPackages": [
       {
         "title": "Harmonização Full Face",
@@ -237,7 +233,7 @@ export const procedures: { [key: string]: any } = {
     "title": "Bioestimulador de Colágeno",
     "subtitle": "Rejuvenescimento Natural e Duradouro",
     "description": "Estimula a produção natural de colágeno, rejuvenescendo a pele de forma gradual e natural.",
-    "heroImage": "/collagen-biostimulator-facial-treatment.png",
+    "heroImage": "/images/procedimentos/bioestimulador/gerais/bioestimulador-1.jpeg",
     "category": "Facial",
     "duration": "45-60 minutos",
     "sessions": "2-3 sessões",
@@ -1510,17 +1506,13 @@ export const procedures: { [key: string]: any } = {
     "title": "Massagem Modeladora",
     "subtitle": "Contorno Corporal e Redução de Medidas",
     "description": "Técnica de massagem vigorosa e profunda, focada em remodelar o contorno corporal, reduzir medidas e amenizar a aparência da celulite.",
-    "heroImage": "/images/procedimentos/massagem-modeladora/gerais/modeladora-1.png",
+    "heroImage": "/images/procedimentos/.corporal/massagem-modeladora/gerais/massagem-modeladora-1.png",
     "category": "Corporal",
     "duration": "50-60 minutos",
     "sessions": "Protocolo de 10 sessões",
     "results": "Visíveis após a 3ª ou 4ª sessão",
     "price": "A partir de R$ 199,00",
-    "beforeAfterImages": [
-      { "src": "/images/procedimentos/massagem-modeladora/antes-x-depois/modeladora-abdomen-1.png", "alt": "Massagem Modeladora no Abdômen Antes e Depois" },
-      { "src": "/images/procedimentos/massagem-modeladora/antes-x-depois/modeladora-coxas-1.png", "alt": "Resultado da Modeladora para Celulite" },
-      { "src": "/images/procedimentos/massagem-modeladora/antes-x-depois/modeladora-flancos-1.png", "alt": "Antes e Depois Massagem Modeladora nos Flancos" }
-    ],
+    "beforeAfterImages": [],
     "pricingPackages": [
       {
         "title": "Sessão Avulsa",

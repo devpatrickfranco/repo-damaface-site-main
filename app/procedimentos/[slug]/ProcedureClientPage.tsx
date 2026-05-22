@@ -152,11 +152,11 @@ export default function ProcedureClientPage({ procedure }: ProcedureClientPagePr
 
               <div className="relative">
                 <Image
-                  src="/images/procedimentos/botox/gerais/botox-1.png"
-                  alt="Procedimento"
+                  src={procedure.heroImage || "/placeholder.svg"}
+                  alt={procedure.title || "Procedimento"}
                   width={600}
                   height={400}
-                  className="rounded-xl"
+                  className="rounded-xl object-cover"
                 />
               </div>
             </div>
