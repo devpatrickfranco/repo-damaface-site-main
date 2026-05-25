@@ -1,12 +1,56 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useWhatsAppStore } from '../store/useWhatsAppStore';
 import { ConnectionBanner } from '../components/ConnectionBanner';
 import { EmbeddedSignupButton } from '../components/EmbeddedSignupButton';
 import { WhatsAppSkeleton } from '../components/WhatsAppSkeleton';
 import { ChatPanel } from '../components/chat/ChatPanel';
-import { RefreshCw, AlertTriangle, ShieldCheck, Activity, Layers, Globe, MessageSquare } from 'lucide-react';
+import { WabaAccountDetails } from '../components/WabaAccountDetails';
+import { MultiTenantNetworkCard } from '../components/MultiTenantNetworkCard';
+import {
+  RefreshCw,
+  AlertTriangle,
+  ShieldCheck,
+  Activity,
+  Layers,
+  Globe,
+  MessageSquare,
+  Building2,
+  MessagesSquare,
+} from 'lucide-react';
 import { logger } from '../utils/logger';
 
+// ─── Tab definition ───────────────────────────────────────────────────────────
+type ActiveTab = 'atendimento' | 'conta';
+
+interface TabButtonProps {
+  id: ActiveTab;
+  label: string;
+  icon: React.ElementType;
+  current: ActiveTab;
+  onClick: (id: ActiveTab) => void;
+}
+
+function TabButton({ id, label, icon: Icon, current, onClick }: TabButtonProps) {
+  const isActive = current === id;
+  return (
+    <button
+      id={`wa-tab-${id}`}
+      onClick={() => onClick(id)}
+      className={`
+        flex items-center gap-2 px-4 py-2.5 text-sm font-bold rounded-xl transition-all
+        ${isActive
+          ? 'bg-gray-800 text-white shadow-sm border border-gray-700'
+          : 'text-gray-500 hover:text-gray-300 hover:bg-gray-800/50'
+        }
+      `}
+    >
+      <Icon className="w-4 h-4" />
+      {label}
+    </button>
+  );
+}
+
+// ─── Main Module ──────────────────────────────────────────────────────────────
 export function WhatsAppModule() {
   const {
     status,
@@ -18,8 +62,10 @@ export function WhatsAppModule() {
     resetError,
     currentCorrelationId,
     startFlow,
-    featureFlags
+    featureFlags,
   } = useWhatsAppStore();
+
+  const [activeTab, setActiveTab] = useState<ActiveTab>('atendimento');
 
   useEffect(() => {
     const cid = currentCorrelationId || startFlow();
@@ -49,7 +95,7 @@ export function WhatsAppModule() {
 
   return (
     <div className="min-h-screen bg-gray-950 p-6 lg:p-8 space-y-6 animate-in fade-in duration-500">
-      {/* Header */}
+      {/* ── Header ── */}
       <div className="flex items-center gap-4">
         <div className="p-3 rounded-2xl bg-gradient-to-br from-green-600 to-emerald-600 shadow-lg shadow-green-500/20">
           <MessageSquare className="w-6 h-6 text-white" />
@@ -62,7 +108,7 @@ export function WhatsAppModule() {
         </div>
       </div>
 
-      {/* Suspended banner */}
+      {/* ── Suspended banner ── */}
       {status === 'suspended' && (
         <div className="flex items-center gap-3 p-4 bg-red-500/10 border border-red-500/20 rounded-2xl">
           <AlertTriangle className="w-6 h-6 text-red-400" />
@@ -73,7 +119,7 @@ export function WhatsAppModule() {
         </div>
       )}
 
-      {/* Sync indicator */}
+      {/* ── Sync indicator ── */}
       {isSyncing && connection && (
         <div className="flex items-center justify-between px-4 py-3 bg-green-500/10 border border-green-500/20 rounded-xl">
           <div className="flex items-center gap-2">
@@ -87,7 +133,7 @@ export function WhatsAppModule() {
         </div>
       )}
 
-      {/* Error layer */}
+      {/* ── Error layer ── */}
       {error && (
         <div className="flex items-start gap-3 p-4 bg-red-500/10 border border-red-500/20 rounded-2xl animate-in slide-in-from-top-2">
           <AlertTriangle className="w-5 h-5 text-red-400 shrink-0 mt-0.5" />
@@ -114,13 +160,46 @@ export function WhatsAppModule() {
         </div>
       )}
 
-      {/* Connection Header */}
+      {/* ── Connection Header ── */}
       <ConnectionBanner />
 
-      {/* ── Active: show full chat panel ── */}
+      {/* ── Active: tabs + content ── */}
       {status === 'active' ? (
-        <div className="animate-in slide-in-from-bottom-4 duration-500 bg-gray-900/50 border border-gray-800 rounded-2xl overflow-hidden" style={{ height: 'calc(100vh - 340px)', minHeight: '520px' }}>
-          <ChatPanel />
+        <div className="space-y-4">
+          {/* Multi-tenant network card — always visible when active */}
+          <MultiTenantNetworkCard />
+
+          {/* Tab switcher */}
+          <div className="flex items-center gap-2 p-1.5 bg-gray-900/60 border border-gray-800 rounded-2xl w-fit">
+            <TabButton
+              id="atendimento"
+              label="Atendimento"
+              icon={MessagesSquare}
+              current={activeTab}
+              onClick={setActiveTab}
+            />
+            <TabButton
+              id="conta"
+              label="Conta WABA"
+              icon={Building2}
+              current={activeTab}
+              onClick={setActiveTab}
+            />
+          </div>
+
+          {/* Tab content */}
+          {activeTab === 'atendimento' ? (
+            <div
+              className="animate-in fade-in duration-300 bg-gray-900/50 border border-gray-800 rounded-2xl overflow-hidden"
+              style={{ height: 'calc(100vh - 420px)', minHeight: '480px' }}
+            >
+              <ChatPanel />
+            </div>
+          ) : (
+            <div className="animate-in fade-in duration-300 bg-gray-900/50 border border-gray-800 rounded-2xl p-6">
+              <WabaAccountDetails />
+            </div>
+          )}
         </div>
       ) : (
         /* ── Inactive: show connect CTA ── */

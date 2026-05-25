@@ -37,6 +37,27 @@ export const whatsappApi = {
     }
   },
 
+  /**
+   * Fetches ALL WABA connections (full array) — used by MultiTenantNetworkCard
+   * GET /whatsapp/connections/
+   */
+  async getConnections(cid?: string): Promise<WabaConnection[]> {
+    try {
+      const options = cid ? { headers: { 'X-Correlation-ID': cid } } : {};
+      const data = await apiBackend.get('/whatsapp/connections/', options);
+      const result = WabaStatusResponseSchema.safeParse(data);
+
+      if (!result.success) {
+        console.error('[WhatsApp API] Schema validation failed for getConnections', result.error);
+        return [];
+      }
+
+      return Array.isArray(result.data) ? result.data : [result.data];
+    } catch (error) {
+      throw mapError(error);
+    }
+  },
+
   async exchangeEmbeddedToken(
     data: { code: string; waba_id?: string; phone_number_id?: string }, 
     cid?: string

@@ -18,6 +18,7 @@ export const RegistrationStatusSchema = z.enum([
 export const WabaConnectionSchema = z.object({
   id: z.string().uuid().optional(),
   phone_number: z.string().nullable().optional(),
+  phone_number_id: z.string().nullable().optional(),
   display_name: z.string().nullable().optional(),
   waba_id: z.string().nullable().optional(),
   registration_status: RegistrationStatusSchema,
