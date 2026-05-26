@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
+import Link from 'next/link'
 import { apiBackend } from '@/lib/api-backend'
 import {
   MessageSquare,
@@ -274,6 +275,12 @@ function WhatsAppOnboardingForm({ onSuccess }: { onSuccess: () => void }) {
                 </>
               )}
             </button>
+            <div className="flex items-center justify-center pt-4">
+              <span className="text-xs text-gray-500 font-medium">Ou conecte via</span>
+              <Link href="/franqueado/whatsapp/configurar" className="text-xs text-[#25D366] hover:text-green-400 font-bold ml-1 hover:underline">
+                Embedded Signup da Meta
+              </Link>
+            </div>
           </form>
         ) : (
           <form onSubmit={handleVerifyOtp} className="space-y-4">

@@ -1,9 +1,10 @@
 'use client';
 
 import React, { useEffect, useRef, useState } from 'react';
-import { Send, Loader2, MessageSquareOff, MoreVertical, RefreshCw, FileText, UserPlus, Bot } from 'lucide-react';
+import { Send, Loader2, MessageSquareOff, MoreVertical, RefreshCw } from 'lucide-react';
 import { useMessagesStore } from '../../store/useMessagesStore';
 import { WhatsAppMessage } from '../../types';
+import { NewChatInput } from './NewChatInput';
 
 function formatTime(isoDate: string) {
   return new Date(isoDate).toLocaleTimeString('pt-BR', {
@@ -121,36 +122,9 @@ export function ChatWindow() {
 
   if (!activeContact) {
     return (
-      <div className="flex flex-col items-center justify-center h-full bg-[#0B141A] border-l border-gray-800 gap-8">
-        <div className="text-center space-y-2">
-          <p className="text-2xl font-light text-gray-200">WhatsApp para Negócios</p>
-          <p className="text-sm text-gray-400">Selecione uma conversa ou inicie uma nova com as ferramentas abaixo.</p>
-        </div>
-        
-        <div className="flex gap-4">
-          <button 
-            onClick={() => document.getElementById('wa-new-chat-btn')?.click()}
-            className="flex flex-col items-center gap-3 p-6 bg-gray-800 rounded-2xl hover:bg-gray-700 transition-colors w-32 border border-gray-700"
-          >
-            <div className="w-12 h-12 rounded-full bg-[#128C7E]/20 text-[#25D366] flex items-center justify-center">
-              <FileText className="w-6 h-6" />
-            </div>
-            <span className="text-xs font-semibold text-gray-300 text-center leading-tight">Iniciar com<br/>Template</span>
-          </button>
-
-          <button className="flex flex-col items-center gap-3 p-6 bg-gray-800 rounded-2xl hover:bg-gray-700 transition-colors w-32 border border-gray-700">
-            <div className="w-12 h-12 rounded-full bg-blue-500/20 text-blue-400 flex items-center justify-center">
-              <UserPlus className="w-6 h-6" />
-            </div>
-            <span className="text-xs font-semibold text-gray-300 text-center leading-tight">Adicionar<br/>Contato</span>
-          </button>
-
-          <button className="flex flex-col items-center gap-3 p-6 bg-gray-800 rounded-2xl hover:bg-gray-700 transition-colors w-32 border border-gray-700">
-            <div className="w-12 h-12 rounded-full bg-purple-500/20 text-purple-400 flex items-center justify-center">
-              <Bot className="w-6 h-6" />
-            </div>
-            <span className="text-xs font-semibold text-gray-300 text-center leading-tight">Perguntar à<br/>Meta AI</span>
-          </button>
+      <div className="flex flex-col items-center justify-center h-full bg-[#0B141A] border-l border-gray-800 p-6 overflow-y-auto">
+        <div className="w-full max-w-md bg-gray-900 border border-gray-800 rounded-2xl p-6 shadow-2xl">
+          <NewChatInput />
         </div>
       </div>
     );

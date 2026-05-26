@@ -67,6 +67,7 @@ const MARKETING_SUBMODULES: NavItem[] = [
 
 const WHATSAPP_SUBMODULES: NavItem[] = [
   { id: 'chat', name: 'Chat WhatsApp', icon: MessageCircle, route: '/franqueado/whatsapp' },
+  { id: 'wa-config', name: 'Configurações WhatsApp', icon: Wrench, route: '/franqueado/whatsapp/configurar' },
   { id: 'wa-crm', name: 'Contatos (CRM)', icon: Users2, route: '/franqueado/whatsapp/crm' },
   { id: 'wa-broadcast', name: 'Disparos', icon: Send, route: '/franqueado/whatsapp/broadcast' },
   { id: 'wa-templates', name: 'Templates', icon: Library, route: '/franqueado/whatsapp/templates' },

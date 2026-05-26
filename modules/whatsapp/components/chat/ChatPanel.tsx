@@ -7,18 +7,15 @@ import {
   Wifi,
   WifiOff,
   ChevronLeft,
-  FlaskConical,
 } from 'lucide-react';
 import { useMessagesStore } from '../../store/useMessagesStore';
 import { ConversationList } from './ConversationList';
 import { ChatWindow } from './ChatWindow';
-import { NewChatInput } from './NewChatInput';
-import { TestSendMessage } from '@/app/franqueado/whatsapp/components/TestSendMessage';
 
 /**
  * Main Chat Panel — combines all chat sub-components
  * Layout:
- *   [ConversationList | ChatWindow]  + slide-over panel for New Chat
+ *   [ConversationList | ChatWindow]
  */
 export function ChatPanel() {
   const {
@@ -30,9 +27,7 @@ export function ChatPanel() {
     clearActiveContact,
   } = useMessagesStore();
 
-  const [showNewChat, setShowNewChat] = useState(false);
   const [isPolling, setIsPolling] = useState(false);
-  const panelRef = useRef<HTMLDivElement>(null);
   const hasFetched = useRef(false);
 
   // Initial load + start polling
@@ -50,17 +45,6 @@ export function ChatPanel() {
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
-
-  // Close new chat panel when clicking outside on mobile
-  useEffect(() => {
-    function handleClickOutside(e: MouseEvent) {
-      if (panelRef.current && !panelRef.current.contains(e.target as Node)) {
-        setShowNewChat(false);
-      }
-    }
-    if (showNewChat) document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, [showNewChat]);
 
   return (
     <div className="relative flex flex-col h-full rounded-2xl overflow-hidden border border-gray-700 shadow-xl bg-gray-900">
@@ -105,20 +89,12 @@ export function ChatPanel() {
             <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
           </button>
 
-          {/* Test Send */}
-          <TestSendMessage />
-
           {/* New chat */}
           <button
             id="wa-new-chat-btn"
-            onClick={() => setShowNewChat(v => !v)}
+            onClick={() => clearActiveContact()}
             title="Nova mensagem"
-            className={`
-              flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold transition-all
-              ${showNewChat
-                ? 'bg-gray-700 text-white'
-                : 'bg-white/10 text-gray-300 hover:bg-white/20'}
-            `}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold transition-all bg-white/10 text-gray-300 hover:bg-white/20"
           >
             <MessageSquarePlus className="w-4 h-4" />
             <span className="hidden sm:inline">Nova mensagem</span>
@@ -149,29 +125,6 @@ export function ChatPanel() {
         >
           <ChatWindow />
         </div>
-
-        {/* New Chat slide-over panel */}
-        <div
-          ref={panelRef}
-          className={`
-            absolute top-0 right-0 bottom-0 z-30
-            w-full sm:w-80 bg-gray-900 border-l border-gray-700 shadow-2xl
-            transition-transform duration-300 ease-in-out
-            ${showNewChat ? 'translate-x-0' : 'translate-x-full'}
-          `}
-        >
-          <div className="h-full overflow-y-auto p-5">
-            <NewChatInput onClose={() => setShowNewChat(false)} />
-          </div>
-        </div>
-
-        {/* Overlay (mobile) */}
-        {showNewChat && (
-          <div
-            className="absolute inset-0 z-20 bg-black/20 sm:hidden"
-            onClick={() => setShowNewChat(false)}
-          />
-        )}
       </div>
 
       {/* ─── Status bar ───────────────────────────────────────────── */}
