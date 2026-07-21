@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import Image from 'next/image';
 import toast from 'react-hot-toast';
 import { newsletter } from '@/lib/utils'
 import { useState } from 'react';
@@ -92,10 +93,15 @@ const Blog = ({ posts: initialPosts }: BlogProps) => {
             >
               <Link href={`${baseUrl}/blog/${post.slug}`}>
                 {/* Featured Image */}
-                <div className="relative overflow-hidden rounded-lg mb-4">
-                  <div
-                    className="w-full h-48 bg-cover bg-center transition-transform duration-300 group-hover:scale-110"
-                    style={{ backgroundImage: `url("${getMediaUrl(post.cover_image)}")` }}
+                <div className="relative h-48 overflow-hidden rounded-lg mb-4">
+                  <Image
+                    src={getMediaUrl(post.cover_image)}
+                    alt=""
+                    fill
+                    sizes="(max-width: 767px) calc(100vw - 64px), (max-width: 1023px) 50vw, 33vw"
+                    loading="lazy"
+                    unoptimized
+                    className="object-cover object-center transition-transform duration-300 group-hover:scale-110"
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent"></div>
                   

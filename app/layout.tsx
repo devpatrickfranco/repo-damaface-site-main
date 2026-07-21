@@ -3,7 +3,6 @@ import "./globals.css"
 import ScrollAnimations from "@/components/ScrollAnimations"
 
 import { Toaster } from "react-hot-toast"
-import { AuthProvider } from "@/context/AuthContext"
 import { Inter } from "next/font/google"
 import type { Metadata } from "next"
 
@@ -146,13 +145,12 @@ export default function RootLayout({
           }}
         />
 
-        <AuthProvider>
-          <div className="min-h-screen bg-black">
-            {children}
+        <div className="min-h-screen bg-black">
+          {children}
 
-            <ScrollAnimations />
+          <ScrollAnimations />
 
-            <Toaster
+          <Toaster
               position="top-right"
               toastOptions={{
                 style: {
@@ -189,9 +187,8 @@ export default function RootLayout({
 
                 duration: 4000,
               }}
-            />
-          </div>
-        </AuthProvider>
+          />
+        </div>
       </body>
     </html>
   )

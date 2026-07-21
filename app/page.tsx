@@ -31,7 +31,7 @@ export default async function Home() {
   return (
     <>
       <Header />
-      <main>
+      <main className="homepage-main">
         <Hero />
         <BestSellers />
         <Categories />

@@ -4,7 +4,8 @@ const nextConfig = {
     ignoreDuringBuilds: true,
   },
   images: {
-    unoptimized: true,
+    formats: ['image/avif', 'image/webp'],
+    minimumCacheTTL: 2678400,
   },
   // Adicione se estiver tendo problemas com MDX
   webpack: (config) => {
