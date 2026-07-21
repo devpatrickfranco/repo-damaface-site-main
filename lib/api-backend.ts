@@ -1,5 +1,21 @@
 // lib/api-backend.ts
 
+export class ApiError extends Error {
+  constructor(
+    public readonly status: number,
+    public readonly path: string,
+    message: string,
+  ) {
+    super(message);
+    this.name = 'ApiError';
+  }
+}
+
+const REQUEST_TIMEOUT_MS = 10_000;
+type NextRequestInit = RequestInit & {
+  next?: { revalidate?: number | false; tags?: string[] };
+};
+
 // Função auxiliar para extrair o CSRF token dos cookies
 function getCsrfToken(): string | null {
   if (typeof document === 'undefined') return null;
@@ -16,8 +32,11 @@ function getCsrfToken(): string | null {
 }
 
 export const apiBackend = {
-  async request<T = any>(path: string, options: RequestInit = {}): Promise<T> {
+  async request<T = any>(path: string, options: NextRequestInit = {}): Promise<T> {
     const BASE_URL = process.env.NEXT_PUBLIC_API_BACKEND_URL;
+    if (!BASE_URL) {
+      throw new Error('NEXT_PUBLIC_API_BACKEND_URL não está configurada');
+    }
     const csrftoken = getCsrfToken();
 
     // Monta os headers corretamente
@@ -28,29 +47,30 @@ export const apiBackend = {
     // Só adiciona X-CSRFToken se o token existir
     if (csrftoken) {
       headers['X-CSRFToken'] = csrftoken;
-    } else {
-      console.error('❌ CSRF Token não encontrado - requisição pode falhar!');
     }
+
+    const timeoutSignal = AbortSignal.timeout(REQUEST_TIMEOUT_MS);
 
     const response = await fetch(`${BASE_URL}${path}`, {
       credentials: "include",
       ...options,
       headers,
+      signal: options.signal || timeoutSignal,
     });
 
     if (!response.ok) {
       const text = await response.text();
-      throw new Error(`Erro ${response.status}: ${text}`);
+      throw new ApiError(response.status, path, `Erro ${response.status}: ${text}`);
     }
 
     try {
       return await response.json() as T;
-    } catch {
-      return {} as T;
+    } catch (error) {
+      throw new Error(`Resposta JSON inválida em ${path}`, { cause: error });
     }
   },
 
-  get<T = any>(path: string, options: RequestInit = {}): Promise<T> {
+  get<T = any>(path: string, options: NextRequestInit = {}): Promise<T> {
     return this.request<T>(path, { ...options, method: "GET" });
   },
 

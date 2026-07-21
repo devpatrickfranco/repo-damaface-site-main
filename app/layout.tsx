@@ -110,6 +110,29 @@ export default function RootLayout({
 
       <body className={inter.className}>
         <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify({
+              "@context": "https://schema.org",
+              "@type": "Organization",
+              name: "Damaface",
+              url: "https://www.damaface.com.br",
+              logo: "https://www.damaface.com.br/LOGO-DAMAFACE-HORIZONTAL-BRANCO.png",
+              contactPoint: {
+                "@type": "ContactPoint",
+                telephone: "+55-19-98217-7463",
+                contactType: "customer service",
+                areaServed: "BR",
+                availableLanguage: "Portuguese",
+              },
+              sameAs: [
+                "https://instagram.com/damafacefranquias",
+                "https://facebook.com/profile.php?id=61555121465049",
+              ],
+            }).replace(/</g, "\\u003c"),
+          }}
+        />
+        <script
           dangerouslySetInnerHTML={{
             __html: `
               if ('scrollRestoration' in history) {

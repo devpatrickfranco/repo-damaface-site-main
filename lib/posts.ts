@@ -1,4 +1,6 @@
-import { apiBackend } from "./api-backend";
+import { ApiError, apiBackend } from "./api-backend";
+
+const PUBLIC_POST_REVALIDATE_SECONDS = 300;
 
 export type PostStatus =
   | 'RASCUNHO'
@@ -46,12 +48,9 @@ export type PostSummary = Omit<Post, 'content' | 'rejection_reason'>;
 // Visitor listing - can keep standard fetch for revalidation if desired, 
 // but for consistency with user request to use api-backend in management:
 export async function getAllPosts(): Promise<PostSummary[]> {
-  try {
-    return await apiBackend.get("/blog/posts/", { cache: 'no-store' });
-  } catch (error) {
-    console.error('Error fetching posts:', error);
-    return [];
-  }
+  return apiBackend.get("/blog/posts/", {
+    next: { revalidate: PUBLIC_POST_REVALIDATE_SECONDS },
+  });
 }
 
 // Franchisee listing (My Posts)
@@ -67,10 +66,12 @@ export async function getMyPosts(): Promise<PostSummary[]> {
 
 export async function getPostBySlug(slug: string): Promise<Post | null> {
   try {
-    return await apiBackend.get(`/blog/posts/${slug}/`, { cache: 'no-store' });
+    return await apiBackend.get(`/blog/posts/${encodeURIComponent(slug)}/`, {
+      next: { revalidate: PUBLIC_POST_REVALIDATE_SECONDS },
+    });
   } catch (error) {
-    console.error(`Error fetching post ${slug}:`, error);
-    return null;
+    if (error instanceof ApiError && error.status === 404) return null;
+    throw error;
   }
 }
 

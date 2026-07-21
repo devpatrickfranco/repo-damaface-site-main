@@ -1,26 +1,21 @@
 import { MetadataRoute } from 'next'
 import { getAllPosts } from '@/lib/posts'
 
-export const revalidate = 0;
+export const revalidate = 300;
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const baseUrl = 'https://www.damaface.com.br'
 
   // Fetch dynamic blog posts
-  let blogPosts: MetadataRoute.Sitemap = []
-  try {
-    const posts = await getAllPosts()
-    blogPosts = posts
-      .filter((post) => post.status === 'APROVADO')
-      .map((post) => ({
-        url: `${baseUrl}/blog/${post.slug}`,
-        lastModified: post.published_at || post.created_at,
-        changeFrequency: 'monthly' as const,
-        priority: 0.6,
-      }))
-  } catch (error) {
-    console.error('Error generating sitemap for blog posts:', error)
-  }
+  const posts = await getAllPosts()
+  const blogPosts: MetadataRoute.Sitemap = posts
+    .filter((post) => post.status === 'APROVADO' && post.published)
+    .map((post) => ({
+      url: `${baseUrl}/blog/${encodeURIComponent(post.slug)}`,
+      lastModified: post.published_at || post.created_at,
+      changeFrequency: 'monthly' as const,
+      priority: 0.6,
+    }))
 
   const lastMod = new Date('2025-08-29')
 

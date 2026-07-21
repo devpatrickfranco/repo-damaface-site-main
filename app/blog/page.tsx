@@ -1,66 +1,29 @@
-'use client';
-
 import Link from 'next/link';
 import Image from 'next/image';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
-import toast from 'react-hot-toast';
-
 import { Calendar, User, Tag, ArrowRight, Clock } from 'lucide-react';
-import { newsletter } from '@/lib/utils'
-import { useState, useEffect } from 'react';
-import { getAllPosts, type PostSummary } from '@/lib/posts';
+import { getAllPosts } from '@/lib/posts';
 import { getMediaUrl } from '@/lib/api-backend';
+import NewsletterForm from './NewsletterForm';
+import type { Metadata } from 'next';
 
+export const revalidate = 300;
+export const metadata: Metadata = {
+  title: 'Blog sobre Estética Facial e Corporal',
+  description: 'Conteúdos sobre estética facial e corporal, procedimentos, cuidados e tecnologias publicados pela Damaface.',
+  alternates: { canonical: '/blog' },
+  openGraph: {
+    type: 'website',
+    url: '/blog',
+    title: 'Blog sobre Estética Facial e Corporal | Damaface',
+    description: 'Conteúdos sobre estética facial e corporal, procedimentos, cuidados e tecnologias publicados pela Damaface.',
+  },
+};
 
-const BlogPage = () => {
-  const [email, setEmail] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
-  const [posts, setPosts] = useState<PostSummary[]>([]);
-  const [isFetching, setIsFetching] = useState(true);
-
-  useEffect(() => {
-    const fetchPosts = async () => {
-      const data = await getAllPosts();
-      // Only show published/approved posts to visitors
-      const publishedPosts = data.filter(post => post.status === 'APROVADO');
-      setPosts(publishedPosts);
-      setIsFetching(false);
-    };
-    fetchPosts();
-  }, []);
-
-  const handleSubscribe = async () => {
-    if (!email.trim()) {
-      toast.error('Por favor, digite seu email');
-      return;
-    }
-
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(email)) {
-      toast.error('Por favor, digite um email válido');
-      return;
-    }
-
-    setIsLoading(true);
-
-    try {
-      await newsletter(email);
-      toast.success('Newsletter cadastrada com sucesso! 🎉');
-      setEmail('');
-    } catch (error) {
-      toast.error('Ops! Algo deu errado. Tente novamente.');
-      console.error('Erro ao cadastrar newsletter:', error);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const handleKeyPress = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter') {
-      handleSubscribe();
-    }
-  };
+const BlogPage = async () => {
+  const data = await getAllPosts();
+  const posts = data.filter(post => post.status === 'APROVADO' && post.published);
 
   const formatDate = (dateString: string | null) => {
     if (!dateString) return 'Data não disponível';
@@ -99,12 +62,7 @@ const BlogPage = () => {
             </p>
           </div>
 
-          {isFetching ? (
-            <div className="flex justify-center items-center py-20">
-              <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-brand-pink"></div>
-            </div>
-          ) : (
-            <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-8 mb-16">
+          <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-8 mb-16">
               {posts.map((post, index) => (
                 <article
                   key={post.id}
@@ -190,8 +148,7 @@ const BlogPage = () => {
                   </div>
                 </article>
               ))}
-            </div>
-          )}
+          </div>
 
           <div className="text-center animate-on-scroll">
             <div className="card-dark max-w-2xl mx-auto">
@@ -201,23 +158,7 @@ const BlogPage = () => {
               <p className="text-gray-400 mb-6">
                 Assine nossa newsletter e receba as últimas novidades em estética e cuidados com a pele
               </p>
-              <div className="flex flex-col sm:flex-row gap-4 max-w-md mx-auto">
-                <input
-                  type="email"
-                  placeholder="Seu melhor e-mail"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  onKeyPress={handleKeyPress}
-                  disabled={isLoading}
-                  className="flex-1 px-4 py-3 bg-gray-800/50 border border-gray-700 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-brand-pink transition-colors"
-                />
-                <button
-                  onClick={handleSubscribe}
-                  disabled={isLoading}
-                  className="btn-primary whitespace-nowrap">
-                  {isLoading ? 'Cadastrando...' : 'Assinar Newsletter'}
-                </button>
-              </div>
+              <NewsletterForm />
             </div>
           </div>
         </div>
