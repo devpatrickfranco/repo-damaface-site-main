@@ -11,7 +11,6 @@ export class ApiError extends Error {
   }
 }
 
-const REQUEST_TIMEOUT_MS = 10_000;
 type NextRequestInit = RequestInit & {
   next?: { revalidate?: number | false; tags?: string[] };
 };
@@ -49,13 +48,10 @@ export const apiBackend = {
       headers['X-CSRFToken'] = csrftoken;
     }
 
-    const timeoutSignal = AbortSignal.timeout(REQUEST_TIMEOUT_MS);
-
     const response = await fetch(`${BASE_URL}${path}`, {
       credentials: "include",
       ...options,
       headers,
-      signal: options.signal || timeoutSignal,
     });
 
     if (!response.ok) {
@@ -63,8 +59,13 @@ export const apiBackend = {
       throw new ApiError(response.status, path, `Erro ${response.status}: ${text}`);
     }
 
+    const text = await response.text();
+    if (!text.trim()) {
+      return {} as T;
+    }
+
     try {
-      return await response.json() as T;
+      return JSON.parse(text) as T;
     } catch (error) {
       throw new Error(`Resposta JSON inválida em ${path}`, { cause: error });
     }

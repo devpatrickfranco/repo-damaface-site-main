@@ -263,14 +263,10 @@ export default function SuportePage() {
       setActiveView("lista")
       fetchChamados()
       setAnexos([])
-    } catch (err: any) {
-      console.error("Erro detalhado:", err.response)
-      const errorMessages = err.response?.data
-        ? Object.entries(err.response.data)
-          .map(([field, messages]) => `${field}: ${(messages as string[]).join(", ")}`)
-          .join("\n")
-        : ""
-      alert(`Erro ao criar chamado:\n${errorMessages || "Verifique o console para detalhes."}`)
+    } catch (err) {
+      console.error("Erro ao criar chamado:", err)
+      const errorMessage = err instanceof Error ? err.message : "Erro desconhecido"
+      alert(`Erro ao criar chamado:\n${errorMessage}`)
     }
     finally {
       setNovoChamadoLoading(false)
