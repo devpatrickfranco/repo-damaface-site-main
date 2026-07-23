@@ -12,6 +12,11 @@ const nextConfig = {
         hostname: 'api.damaface.com.br',
         pathname: '/media/**',
       },
+      {
+        protocol: 'https',
+        hostname: 'ia-minio.i4khe5.easypanel.host',
+        pathname: '/damaface-blog/**',
+      },
     ],
   },
   // Adicione se estiver tendo problemas com MDX
