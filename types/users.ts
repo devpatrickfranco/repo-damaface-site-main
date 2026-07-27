@@ -2,6 +2,19 @@ export interface Franquia {
   id: number; // IDs do banco de dados são geralmente números
   nome: string;
   cnpj: string;
+  slug?: string;
+  ativo?: boolean;
+  cidade?: string;
+  estado?: string;
+  bairro?: string;
+  endereco?: string;
+  numero?: string;
+  cep?: string;
+  telefone?: string;
+  whatsapp?: string;
+  email?: string;
+  instagram?: string;
+  descricao?: string;
   user_count?: number;
 }
 

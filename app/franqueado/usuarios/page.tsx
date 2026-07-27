@@ -46,6 +46,16 @@ export default function UsuariosPage() {
     role: Usuario["role"]
     franquia: number | null
     cnpj: string
+    cidade: string
+    estado: string
+    bairro: string
+    endereco: string
+    numero: string
+    cep: string
+    telefone: string
+    whatsapp: string
+    franquiaEmail: string
+    instagram: string
   }>({
     nome: "",
     email: "",
@@ -53,7 +63,30 @@ export default function UsuariosPage() {
     role: "FUNCIONARIO",
     franquia: null,
     cnpj: "",
+    cidade: "",
+    estado: "",
+    bairro: "",
+    endereco: "",
+    numero: "",
+    cep: "",
+    telefone: "",
+    whatsapp: "",
+    franquiaEmail: "",
+    instagram: "",
   })
+
+  const emptyFranquiaFields = {
+    cidade: "",
+    estado: "",
+    bairro: "",
+    endereco: "",
+    numero: "",
+    cep: "",
+    telefone: "",
+    whatsapp: "",
+    franquiaEmail: "",
+    instagram: "",
+  }
 
   // <CHANGE> Corrigida a função de busca de dados com logs detalhados e múltiplas formas de acessar os dados
   const fetchData = useCallback(async () => {
@@ -153,6 +186,7 @@ export default function UsuariosPage() {
           role: usuario.role,
           franquia: usuario.franquia,
           cnpj: "",
+          ...emptyFranquiaFields,
         })
       } else {
         const franquia = item as Franquia
@@ -163,6 +197,16 @@ export default function UsuariosPage() {
           password: "",
           role: "FUNCIONARIO",
           franquia: null,
+          cidade: franquia.cidade || "",
+          estado: franquia.estado || "",
+          bairro: franquia.bairro || "",
+          endereco: franquia.endereco || "",
+          numero: franquia.numero || "",
+          cep: franquia.cep || "",
+          telefone: franquia.telefone || "",
+          whatsapp: franquia.whatsapp || "",
+          franquiaEmail: franquia.email || "",
+          instagram: franquia.instagram || "",
         })
       }
     } else {
@@ -173,6 +217,7 @@ export default function UsuariosPage() {
         role: "FUNCIONARIO",
         franquia: null,
         cnpj: "",
+        ...emptyFranquiaFields,
       })
     }
     setShowModal(true)
@@ -208,7 +253,20 @@ export default function UsuariosPage() {
       } else {
         const url = isEditing ? `/users/franquias/${editingItem!.id}/` : "/users/franquias/"
         const method = isEditing ? "put" : "post"
-        await apiBackend[method](url, { nome: formData.nome, cnpj: formData.cnpj })
+        await apiBackend[method](url, {
+          nome: formData.nome,
+          cnpj: formData.cnpj,
+          cidade: formData.cidade,
+          estado: formData.estado,
+          bairro: formData.bairro,
+          endereco: formData.endereco,
+          numero: formData.numero,
+          cep: formData.cep,
+          telefone: formData.telefone,
+          whatsapp: formData.whatsapp,
+          email: formData.franquiaEmail,
+          instagram: formData.instagram,
+        })
       }
 
       await fetchData()
@@ -661,6 +719,9 @@ export default function UsuariosPage() {
                       CNPJ
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">
+                      Cidade/UF
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">
                       Usuários
                     </th>
                     <th className="px-6 py-3 text-right text-xs font-medium text-gray-300 uppercase tracking-wider">
@@ -682,6 +743,9 @@ export default function UsuariosPage() {
                         </div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-300">{franquia.cnpj}</td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-300">
+                        {franquia.cidade ? `${franquia.cidade}/${franquia.estado}` : "-"}
+                      </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-300">
                         {usuarios.filter((u) => u.franquia === franquia.id).length} usuários
                       </td>
@@ -705,7 +769,7 @@ export default function UsuariosPage() {
                   ))}
                   {filteredFranquias.length === 0 && (
                     <tr>
-                      <td colSpan={4} className="px-6 py-8 text-center text-gray-400">
+                      <td colSpan={5} className="px-6 py-8 text-center text-gray-400">
                         {franquias.length === 0 ? "Nenhuma franquia cadastrada" : "Nenhuma franquia encontrada com os filtros aplicados"}
                       </td>
                     </tr>
@@ -869,22 +933,176 @@ export default function UsuariosPage() {
                     </div>
                   </>
                 ) : (
-                  <div className="space-y-2">
-                    <label className="block text-sm font-medium text-gray-300">
-                      <div className="flex items-center space-x-2 mb-2">
-                        <span className="w-4 h-4 text-pink-400 font-mono text-sm">#</span>
-                        <span>CNPJ</span>
-                      </div>
-                    </label>
-                    <input
-                      type="text"
-                      value={formData.cnpj}
-                      onChange={(e) => setFormData({ ...formData, cnpj: e.target.value })}
-                      placeholder="00.000.000/0000-00"
-                      className="w-full px-4 py-3 bg-gray-700/50 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-pink-500 focus:ring-2 focus:ring-pink-500/20 transition-all"
-                      required
-                    />
-                  </div>
+                  <>
+                    <div className="space-y-2">
+                      <label className="block text-sm font-medium text-gray-300">
+                        <div className="flex items-center space-x-2 mb-2">
+                          <span className="w-4 h-4 text-pink-400 font-mono text-sm">#</span>
+                          <span>CNPJ</span>
+                        </div>
+                      </label>
+                      <input
+                        type="text"
+                        value={formData.cnpj}
+                        onChange={(e) => setFormData({ ...formData, cnpj: e.target.value })}
+                        placeholder="00.000.000/0000-00"
+                        className="w-full px-4 py-3 bg-gray-700/50 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-pink-500 focus:ring-2 focus:ring-pink-500/20 transition-all"
+                        required
+                      />
+                    </div>
+
+                    <div className="space-y-2">
+                      <label className="block text-sm font-medium text-gray-300">
+                        <div className="flex items-center space-x-2 mb-2">
+                          <span className="w-4 h-4 text-pink-400">@</span>
+                          <span>Email</span>
+                        </div>
+                      </label>
+                      <input
+                        type="email"
+                        value={formData.franquiaEmail}
+                        onChange={(e) => setFormData({ ...formData, franquiaEmail: e.target.value })}
+                        placeholder="contato@franquia.com"
+                        className="w-full px-4 py-3 bg-gray-700/50 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-pink-500 focus:ring-2 focus:ring-pink-500/20 transition-all"
+                      />
+                    </div>
+
+                    <div className="space-y-2">
+                      <label className="block text-sm font-medium text-gray-300">
+                        <div className="flex items-center space-x-2 mb-2">
+                          <span>Telefone</span>
+                        </div>
+                      </label>
+                      <input
+                        type="text"
+                        value={formData.telefone}
+                        onChange={(e) => setFormData({ ...formData, telefone: e.target.value })}
+                        placeholder="(00) 0000-0000"
+                        className="w-full px-4 py-3 bg-gray-700/50 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-pink-500 focus:ring-2 focus:ring-pink-500/20 transition-all"
+                      />
+                    </div>
+
+                    <div className="space-y-2">
+                      <label className="block text-sm font-medium text-gray-300">
+                        <div className="flex items-center space-x-2 mb-2">
+                          <span>WhatsApp</span>
+                        </div>
+                      </label>
+                      <input
+                        type="text"
+                        value={formData.whatsapp}
+                        onChange={(e) => setFormData({ ...formData, whatsapp: e.target.value })}
+                        placeholder="(00) 00000-0000"
+                        className="w-full px-4 py-3 bg-gray-700/50 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-pink-500 focus:ring-2 focus:ring-pink-500/20 transition-all"
+                      />
+                    </div>
+
+                    <div className="space-y-2">
+                      <label className="block text-sm font-medium text-gray-300">
+                        <div className="flex items-center space-x-2 mb-2">
+                          <span>Instagram</span>
+                        </div>
+                      </label>
+                      <input
+                        type="text"
+                        value={formData.instagram}
+                        onChange={(e) => setFormData({ ...formData, instagram: e.target.value })}
+                        placeholder="@franquia"
+                        className="w-full px-4 py-3 bg-gray-700/50 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-pink-500 focus:ring-2 focus:ring-pink-500/20 transition-all"
+                      />
+                    </div>
+
+                    <div className="space-y-2">
+                      <label className="block text-sm font-medium text-gray-300">
+                        <div className="flex items-center space-x-2 mb-2">
+                          <span>Cidade</span>
+                        </div>
+                      </label>
+                      <input
+                        type="text"
+                        value={formData.cidade}
+                        onChange={(e) => setFormData({ ...formData, cidade: e.target.value })}
+                        placeholder="Cidade"
+                        className="w-full px-4 py-3 bg-gray-700/50 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-pink-500 focus:ring-2 focus:ring-pink-500/20 transition-all"
+                      />
+                    </div>
+
+                    <div className="space-y-2">
+                      <label className="block text-sm font-medium text-gray-300">
+                        <div className="flex items-center space-x-2 mb-2">
+                          <span>Estado (UF)</span>
+                        </div>
+                      </label>
+                      <input
+                        type="text"
+                        value={formData.estado}
+                        onChange={(e) => setFormData({ ...formData, estado: e.target.value.toUpperCase() })}
+                        placeholder="SP"
+                        maxLength={2}
+                        className="w-full px-4 py-3 bg-gray-700/50 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-pink-500 focus:ring-2 focus:ring-pink-500/20 transition-all"
+                      />
+                    </div>
+
+                    <div className="space-y-2">
+                      <label className="block text-sm font-medium text-gray-300">
+                        <div className="flex items-center space-x-2 mb-2">
+                          <span>Bairro</span>
+                        </div>
+                      </label>
+                      <input
+                        type="text"
+                        value={formData.bairro}
+                        onChange={(e) => setFormData({ ...formData, bairro: e.target.value })}
+                        placeholder="Bairro"
+                        className="w-full px-4 py-3 bg-gray-700/50 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-pink-500 focus:ring-2 focus:ring-pink-500/20 transition-all"
+                      />
+                    </div>
+
+                    <div className="space-y-2">
+                      <label className="block text-sm font-medium text-gray-300">
+                        <div className="flex items-center space-x-2 mb-2">
+                          <span>Endereço</span>
+                        </div>
+                      </label>
+                      <input
+                        type="text"
+                        value={formData.endereco}
+                        onChange={(e) => setFormData({ ...formData, endereco: e.target.value })}
+                        placeholder="Rua / Avenida"
+                        className="w-full px-4 py-3 bg-gray-700/50 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-pink-500 focus:ring-2 focus:ring-pink-500/20 transition-all"
+                      />
+                    </div>
+
+                    <div className="space-y-2">
+                      <label className="block text-sm font-medium text-gray-300">
+                        <div className="flex items-center space-x-2 mb-2">
+                          <span>Número</span>
+                        </div>
+                      </label>
+                      <input
+                        type="text"
+                        value={formData.numero}
+                        onChange={(e) => setFormData({ ...formData, numero: e.target.value })}
+                        placeholder="Número"
+                        className="w-full px-4 py-3 bg-gray-700/50 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-pink-500 focus:ring-2 focus:ring-pink-500/20 transition-all"
+                      />
+                    </div>
+
+                    <div className="space-y-2">
+                      <label className="block text-sm font-medium text-gray-300">
+                        <div className="flex items-center space-x-2 mb-2">
+                          <span>CEP</span>
+                        </div>
+                      </label>
+                      <input
+                        type="text"
+                        value={formData.cep}
+                        onChange={(e) => setFormData({ ...formData, cep: e.target.value })}
+                        placeholder="00000-000"
+                        className="w-full px-4 py-3 bg-gray-700/50 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-pink-500 focus:ring-2 focus:ring-pink-500/20 transition-all"
+                      />
+                    </div>
+                  </>
                 )}
               </div>
 
