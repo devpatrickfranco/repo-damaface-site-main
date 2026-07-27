@@ -1,5 +1,7 @@
 import { MetadataRoute } from 'next'
 import { getAllPosts } from '@/lib/posts'
+import { getProcedimentosDaUnidade, getUnidadesIndexaveis } from '@/services/unidades'
+import { getProcedimentos } from '@/services/procedimentos'
 
 export const revalidate = 300;
 
@@ -52,37 +54,29 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     },
   ]
 
-  const proceduresSlugs = [
-    'harmonizacao-facial',
-    'toxina-botulinica',
-    'bioestimulador-de-colageno',
-    'preenchimento-facial',
-    'fios-de-sustentacao',
-    'lipo-de-papada',
-    'skinbooster',
-    'peeling-quimico',
-    'bioestimulador-corporal',
-    'peim',
-    'preenchimento-de-gluteo',
-    'enzimas-para-gordura-localizada',
-    'massagem-relaxante',
-    'massagem-modeladora',
-    'ultraformer',
-    'lavieen',
-    'criolipolise',
-    'laser-co2',
-    'depilacao-a-laser',
-    'limpeza-de-pele',
-    'microagulhamento',
-  ]
+  // Catálogo antigo (/procedimentos/{slug}) agora redireciona (301) para a rota nova —
+  // não deve mais aparecer no sitemap, só a URL canônica em nationalSeoRoutes.
 
-  const procedureRoutes: MetadataRoute.Sitemap = proceduresSlugs.map((slug) => ({
-    url: `${baseUrl}/procedimentos/${slug}`,
-    lastModified: lastMod,
+  const unidadesIndexaveis = await getUnidadesIndexaveis()
+  const localSeoRoutesPorUnidade = await Promise.all(
+    unidadesIndexaveis.map(async (unidade) => {
+      const procedimentosDaUnidade = await getProcedimentosDaUnidade(unidade.slug)
+      return [
+        { url: `${baseUrl}/${unidade.slug}`, lastModified: new Date(), changeFrequency: 'weekly' as const, priority: 0.8 },
+        ...procedimentosDaUnidade.map((procedimento) => ({ url: `${baseUrl}/${unidade.slug}/${procedimento.slug}`, lastModified: new Date(), changeFrequency: 'monthly' as const, priority: 0.7 })),
+      ]
+    }),
+  )
+  const localSeoRoutes: MetadataRoute.Sitemap = localSeoRoutesPorUnidade.flat()
+
+  const procedimentosNacionais = await getProcedimentos()
+  const nationalSeoRoutes: MetadataRoute.Sitemap = procedimentosNacionais.map((procedimento) => ({
+    url: `${baseUrl}/${procedimento.slug}`,
+    lastModified: new Date(),
     changeFrequency: 'monthly' as const,
     priority: 0.7,
   }))
 
 
-  return [...staticRoutes, ...procedureRoutes, ...blogPosts]
+  return [...staticRoutes, ...nationalSeoRoutes, ...localSeoRoutes, ...blogPosts]
 }

@@ -1,0 +1,43 @@
+import type { Metadata } from "next"
+import Link from "next/link"
+import { notFound } from "next/navigation"
+import { Breadcrumb } from "@/components/local-seo/Breadcrumb"
+import { ClinicAddress, ClinicCTA, ClinicDoctors, ClinicGallery, ClinicHero, ClinicHours, ClinicMap, FaqSection, ProcedureList, ReviewSection } from "@/components/local-seo/ClinicSections"
+import { JsonLd } from "@/components/local-seo/JsonLd"
+import { getPaginaRaiz, getProcedimentosDaUnidade, getUnidadesIndexaveis } from "@/services/unidades"
+import { getProcedimentos } from "@/services/procedimentos"
+import { metadataDaUnidade, metadataDoProcedimento, schemaBreadcrumb, schemaDaUnidade, schemaFaq } from "@/services/seo"
+
+export const revalidate = 3600
+
+type Props = { params: Promise<{ slug: string }> }
+
+export async function generateStaticParams() {
+  const [unidades, procedimentos] = await Promise.all([getUnidadesIndexaveis(), getProcedimentos()])
+  return [
+    ...unidades.map(({ slug }) => ({ slug })),
+    ...procedimentos.map(({ slug }) => ({ slug })),
+  ]
+}
+
+export async function generateMetadata({ params }: Props): Promise<Metadata> {
+  const { slug } = await params
+  const pagina = await getPaginaRaiz(slug)
+  if (!pagina) return { title: "Página não encontrada", robots: { index: false, follow: false } }
+  return pagina.tipo === "unidade" ? metadataDaUnidade(pagina.unidade) : metadataDoProcedimento(pagina.procedimento)
+}
+
+export default async function PaginaRaiz({ params }: Props) {
+  const { slug } = await params
+  const pagina = await getPaginaRaiz(slug)
+  if (!pagina) notFound()
+
+  if (pagina.tipo === "procedimento") {
+    const unidades = await getUnidadesIndexaveis()
+    return <main className="container py-12 sm:py-20"><Breadcrumb items={[{ label: "Início", href: "/" }, { label: pagina.procedimento.nome }]} /><section className="rounded-3xl bg-zinc-900 px-6 py-16 sm:px-12"><p className="text-sm font-semibold uppercase tracking-[0.18em] text-brand-pink">Procedimento Damaface</p><h1 className="mt-4 text-4xl font-bold sm:text-6xl">{pagina.procedimento.nome}</h1><p className="mt-6 max-w-3xl text-lg leading-8 text-gray-300">{pagina.procedimento.descricao}</p><h2 className="mt-12 text-2xl font-semibold">Encontre uma unidade</h2><div className="mt-5 flex flex-wrap gap-3">{unidades.map((unidade) => <Link className="rounded-full border border-gray-700 px-5 py-3 hover:border-brand-pink" href={`/${unidade.slug}/${pagina.procedimento.slug}`} key={unidade.slug}>{pagina.procedimento.nome} em {unidade.cidade}</Link>)}</div></section></main>
+  }
+
+  const { unidade } = pagina
+  const procedimentosDaUnidade = await getProcedimentosDaUnidade(unidade.slug)
+  return <main className="container py-8 sm:py-12"><Breadcrumb items={[{ label: "Início", href: "/" }, { label: unidade.cidade }]} /><JsonLd data={schemaDaUnidade(unidade)} /><JsonLd data={schemaFaq(unidade.faqs)} /><JsonLd data={schemaBreadcrumb([{ label: "Início", href: "/" }, { label: unidade.cidade, href: `/${unidade.slug}` }])} /><ClinicHero unidade={unidade} /><div className="section-padding space-y-16"><div className="grid gap-5 lg:grid-cols-2"><ClinicAddress unidade={unidade} /><ClinicHours unidade={unidade} /></div><ClinicGallery unidade={unidade} /><ClinicDoctors unidade={unidade} /><ProcedureList unidade={unidade} procedimentos={procedimentosDaUnidade} /><ClinicMap unidade={unidade} /><FaqSection faqs={unidade.faqs} cidade={unidade.cidade} /><ReviewSection unidade={unidade} /><ClinicCTA unidade={unidade} /></div></main>
+}
