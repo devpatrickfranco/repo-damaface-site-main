@@ -27,6 +27,16 @@ const nextConfig = {
     };
     return config;
   },
+  async redirects() {
+    return [
+      {
+        // Catálogo antigo de procedimentos substituído pelas páginas de SEO local na raiz.
+        source: '/procedimentos/:slug',
+        destination: '/:slug',
+        permanent: true,
+      },
+    ];
+  },
 };
 
 module.exports = nextConfig;
