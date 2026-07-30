@@ -89,8 +89,24 @@ export function ClinicDoctors({ unidade }: { unidade: Unidade }) {
   return <section><h2 className="text-2xl font-semibold">Equipe</h2><div className="mt-6 grid gap-4 sm:grid-cols-2">{unidade.equipe.map((pessoa) => { const especialista = pessoa.profissao === "ESPECIALISTA"; const formacao = pessoa.formacao ? FORMACAO_LABEL[pessoa.formacao] ?? pessoa.formacao : undefined; return <article className="card-dark flex gap-4" key={pessoa.nome}><AvatarEquipe nome={pessoa.nome} foto={pessoa.foto} /><div><h3 className="font-semibold">{pessoa.nome}</h3><p className="mt-1 text-sm text-brand-pink">{especialista ? formacao ?? "Especialista" : "Consultor(a) Comercial"}</p>{especialista && pessoa.registro && <p className="mt-2 text-sm text-gray-300">{pessoa.registro}</p>}</div></article> })}</div></section>
 }
 
+// Bioestimulador de Colágeno, Toxina Botulínica e Preenchimento Facial vêm primeiro (nessa
+// ordem, mesma linha do grid de 3 colunas); os demais mantêm a ordem que já vinha do backend.
+const NOMES_PRIORITARIOS = ["Bioestimulador de Colágeno", "Toxina Botulínica", "Preenchimento Facial"].map((nome) =>
+  nome.toLowerCase(),
+)
+
+function ordenarProcedimentos(procedimentos: Procedimento[]) {
+  const prioritarios = NOMES_PRIORITARIOS
+    .map((nome) => procedimentos.find((p) => p.nome.toLowerCase() === nome))
+    .filter((p): p is Procedimento => Boolean(p))
+  const slugsPrioritarios = new Set(prioritarios.map((p) => p.slug))
+  const resto = procedimentos.filter((p) => !slugsPrioritarios.has(p.slug))
+  return [...prioritarios, ...resto]
+}
+
 export function ProcedureList({ procedimentos, unidade }: { procedimentos: Procedimento[]; unidade: Unidade }) {
-  return <section><h2 className="text-2xl font-semibold">Procedimentos em {unidade.cidade}</h2><div className="mt-6 grid gap-4 md:grid-cols-3">{procedimentos.map((procedimento) => { const imagem = IMAGEM_POR_SLUG[procedimento.slug] ?? procedimento.imagem; return <Link href={`/${unidade.slug}/${procedimento.slug}`} className="card-dark group overflow-hidden p-0" key={procedimento.slug}><div className="relative aspect-[4/3] overflow-hidden"><Image src={imagem} alt={procedimento.nome} fill className="object-cover transition-transform duration-300 group-hover:scale-105" sizes="(max-width: 768px) 100vw, 33vw" /></div><div className="p-5"><h3 className="font-semibold group-hover:text-brand-pink">{procedimento.nome}</h3><p className="mt-3 text-sm text-gray-300">{procedimento.resumo}</p><span className="mt-4 inline-block text-sm text-brand-pink">Saiba mais →</span></div></Link> })}</div></section>
+  const ordenados = ordenarProcedimentos(procedimentos)
+  return <section><h2 className="text-2xl font-semibold">Procedimentos em {unidade.cidade}</h2><div className="mt-6 grid gap-4 md:grid-cols-3">{ordenados.map((procedimento) => { const imagem = IMAGEM_POR_SLUG[procedimento.slug] ?? procedimento.imagem; return <Link href={`/${unidade.slug}/${procedimento.slug}`} className="card-dark group overflow-hidden p-0" key={procedimento.slug}><div className="relative aspect-[4/3] overflow-hidden"><Image src={imagem} alt={procedimento.nome} fill className="object-cover transition-transform duration-300 group-hover:scale-105" sizes="(max-width: 768px) 100vw, 33vw" /></div><div className="p-5"><h3 className="font-semibold group-hover:text-brand-pink">{procedimento.nome}</h3><p className="mt-3 text-sm text-gray-300">{procedimento.resumo}</p><span className="mt-4 inline-block text-sm text-brand-pink">Saiba mais →</span></div></Link> })}</div></section>
 }
 
 export function FaqSection({ faqs, cidade }: { faqs: { pergunta: string; resposta: string }[]; cidade?: string }) {
