@@ -28,6 +28,26 @@ export interface Franquia {
   horarios?: HorarioFuncionamento[];
 }
 
+export interface FotoUnidade {
+  id: number;
+  imagem: string;
+  ordem: number;
+}
+
+export interface FaqFranquia {
+  id?: number;
+  pergunta: string;
+  resposta: string;
+}
+
+export interface MinhaFranquia {
+  id: number;
+  nome: string;
+  descricao: string;
+  fotos: FotoUnidade[];
+  faqs: FaqFranquia[];
+}
+
 export interface Usuario {
   id: number;
   nome: string;

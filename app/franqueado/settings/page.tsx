@@ -3,11 +3,26 @@
 import type React from "react"
 import { useState, useEffect } from "react"
 
-import { Camera, Save, Loader2, X } from "lucide-react"
+import { Camera, Save, Loader2, X, Plus, Trash2, ImagePlus } from "lucide-react"
 import { apiBackend, getMediaUrl } from "@/lib/api-backend"
-import type { Profile } from "@/types/users"
+import type { Profile, MinhaFranquia, FaqFranquia } from "@/types/users"
+
+const MAX_FOTOS_GALERIA = 5
+const MAX_FAQS = 10
 
 export default function SettingsPage() {
+  const [activeTab, setActiveTab] = useState<"perfil" | "franquia">("perfil")
+
+  // --- Estado da aba Franquia ---
+  const [minhaFranquia, setMinhaFranquia] = useState<MinhaFranquia | null>(null)
+  const [franquiaFetching, setFranquiaFetching] = useState(false)
+  const [franquiaDescricao, setFranquiaDescricao] = useState("")
+  const [novasFotos, setNovasFotos] = useState<File[]>([])
+  const [novasFotosPreview, setNovasFotosPreview] = useState<string[]>([])
+  const [faqs, setFaqs] = useState<FaqFranquia[]>([])
+  const [franquiaLoading, setFranquiaLoading] = useState(false)
+  const [franquiaError, setFranquiaError] = useState<string | null>(null)
+
   const [profileData, setProfileData] = useState({
     nome: "",
     bio: "",
@@ -37,6 +52,28 @@ export default function SettingsPage() {
   useEffect(() => {
     fetchUserData()
   }, [])
+
+  useEffect(() => {
+    if (currentUser?.role === "FRANQUEADO") {
+      fetchMinhaFranquia()
+    }
+  }, [currentUser?.role])
+
+  const fetchMinhaFranquia = async () => {
+    try {
+      setFranquiaFetching(true)
+      setFranquiaError(null)
+      const data = await apiBackend.get<MinhaFranquia>("/users/franquias/minha/")
+      setMinhaFranquia(data)
+      setFranquiaDescricao(data.descricao || "")
+      setFaqs(data.faqs && data.faqs.length > 0 ? data.faqs : [])
+    } catch (err) {
+      console.error("Erro ao buscar dados da franquia:", err)
+      setFranquiaError("Erro ao carregar dados da unidade")
+    } finally {
+      setFranquiaFetching(false)
+    }
+  }
 
   const fetchUserData = async () => {
     try {
@@ -172,6 +209,99 @@ export default function SettingsPage() {
     }
   }
 
+  const totalFotos = (minhaFranquia?.fotos.length || 0) + novasFotos.length
+
+  const handleAddFotos = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const arquivos = Array.from(e.target.files || [])
+    if (arquivos.length === 0) return
+
+    const vagas = MAX_FOTOS_GALERIA - totalFotos
+    if (vagas <= 0) {
+      setFranquiaError(`Limite de ${MAX_FOTOS_GALERIA} fotos na galeria.`)
+      e.target.value = ""
+      return
+    }
+
+    const selecionados = arquivos.slice(0, vagas)
+    for (const file of selecionados) {
+      if (file.size > 5 * 1024 * 1024) {
+        setFranquiaError("Cada imagem deve ter no máximo 5MB")
+        continue
+      }
+      if (!file.type.startsWith("image/")) {
+        setFranquiaError("Apenas arquivos de imagem são permitidos")
+        continue
+      }
+      setNovasFotos((prev) => [...prev, file])
+      const reader = new FileReader()
+      reader.onloadend = () => setNovasFotosPreview((prev) => [...prev, reader.result as string])
+      reader.readAsDataURL(file)
+    }
+    e.target.value = ""
+  }
+
+  const handleRemoveNovaFoto = (index: number) => {
+    setNovasFotos((prev) => prev.filter((_, i) => i !== index))
+    setNovasFotosPreview((prev) => prev.filter((_, i) => i !== index))
+  }
+
+  const handleRemoveFotoExistente = async (fotoId: number) => {
+    if (!confirm("Remover esta foto da galeria?")) return
+    try {
+      await apiBackend.delete(`/users/franquias/minha/fotos/${fotoId}/`)
+      setMinhaFranquia((prev) => (prev ? { ...prev, fotos: prev.fotos.filter((f) => f.id !== fotoId) } : prev))
+    } catch (err) {
+      console.error("Erro ao remover foto:", err)
+      setFranquiaError("Erro ao remover foto")
+    }
+  }
+
+  const handleAddFaq = () => {
+    if (faqs.length >= MAX_FAQS) {
+      setFranquiaError(`Máximo de ${MAX_FAQS} perguntas.`)
+      return
+    }
+    setFaqs((prev) => [...prev, { pergunta: "", resposta: "" }])
+  }
+
+  const handleRemoveFaq = (index: number) => {
+    setFaqs((prev) => prev.filter((_, i) => i !== index))
+  }
+
+  const handleFaqChange = (index: number, campo: "pergunta" | "resposta", valor: string) => {
+    setFaqs((prev) => prev.map((faq, i) => (i === index ? { ...faq, [campo]: valor } : faq)))
+  }
+
+  const handleFranquiaSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setFranquiaError(null)
+
+    try {
+      setFranquiaLoading(true)
+
+      const formData = new FormData()
+      formData.append("descricao", franquiaDescricao.trim())
+      novasFotos.forEach((file) => formData.append("novas_fotos", file))
+      const faqsValidas = faqs.filter((f) => f.pergunta.trim() && f.resposta.trim())
+      formData.append("faqs_json", JSON.stringify(faqsValidas))
+
+      const response = await apiBackend.patch<MinhaFranquia>("/users/franquias/minha/", formData)
+
+      setMinhaFranquia(response)
+      setFranquiaDescricao(response.descricao || "")
+      setFaqs(response.faqs || [])
+      setNovasFotos([])
+      setNovasFotosPreview([])
+
+      alert("Dados da unidade atualizados com sucesso!")
+    } catch (err: any) {
+      console.error("Erro ao salvar dados da unidade:", err)
+      setFranquiaError(err.message || "Erro ao atualizar dados da unidade")
+    } finally {
+      setFranquiaLoading(false)
+    }
+  }
+
   if (fetching) {
     return (
       <div className="bg-background">
@@ -191,19 +321,47 @@ export default function SettingsPage() {
         <div className="max-w-3xl">
           <div className="mb-6">
             <h1 className="text-3xl font-bold text-white">
-              Configurações de Perfil
+              Configurações
             </h1>
             <p className="mt-2 text-gray-400">
               Gerencie suas informações pessoais e preferências
             </p>
           </div>
 
-          {error && (
+          {currentUser?.role === "FRANQUEADO" && (
+            <div className="mb-6 border-b border-gray-700">
+              <nav className="-mb-px flex space-x-8">
+                <button
+                  type="button"
+                  onClick={() => setActiveTab("perfil")}
+                  className={`py-2 px-1 border-b-2 font-medium text-sm ${activeTab === "perfil"
+                    ? "border-brand-pink text-brand-pink"
+                    : "border-transparent text-gray-400 hover:text-gray-300 hover:border-gray-300"
+                    }`}
+                >
+                  Perfil
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setActiveTab("franquia")}
+                  className={`py-2 px-1 border-b-2 font-medium text-sm ${activeTab === "franquia"
+                    ? "border-brand-pink text-brand-pink"
+                    : "border-transparent text-gray-400 hover:text-gray-300 hover:border-gray-300"
+                    }`}
+                >
+                  Franquia
+                </button>
+              </nav>
+            </div>
+          )}
+
+          {activeTab === "perfil" && error && (
             <div className="mb-6 p-4 bg-red-900/20 border border-red-900 rounded-md text-red-400">
               {error}
             </div>
           )}
 
+          {activeTab === "perfil" && (
           <form onSubmit={handleSubmit} className="space-y-6">
             <div className="flex flex-col items-center gap-4 pb-6 border-b border-gray-700">
               <div className="relative group">
@@ -409,6 +567,180 @@ export default function SettingsPage() {
               </button>
             </div>
           </form>
+          )}
+
+          {activeTab === "franquia" && (
+            <>
+              {franquiaError && (
+                <div className="mb-6 p-4 bg-red-900/20 border border-red-900 rounded-md text-red-400">
+                  {franquiaError}
+                </div>
+              )}
+
+              {franquiaFetching ? (
+                <div className="flex items-center justify-center py-16">
+                  <Loader2 className="w-8 h-8 animate-spin text-brand-pink" />
+                </div>
+              ) : (
+                <form onSubmit={handleFranquiaSubmit} className="space-y-6">
+                  <div className="space-y-2">
+                    <label htmlFor="franquia-descricao" className="block text-sm font-medium text-gray-300">
+                      Texto que simboliza a unidade
+                    </label>
+                    <textarea
+                      id="franquia-descricao"
+                      rows={3}
+                      value={franquiaDescricao}
+                      onChange={(e) => setFranquiaDescricao(e.target.value)}
+                      placeholder={`Fale um pouco sobre a Damaface ${minhaFranquia?.nome || ""}...`}
+                      className="w-full p-3 text-white rounded-md bg-gray-900 border border-gray-700 focus:outline-none focus:ring-2 focus:ring-brand-pink focus:border-brand-pink text-sm placeholder-gray-500"
+                    />
+                    <p className="text-xs text-gray-500">
+                      Esse texto aparece na página pública da unidade
+                    </p>
+                  </div>
+
+                  <div className="space-y-2">
+                    <div className="flex justify-between items-baseline">
+                      <label className="block text-sm font-medium text-gray-300">
+                        Fotos da clínica
+                      </label>
+                      <span className="text-xs text-gray-500">
+                        {totalFotos} / {MAX_FOTOS_GALERIA}
+                      </span>
+                    </div>
+                    <p className="text-xs text-gray-500 mb-2">
+                      Recepção, salas de atendimento, café... até {MAX_FOTOS_GALERIA} fotos.
+                    </p>
+                    <div className="grid grid-cols-3 sm:grid-cols-5 gap-3">
+                      {minhaFranquia?.fotos.map((foto) => (
+                        <div key={foto.id} className="relative aspect-square rounded-lg overflow-hidden border border-gray-700 bg-gray-800 group">
+                          <img src={getMediaUrl(foto.imagem)} alt="Foto da clínica" className="w-full h-full object-cover" />
+                          <button
+                            type="button"
+                            onClick={() => handleRemoveFotoExistente(foto.id)}
+                            className="absolute top-1 right-1 flex items-center justify-center w-6 h-6 rounded-full bg-red-500 hover:bg-red-600 text-white opacity-0 group-hover:opacity-100 transition-opacity"
+                            title="Remover foto"
+                          >
+                            <X className="w-3.5 h-3.5" />
+                          </button>
+                        </div>
+                      ))}
+                      {novasFotosPreview.map((preview, index) => (
+                        <div key={`nova-${index}`} className="relative aspect-square rounded-lg overflow-hidden border border-brand-pink/50 bg-gray-800 group">
+                          <img src={preview} alt="Nova foto" className="w-full h-full object-cover" />
+                          <button
+                            type="button"
+                            onClick={() => handleRemoveNovaFoto(index)}
+                            className="absolute top-1 right-1 flex items-center justify-center w-6 h-6 rounded-full bg-red-500 hover:bg-red-600 text-white opacity-0 group-hover:opacity-100 transition-opacity"
+                            title="Remover foto"
+                          >
+                            <X className="w-3.5 h-3.5" />
+                          </button>
+                        </div>
+                      ))}
+                      {totalFotos < MAX_FOTOS_GALERIA && (
+                        <label
+                          htmlFor="galeria-upload"
+                          className="flex flex-col items-center justify-center aspect-square rounded-lg border-2 border-dashed border-gray-600 bg-gray-800/50 hover:bg-gray-800 hover:border-pink-500/50 cursor-pointer transition-colors"
+                        >
+                          <ImagePlus className="w-5 h-5 text-gray-500" />
+                          <input
+                            id="galeria-upload"
+                            type="file"
+                            accept="image/*"
+                            multiple
+                            className="hidden"
+                            onChange={handleAddFotos}
+                          />
+                        </label>
+                      )}
+                    </div>
+                  </div>
+
+                  <div className="space-y-3">
+                    <div className="flex justify-between items-baseline">
+                      <label className="block text-sm font-medium text-gray-300">
+                        Perguntas frequentes
+                      </label>
+                      <span className="text-xs text-gray-500">
+                        {faqs.length} / {MAX_FAQS}
+                      </span>
+                    </div>
+                    <p className="text-xs text-gray-500">
+                      Adicione as perguntas mais frequentes que você recebe em {minhaFranquia?.nome || "sua unidade"}
+                    </p>
+
+                    <div className="space-y-3">
+                      {faqs.map((faq, index) => (
+                        <div key={index} className="bg-gray-900 border border-gray-700 rounded-md p-4 space-y-2 relative">
+                          <button
+                            type="button"
+                            onClick={() => handleRemoveFaq(index)}
+                            className="absolute top-3 right-3 text-gray-500 hover:text-red-400"
+                            title="Remover pergunta"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                          <div className="space-y-1 pr-8">
+                            <label className="block text-xs font-medium text-gray-400">Pergunta</label>
+                            <input
+                              type="text"
+                              value={faq.pergunta}
+                              onChange={(e) => handleFaqChange(index, "pergunta", e.target.value)}
+                              placeholder="Ex: Vocês atendem aos sábados?"
+                              className="w-full h-10 px-3 text-white rounded-md bg-gray-800 border border-gray-700 focus:outline-none focus:ring-2 focus:ring-brand-pink focus:border-brand-pink text-sm placeholder-gray-500"
+                            />
+                          </div>
+                          <div className="space-y-1">
+                            <label className="block text-xs font-medium text-gray-400">Resposta</label>
+                            <textarea
+                              rows={2}
+                              value={faq.resposta}
+                              onChange={(e) => handleFaqChange(index, "resposta", e.target.value)}
+                              placeholder="Digite a resposta..."
+                              className="w-full p-3 text-white rounded-md bg-gray-800 border border-gray-700 focus:outline-none focus:ring-2 focus:ring-brand-pink focus:border-brand-pink text-sm placeholder-gray-500"
+                            />
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+
+                    {faqs.length < MAX_FAQS && (
+                      <button
+                        type="button"
+                        onClick={handleAddFaq}
+                        className="flex items-center gap-2 text-sm text-brand-pink hover:text-brand-pink/80 font-medium"
+                      >
+                        <Plus className="w-4 h-4" />
+                        Adicionar pergunta
+                      </button>
+                    )}
+                  </div>
+
+                  <div className="flex justify-end pt-4">
+                    <button
+                      type="submit"
+                      disabled={franquiaLoading}
+                      className="flex items-center gap-2 bg-brand-pink hover:bg-brand-pink/90 text-white font-medium px-8 py-2.5 rounded-md transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      {franquiaLoading ? (
+                        <>
+                          <Loader2 className="size-4 animate-spin" />
+                          Salvando...
+                        </>
+                      ) : (
+                        <>
+                          <Save className="size-4" />
+                          Salvar Alterações
+                        </>
+                      )}
+                    </button>
+                  </div>
+                </form>
+              )}
+            </>
+          )}
         </div>
       </div>
     </div>
