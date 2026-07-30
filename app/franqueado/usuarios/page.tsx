@@ -76,6 +76,8 @@ export default function UsuariosPage() {
     formacao: string
     registro: string
     franquia: number | null
+    atendeMaisUnidades: boolean
+    unidadesAtendimento: number[]
     cnpj: string
     cidade: string
     estado: string
@@ -96,6 +98,8 @@ export default function UsuariosPage() {
     formacao: "",
     registro: "",
     franquia: null,
+    atendeMaisUnidades: false,
+    unidadesAtendimento: [],
     cnpj: "",
     cidade: "",
     estado: "",
@@ -238,6 +242,8 @@ export default function UsuariosPage() {
           formacao: usuario.formacao || "",
           registro: usuario.registro || "",
           franquia: usuario.franquia,
+          atendeMaisUnidades: (usuario.unidades_atendimento?.length ?? 0) > 0,
+          unidadesAtendimento: usuario.unidades_atendimento || [],
           cnpj: "",
           ...emptyFranquiaFields,
         })
@@ -253,6 +259,8 @@ export default function UsuariosPage() {
           formacao: "",
           registro: "",
           franquia: null,
+          atendeMaisUnidades: false,
+          unidadesAtendimento: [],
           cidade: franquia.cidade || "",
           estado: franquia.estado || "",
           bairro: franquia.bairro || "",
@@ -275,6 +283,8 @@ export default function UsuariosPage() {
         formacao: "",
         registro: "",
         franquia: null,
+        atendeMaisUnidades: false,
+        unidadesAtendimento: [],
         cnpj: "",
         ...emptyFranquiaFields,
       })
@@ -365,7 +375,7 @@ export default function UsuariosPage() {
         const method = isEditing ? "put" : "post"
 
         // Remove a senha se não foi preenchida na edição
-        const dataToSend = { ...formData }
+        const { atendeMaisUnidades, unidadesAtendimento, ...dataToSend } = { ...formData }
         if (isEditing && !formData.password) {
           delete dataToSend.password
         }
@@ -378,7 +388,15 @@ export default function UsuariosPage() {
           dataToSend.registro = ""
         }
 
-        await apiBackend[method](url, dataToSend)
+        const payload = {
+          ...dataToSend,
+          unidades_atendimento:
+            dataToSend.role === "FUNCIONARIO" && atendeMaisUnidades
+              ? unidadesAtendimento.filter((id) => id !== dataToSend.franquia)
+              : [],
+        }
+
+        await apiBackend[method](url, payload)
       } else {
         const url = isEditing ? `/users/franquias/${editingItem!.id}/` : "/users/franquias/"
         const method = isEditing ? "put" : "post"
@@ -1185,6 +1203,54 @@ export default function UsuariosPage() {
                         ))}
                       </select>
                     </div>
+
+                    {formData.role === "FUNCIONARIO" && (
+                      <div className="space-y-2 md:col-span-2">
+                        <label className="flex items-center gap-3 cursor-pointer select-none">
+                          <input
+                            type="checkbox"
+                            checked={formData.atendeMaisUnidades}
+                            onChange={(e) =>
+                              setFormData({
+                                ...formData,
+                                atendeMaisUnidades: e.target.checked,
+                                ...(!e.target.checked ? { unidadesAtendimento: [] } : {}),
+                              })
+                            }
+                            className="w-4 h-4 accent-pink-500"
+                          />
+                          <span className="text-sm font-medium text-gray-300">Atende em mais unidades?</span>
+                        </label>
+                        <p className="text-xs text-gray-500">
+                          Além da franquia acima (que o contratou), ele(a) aparece na equipe da LP das unidades marcadas abaixo.
+                        </p>
+
+                        {formData.atendeMaisUnidades && (
+                          <div className="mt-2 grid grid-cols-1 sm:grid-cols-2 gap-2 max-h-48 overflow-y-auto rounded-lg border border-gray-600 bg-gray-700/30 p-3">
+                            {franquias
+                              .filter((franquia) => franquia.id !== formData.franquia)
+                              .map((franquia) => (
+                                <label key={franquia.id} className="flex items-center gap-2 text-sm text-gray-300 cursor-pointer">
+                                  <input
+                                    type="checkbox"
+                                    checked={formData.unidadesAtendimento.includes(franquia.id)}
+                                    onChange={(e) =>
+                                      setFormData({
+                                        ...formData,
+                                        unidadesAtendimento: e.target.checked
+                                          ? [...formData.unidadesAtendimento, franquia.id]
+                                          : formData.unidadesAtendimento.filter((id) => id !== franquia.id),
+                                      })
+                                    }
+                                    className="w-4 h-4 accent-pink-500"
+                                  />
+                                  {franquia.nome}
+                                </label>
+                              ))}
+                          </div>
+                        )}
+                      </div>
+                    )}
                   </div>
                 ) : (
                   <>

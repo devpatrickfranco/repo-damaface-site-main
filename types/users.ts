@@ -63,6 +63,9 @@ export interface Usuario {
   imgProfile: string | null;
   franquia: number | null;
   franquia_nome?: string | null;
+  /** Unidades extras (além de `franquia`) onde este usuário também atende — só afeta a
+   * exibição pública na equipe da LP dessas unidades, não concede acesso a nada. */
+  unidades_atendimento?: number[];
   aluno_id?: number;
 }
 
