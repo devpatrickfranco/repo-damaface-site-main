@@ -4,9 +4,42 @@ import type { Procedimento, Unidade } from "@/types/local-seo"
 
 const whatsappUrl = (number: string, text: string) => `https://wa.me/${number}?text=${encodeURIComponent(text)}`
 
+const SUBHEADLINE_MAX_LENGTH = 180
+
+function truncateSubheadline(texto: string, max = SUBHEADLINE_MAX_LENGTH) {
+  if (texto.length <= max) return texto
+  const cortado = texto.slice(0, max)
+  return `${cortado.slice(0, cortado.lastIndexOf(" "))}…`
+}
+
+const NORMALIZE = (texto: string) => texto.normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase()
+
+const IMAGENS_PROCEDIMENTOS: { match: RegExp; imagem: string }[] = [
+  { match: /botox|toxina.?botulinica/, imagem: "/images/procedimentos/botox/gerais/botox-2.png" },
+  { match: /preenchimento/, imagem: "/images/procedimentos/preenchimento/facial-2.png" },
+  { match: /bioestimulador.*corporal/, imagem: "/images/procedimentos/.corporal/bioestimulador-coporal/gerais/bioestimulador-coporal-1.jpg" },
+  { match: /bioestimulador/, imagem: "/images/procedimentos/bioestimulador/gerais/bioestimulador-1.jpeg" },
+  { match: /fios/, imagem: "/images/procedimentos/fios/gerais/fios-1.png" },
+  { match: /full.?face|harmonizacao/, imagem: "/images/procedimentos/full-face/gerais/full-face-1.png" },
+  { match: /labial/, imagem: "/images/procedimentos/labial/gerais/labial-1.png" },
+  { match: /lipo.*papada|papada/, imagem: "/images/procedimentos/lipo-de-papada/gerais/lipo-de-papada-1.png" },
+  { match: /microagulhamento/, imagem: "/images/procedimentos/microagulhamento/gerais/microagulhamento-1.png" },
+  { match: /peeling/, imagem: "/images/procedimentos/peeling-quimico/gerais/peeling-quimico-1.png" },
+  { match: /peim/, imagem: "/images/procedimentos/peim/gerais/peim-1.png" },
+  { match: /skinbooster|skin.?booster/, imagem: "/images/procedimentos/skinbooster/gerais/skinbooster-1.png" },
+]
+
+function imagemDoProcedimento(procedimento: Procedimento) {
+  if (procedimento.imagem && procedimento.imagem !== "/placeholder.svg") return procedimento.imagem
+  const chave = NORMALIZE(`${procedimento.slug} ${procedimento.nome}`)
+  const encontrado = IMAGENS_PROCEDIMENTOS.find(({ match }) => match.test(chave))
+  return encontrado?.imagem ?? "/placeholder.svg"
+}
+
 export function ClinicHero({ unidade, procedimento }: { unidade: Unidade; procedimento?: Procedimento }) {
   const titulo = procedimento ? `${procedimento.nome} em ${unidade.cidade}` : `Clínica de estética em ${unidade.cidade}`
-  const resumo = procedimento ? procedimento.resumo : `Tratamentos faciais e corporais com atendimento personalizado em ${unidade.cidade}.`
+  const resumoPadrao = `Tratamentos faciais e corporais com atendimento personalizado em ${unidade.cidade}.`
+  const resumo = procedimento ? procedimento.resumo : truncateSubheadline(unidade.descricao?.trim() || resumoPadrao)
   return <section className="relative overflow-hidden rounded-3xl bg-zinc-900"><Image src={procedimento?.imagem ?? unidade.imagemHero} alt="" fill priority className="object-cover opacity-30" sizes="(max-width: 1280px) 100vw, 1280px" /><div className="relative px-6 py-20 sm:px-12 sm:py-28"><p className="mb-3 text-sm font-semibold uppercase tracking-[0.18em] text-brand-pink">Damaface {unidade.cidade}</p><h1 className="max-w-3xl text-4xl font-bold tracking-tight sm:text-6xl">{titulo}</h1><p className="mt-6 max-w-2xl text-lg text-gray-200">{resumo}</p><a className="btn-primary mt-8 inline-block" href={whatsappUrl(unidade.whatsapp, `Olá! Quero agendar uma avaliação${procedimento ? ` para ${procedimento.nome}` : ""}.`)} target="_blank" rel="noreferrer">Agendar avaliação</a></div></section>
 }
 
@@ -20,7 +53,7 @@ export function ClinicHours({ unidade }: { unidade: Unidade }) {
 }
 
 export function ClinicGallery({ unidade }: { unidade: Unidade }) {
-  return <section><h2 className="text-2xl font-semibold">Conheça a unidade</h2><div className="mt-6 grid gap-4 sm:grid-cols-2">{unidade.galeria.map((imagem, index) => <div className="relative aspect-[4/3] overflow-hidden rounded-2xl" key={imagem}><Image src={imagem} alt={`Damaface ${unidade.cidade} — ambiente ${index + 1}`} fill className="object-cover" sizes="(max-width: 640px) 100vw, 50vw" /></div>)}</div></section>
+  return <section><h2 className="text-2xl font-semibold">Conheça a unidade</h2><div className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">{unidade.galeria.map((imagem, index) => <div className="relative aspect-square overflow-hidden rounded-xl" key={imagem}><Image src={imagem} alt={`Damaface ${unidade.cidade} — ambiente ${index + 1}`} fill className="object-cover" sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 20vw" /></div>)}</div></section>
 }
 
 export function ClinicMap({ unidade }: { unidade: Unidade }) {
@@ -33,7 +66,7 @@ export function ClinicDoctors({ unidade }: { unidade: Unidade }) {
 }
 
 export function ProcedureList({ procedimentos, unidade }: { procedimentos: Procedimento[]; unidade: Unidade }) {
-  return <section><h2 className="text-2xl font-semibold">Procedimentos em {unidade.cidade}</h2><div className="mt-6 grid gap-4 md:grid-cols-3">{procedimentos.map((procedimento) => <Link href={`/${unidade.slug}/${procedimento.slug}`} className="card-dark group" key={procedimento.slug}><h3 className="font-semibold group-hover:text-brand-pink">{procedimento.nome}</h3><p className="mt-3 text-sm text-gray-300">{procedimento.resumo}</p><span className="mt-4 inline-block text-sm text-brand-pink">Saiba mais →</span></Link>)}</div></section>
+  return <section><h2 className="text-2xl font-semibold">Procedimentos em {unidade.cidade}</h2><div className="mt-6 grid gap-4 md:grid-cols-3">{procedimentos.map((procedimento) => <Link href={`/${unidade.slug}/${procedimento.slug}`} className="card-dark group overflow-hidden p-0" key={procedimento.slug}><div className="relative aspect-[4/3] overflow-hidden"><Image src={imagemDoProcedimento(procedimento)} alt={procedimento.nome} fill className="object-cover transition-transform duration-300 group-hover:scale-105" sizes="(max-width: 768px) 100vw, 33vw" /></div><div className="p-5"><h3 className="font-semibold group-hover:text-brand-pink">{procedimento.nome}</h3><p className="mt-3 text-sm text-gray-300">{procedimento.resumo}</p><span className="mt-4 inline-block text-sm text-brand-pink">Saiba mais →</span></div></Link>)}</div></section>
 }
 
 export function FaqSection({ faqs, cidade }: { faqs: { pergunta: string; resposta: string }[]; cidade?: string }) {

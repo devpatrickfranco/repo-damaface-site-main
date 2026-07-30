@@ -53,6 +53,7 @@ export interface Unidade {
   nome: string
   cidade: string
   estado: string
+  descricao?: string
   endereco: Endereco
   whatsapp: string
   instagram?: string

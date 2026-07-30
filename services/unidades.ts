@@ -71,6 +71,7 @@ function adaptUnidadeDetail(u: UnidadeDetailApi): Unidade {
     nome: u.nome,
     cidade: u.cidade,
     estado: u.estado,
+    descricao: u.descricao || undefined,
     endereco: {
       rua: u.endereco,
       numero: u.numero,
