@@ -76,9 +76,17 @@ const FORMACAO_LABEL: Record<string, string> = {
   DERMATOLOGISTA: "Dermatologista",
 }
 
+function AvatarEquipe({ nome, foto }: { nome: string; foto?: string }) {
+  if (foto) {
+    return <div className="relative h-16 w-16 shrink-0 overflow-hidden rounded-full bg-gray-800"><Image src={foto} alt={nome} fill className="object-cover" sizes="64px" /></div>
+  }
+  const iniciais = nome.trim().split(/\s+/).slice(0, 2).map((parte) => parte[0]).join("").toUpperCase()
+  return <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-brand-pink/40 to-gray-800 text-lg font-semibold text-white">{iniciais || "?"}</div>
+}
+
 export function ClinicDoctors({ unidade }: { unidade: Unidade }) {
   if (!unidade.equipe.length) return null
-  return <section><h2 className="text-2xl font-semibold">Equipe</h2><div className="mt-6 grid gap-4 sm:grid-cols-2">{unidade.equipe.map((pessoa) => { const especialista = pessoa.profissao === "ESPECIALISTA"; const formacao = pessoa.formacao ? FORMACAO_LABEL[pessoa.formacao] ?? pessoa.formacao : undefined; return <article className="card-dark flex gap-4" key={pessoa.nome}><div className="relative h-16 w-16 shrink-0 overflow-hidden rounded-full bg-gray-800">{pessoa.foto && <Image src={pessoa.foto} alt={pessoa.nome} fill className="object-cover" sizes="64px" />}</div><div><h3 className="font-semibold">{pessoa.nome}</h3><p className="mt-1 text-sm text-brand-pink">{especialista ? formacao ?? "Especialista" : "Consultor(a) Comercial"}</p>{especialista && pessoa.registro && <p className="mt-2 text-sm text-gray-300">{pessoa.registro}</p>}</div></article> })}</div></section>
+  return <section><h2 className="text-2xl font-semibold">Equipe</h2><div className="mt-6 grid gap-4 sm:grid-cols-2">{unidade.equipe.map((pessoa) => { const especialista = pessoa.profissao === "ESPECIALISTA"; const formacao = pessoa.formacao ? FORMACAO_LABEL[pessoa.formacao] ?? pessoa.formacao : undefined; return <article className="card-dark flex gap-4" key={pessoa.nome}><AvatarEquipe nome={pessoa.nome} foto={pessoa.foto} /><div><h3 className="font-semibold">{pessoa.nome}</h3><p className="mt-1 text-sm text-brand-pink">{especialista ? formacao ?? "Especialista" : "Consultor(a) Comercial"}</p>{especialista && pessoa.registro && <p className="mt-2 text-sm text-gray-300">{pessoa.registro}</p>}</div></article> })}</div></section>
 }
 
 export function ProcedureList({ procedimentos, unidade }: { procedimentos: Procedimento[]; unidade: Unidade }) {

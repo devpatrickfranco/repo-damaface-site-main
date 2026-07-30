@@ -374,26 +374,28 @@ export default function UsuariosPage() {
         const url = isEditing ? `/users/usuarios/${editingItem!.id}/` : "/users/usuarios/"
         const method = isEditing ? "put" : "post"
 
-        // Remove a senha se não foi preenchida na edição
-        const { atendeMaisUnidades, unidadesAtendimento, ...dataToSend } = { ...formData }
-        if (isEditing && !formData.password) {
-          delete dataToSend.password
-        }
-        if (dataToSend.role !== "FUNCIONARIO") {
-          dataToSend.profissao = ""
-          dataToSend.formacao = ""
-          dataToSend.registro = ""
-        } else if (dataToSend.profissao !== "ESPECIALISTA") {
-          dataToSend.formacao = ""
-          dataToSend.registro = ""
-        }
+        const isFuncionario = formData.role === "FUNCIONARIO"
+        const isEspecialista = isFuncionario && formData.profissao === "ESPECIALISTA"
 
-        const payload = {
-          ...dataToSend,
+        // Envia só os campos que pertencem a Usuario: o formData é compartilhado com o
+        // formulário de Franquia (nome/cnpj/telefone/endereço...), e reenviar tudo aqui
+        // sobrescreve dados do usuário sem querer (ex.: telefone="" colide com o unique
+        // constraint assim que outro usuário também ficar com telefone vazio).
+        const payload: Record<string, any> = {
+          nome: formData.nome,
+          email: formData.email,
+          role: formData.role,
+          franquia: formData.franquia,
+          profissao: isFuncionario ? formData.profissao : "",
+          formacao: isEspecialista ? formData.formacao : "",
+          registro: isEspecialista ? formData.registro.trim() : "",
           unidades_atendimento:
-            dataToSend.role === "FUNCIONARIO" && atendeMaisUnidades
-              ? unidadesAtendimento.filter((id) => id !== dataToSend.franquia)
+            isFuncionario && formData.atendeMaisUnidades
+              ? formData.unidadesAtendimento.filter((id) => id !== formData.franquia)
               : [],
+        }
+        if (formData.password) {
+          payload.password = formData.password
         }
 
         await apiBackend[method](url, payload)
