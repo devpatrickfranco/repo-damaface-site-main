@@ -16,7 +16,7 @@ export function ClinicAddress({ unidade }: { unidade: Unidade }) {
 }
 
 export function ClinicHours({ unidade }: { unidade: Unidade }) {
-  return <section className="card-dark"><h2 className="text-2xl font-semibold">Horários</h2><dl className="mt-4 space-y-3 text-gray-300">{unidade.horarios.map((horario) => <div className="flex justify-between gap-4" key={horario.dias}><dt>{horario.dias}</dt><dd>{horario.abre} às {horario.fecha}</dd></div>)}</dl></section>
+  return <section className="card-dark"><h2 className="text-2xl font-semibold">Horários</h2><dl className="mt-4 space-y-3 text-gray-300">{unidade.horarios.map((horario) => <div className="flex justify-between gap-4" key={horario.dias}><dt>{horario.dias}</dt><dd>{horario.aberto ? `${horario.abre} às ${horario.fecha}` : "Fechado"}</dd></div>)}</dl></section>
 }
 
 export function ClinicGallery({ unidade }: { unidade: Unidade }) {

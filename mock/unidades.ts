@@ -1,8 +1,8 @@
 import type { Unidade } from "@/types/local-seo"
 
 const horarios = [
-  { dias: "Segunda a sexta", abre: "09:00", fecha: "18:00" },
-  { dias: "Sábado", abre: "09:00", fecha: "18:00" },
+  { dias: "Segunda a sexta", aberto: true, abre: "09:00", fecha: "18:00" },
+  { dias: "Sábado", aberto: true, abre: "09:00", fecha: "18:00" },
 ]
 
 const criarUnidade = (dados: Pick<Unidade, "slug" | "nome" | "cidade" | "estado" | "endereco" | "whatsapp" | "instagram">): Unidade => ({

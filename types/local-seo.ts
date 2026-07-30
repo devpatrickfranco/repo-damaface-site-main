@@ -11,6 +11,7 @@ export interface Endereco {
 
 export interface HorarioFuncionamento {
   dias: string
+  aberto: boolean
   abre: string
   fecha: string
 }

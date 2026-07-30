@@ -20,7 +20,7 @@ export function metadataDoProcedimento(procedimento: Procedimento, unidade?: Uni
 }
 
 export function schemaDaUnidade(unidade: Unidade) {
-  return { "@context": "https://schema.org", "@type": "MedicalClinic", name: unidade.nome, url: absoluteUrl(`/${unidade.slug}`), image: absoluteUrl(unidade.imagemHero), telephone: `+${unidade.whatsapp}`, address: { "@type": "PostalAddress", streetAddress: `${unidade.endereco.rua}, ${unidade.endereco.numero}`, addressLocality: unidade.endereco.cidade, addressRegion: unidade.endereco.estado, postalCode: unidade.endereco.cep, addressCountry: "BR" }, openingHoursSpecification: unidade.horarios.map((horario) => ({ "@type": "OpeningHoursSpecification", dayOfWeek: horario.dias, opens: horario.abre, closes: horario.fecha })), sameAs: unidade.instagram ? [`https://instagram.com/${unidade.instagram}`] : undefined }
+  return { "@context": "https://schema.org", "@type": "MedicalClinic", name: unidade.nome, url: absoluteUrl(`/${unidade.slug}`), image: absoluteUrl(unidade.imagemHero), telephone: `+${unidade.whatsapp}`, address: { "@type": "PostalAddress", streetAddress: `${unidade.endereco.rua}, ${unidade.endereco.numero}`, addressLocality: unidade.endereco.cidade, addressRegion: unidade.endereco.estado, postalCode: unidade.endereco.cep, addressCountry: "BR" }, openingHoursSpecification: unidade.horarios.filter((horario) => horario.aberto).map((horario) => ({ "@type": "OpeningHoursSpecification", dayOfWeek: horario.dias, opens: horario.abre, closes: horario.fecha })), sameAs: unidade.instagram ? [`https://instagram.com/${unidade.instagram}`] : undefined }
 }
 
 export function schemaDoProcedimento(procedimento: Procedimento, unidade: Unidade) {

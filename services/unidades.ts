@@ -42,7 +42,7 @@ type UnidadeDetailApi = UnidadeListApi & {
   faqs: Faq[]
   avaliacoes: { nome: string; nota: number; comentario: string; created_at: string }[]
   procedimentos: ProcedimentoNestedApi[]
-  horarios: { dias: string; abre: string; fecha: string }[]
+  horarios: { dias: string; aberto: boolean; abre: string; fecha: string }[]
   fotos: { imagem: string; ordem: number }[]
 }
 
@@ -83,7 +83,7 @@ function adaptUnidadeDetail(u: UnidadeDetailApi): Unidade {
     instagram: u.instagram || undefined,
     imagemHero: getMediaUrl(u.foto_capa),
     galeria: u.fotos.map((f) => getMediaUrl(f.imagem)),
-    horarios: u.horarios.map((h) => ({ dias: h.dias, abre: h.abre, fecha: h.fecha })),
+    horarios: u.horarios.map((h) => ({ dias: h.dias, aberto: h.aberto, abre: h.abre, fecha: h.fecha })),
     equipe: u.equipe.map((e) => ({
       nome: e.nome,
       cargo: e.cargo,

@@ -6,11 +6,21 @@ import { useAuth } from "@/context/AuthContext"
 import { useRouter } from 'next/navigation'
 import { useEffect, useState, useCallback } from "react"
 import { apiBackend, getMediaUrl } from "@/lib/api-backend"
-import type { Usuario, Franquia } from "@/types/users"
+import type { Usuario, Franquia, HorarioFuncionamento } from "@/types/users"
 
 import Avatar from "../components/Avatar"
 
-import { Plus, Search, Edit, Trash2, Eye, EyeOff, Building, User, Crown, Shield, UserCheck, Users, X, Save, AlertCircle, Phone, MapPin, Camera, ChevronLeft, ChevronRight, Check } from 'lucide-react'
+import { Plus, Search, Edit, Trash2, Eye, EyeOff, Building, User, Crown, Shield, UserCheck, Users, X, Save, AlertCircle, Phone, MapPin, Camera, ChevronLeft, ChevronRight, Check, Clock } from 'lucide-react'
+
+const DIAS_SEMANA = ["Segunda-feira", "Terça-feira", "Quarta-feira", "Quinta-feira", "Sexta-feira", "Sábado", "Domingo"]
+
+const horariosPadrao = (): HorarioFuncionamento[] =>
+  DIAS_SEMANA.map((dias) => ({
+    dias,
+    aberto: dias !== "Domingo",
+    abre: "09:00",
+    fecha: "18:00",
+  }))
 
 export default function UsuariosPage() {
   const { isAuthenticated, user, loading } = useAuth()
@@ -27,11 +37,13 @@ export default function UsuariosPage() {
   const [modalStep, setModalStep] = useState(1)
   const [fotoFile, setFotoFile] = useState<File | null>(null)
   const [fotoPreview, setFotoPreview] = useState<string | null>(null)
+  const [horarios, setHorarios] = useState<HorarioFuncionamento[]>(horariosPadrao())
 
   const franquiaSteps = [
     { label: "Dados Gerais", icon: Building },
     { label: "Contato", icon: Phone },
     { label: "Endereço e Foto", icon: MapPin },
+    { label: "Horários", icon: Clock },
   ]
 
   // Estados dos dados
@@ -189,6 +201,18 @@ export default function UsuariosPage() {
     const existingFoto = type === "franquia" ? (item as Franquia | undefined)?.foto_capa : null
     setFotoPreview(existingFoto ? getMediaUrl(existingFoto) : null)
 
+    if (type === "franquia") {
+      const existentes = (item as Franquia | undefined)?.horarios
+      setHorarios(
+        DIAS_SEMANA.map((dias) => {
+          const encontrado = existentes?.find((h) => h.dias === dias)
+          return encontrado || horariosPadrao().find((h) => h.dias === dias)!
+        }),
+      )
+    } else {
+      setHorarios(horariosPadrao())
+    }
+
     if (item) {
       if (type === "usuario") {
         const usuario = item as Usuario
@@ -337,6 +361,7 @@ export default function UsuariosPage() {
         } else if (fotoPreview === null && (editingItem as Franquia | null)?.foto_capa) {
           franquiaData.append("foto_capa", "")
         }
+        franquiaData.append("horarios_json", JSON.stringify(horarios))
 
         await apiBackend[method](url, franquiaData)
       }
@@ -1310,6 +1335,67 @@ export default function UsuariosPage() {
                             />
                           </div>
                         </div>
+                      </div>
+                    )}
+
+                    {/* Etapa 4: Horários de Funcionamento */}
+                    {modalStep === 4 && (
+                      <div className="space-y-3">
+                        {horarios.map((horario, index) => (
+                          <div
+                            key={horario.dias}
+                            className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4 bg-gray-700/30 border border-gray-600 rounded-lg px-4 py-3"
+                          >
+                            <div className="flex items-center justify-between sm:w-48 flex-shrink-0">
+                              <span className="text-sm font-medium text-gray-200">{horario.dias}</span>
+                              <button
+                                type="button"
+                                onClick={() =>
+                                  setHorarios((prev) =>
+                                    prev.map((h, i) => (i === index ? { ...h, aberto: !h.aberto } : h)),
+                                  )
+                                }
+                                className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors sm:ml-3 ${
+                                  horario.aberto ? "bg-pink-500" : "bg-gray-600"
+                                }`}
+                              >
+                                <span
+                                  className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                                    horario.aberto ? "translate-x-6" : "translate-x-1"
+                                  }`}
+                                />
+                              </button>
+                            </div>
+
+                            {horario.aberto ? (
+                              <div className="flex items-center gap-3 flex-1">
+                                <input
+                                  type="time"
+                                  value={horario.abre}
+                                  onChange={(e) =>
+                                    setHorarios((prev) =>
+                                      prev.map((h, i) => (i === index ? { ...h, abre: e.target.value } : h)),
+                                    )
+                                  }
+                                  className="flex-1 px-3 py-2 bg-gray-700/50 border border-gray-600 rounded-lg text-white text-sm focus:outline-none focus:border-pink-500 focus:ring-2 focus:ring-pink-500/20 transition-all"
+                                />
+                                <span className="text-gray-500 text-sm">até</span>
+                                <input
+                                  type="time"
+                                  value={horario.fecha}
+                                  onChange={(e) =>
+                                    setHorarios((prev) =>
+                                      prev.map((h, i) => (i === index ? { ...h, fecha: e.target.value } : h)),
+                                    )
+                                  }
+                                  className="flex-1 px-3 py-2 bg-gray-700/50 border border-gray-600 rounded-lg text-white text-sm focus:outline-none focus:border-pink-500 focus:ring-2 focus:ring-pink-500/20 transition-all"
+                                />
+                              </div>
+                            ) : (
+                              <span className="text-sm text-gray-500 flex-1">Fechado</span>
+                            )}
+                          </div>
+                        ))}
                       </div>
                     )}
                   </>

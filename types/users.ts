@@ -1,3 +1,11 @@
+export interface HorarioFuncionamento {
+  id?: number;
+  dias: string;
+  aberto: boolean;
+  abre: string;
+  fecha: string;
+}
+
 export interface Franquia {
   id: number; // IDs do banco de dados são geralmente números
   nome: string;
@@ -17,6 +25,7 @@ export interface Franquia {
   descricao?: string;
   user_count?: number;
   foto_capa?: string | null;
+  horarios?: HorarioFuncionamento[];
 }
 
 export interface Usuario {
