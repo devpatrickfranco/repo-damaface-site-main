@@ -5,7 +5,7 @@ import { useState, useEffect } from "react"
 
 import { Camera, Save, Loader2, X, Plus, Trash2, ImagePlus } from "lucide-react"
 import { apiBackend, getMediaUrl } from "@/lib/api-backend"
-import type { Profile, MinhaFranquia, FaqFranquia } from "@/types/users"
+import type { Profile, MinhaFranquia, FaqFranquia, Franquia } from "@/types/users"
 
 const MAX_FOTOS_GALERIA = 5
 const MAX_FAQS = 10
@@ -22,6 +22,10 @@ export default function SettingsPage() {
   const [faqs, setFaqs] = useState<FaqFranquia[]>([])
   const [franquiaLoading, setFranquiaLoading] = useState(false)
   const [franquiaError, setFranquiaError] = useState<string | null>(null)
+
+  // --- Seletor de franquia (só para SUPERADMIN) ---
+  const [listaFranquias, setListaFranquias] = useState<Franquia[]>([])
+  const [franquiaSelecionadaId, setFranquiaSelecionadaId] = useState<number | "">("")
 
   const [profileData, setProfileData] = useState({
     nome: "",
@@ -53,17 +57,46 @@ export default function SettingsPage() {
     fetchUserData()
   }, [])
 
+  const isSuperAdmin = currentUser?.role === "SUPERADMIN"
+  const podeVerAbaFranquia = currentUser?.role === "FRANQUEADO" || isSuperAdmin
+
   useEffect(() => {
     if (currentUser?.role === "FRANQUEADO") {
       fetchMinhaFranquia()
+    } else if (isSuperAdmin) {
+      fetchListaFranquias()
     }
   }, [currentUser?.role])
 
-  const fetchMinhaFranquia = async () => {
+  useEffect(() => {
+    if (isSuperAdmin && franquiaSelecionadaId) {
+      fetchMinhaFranquia(franquiaSelecionadaId)
+    } else if (isSuperAdmin) {
+      // Nenhuma franquia selecionada ainda: limpa o form da etapa anterior.
+      setMinhaFranquia(null)
+      setFranquiaDescricao("")
+      setFaqs([])
+      setNovasFotos([])
+      setNovasFotosPreview([])
+    }
+  }, [franquiaSelecionadaId])
+
+  const fetchListaFranquias = async () => {
+    try {
+      const data = await apiBackend.get<Franquia[]>("/users/franquias/")
+      setListaFranquias(Array.isArray(data) ? data : [])
+    } catch (err) {
+      console.error("Erro ao buscar lista de franquias:", err)
+      setFranquiaError("Erro ao carregar lista de franquias")
+    }
+  }
+
+  const fetchMinhaFranquia = async (franquiaId?: number | "") => {
     try {
       setFranquiaFetching(true)
       setFranquiaError(null)
-      const data = await apiBackend.get<MinhaFranquia>("/users/franquias/minha/")
+      const query = franquiaId ? `?franquia_id=${franquiaId}` : ""
+      const data = await apiBackend.get<MinhaFranquia>(`/users/franquias/minha/${query}`)
       setMinhaFranquia(data)
       setFranquiaDescricao(data.descricao || "")
       setFaqs(data.faqs && data.faqs.length > 0 ? data.faqs : [])
@@ -248,7 +281,8 @@ export default function SettingsPage() {
   const handleRemoveFotoExistente = async (fotoId: number) => {
     if (!confirm("Remover esta foto da galeria?")) return
     try {
-      await apiBackend.delete(`/users/franquias/minha/fotos/${fotoId}/`)
+      const query = isSuperAdmin && franquiaSelecionadaId ? `?franquia_id=${franquiaSelecionadaId}` : ""
+      await apiBackend.delete(`/users/franquias/minha/fotos/${fotoId}/${query}`)
       setMinhaFranquia((prev) => (prev ? { ...prev, fotos: prev.fotos.filter((f) => f.id !== fotoId) } : prev))
     } catch (err) {
       console.error("Erro ao remover foto:", err)
@@ -276,6 +310,11 @@ export default function SettingsPage() {
     e.preventDefault()
     setFranquiaError(null)
 
+    if (isSuperAdmin && !franquiaSelecionadaId) {
+      setFranquiaError("Selecione uma franquia primeiro.")
+      return
+    }
+
     try {
       setFranquiaLoading(true)
 
@@ -285,7 +324,8 @@ export default function SettingsPage() {
       const faqsValidas = faqs.filter((f) => f.pergunta.trim() && f.resposta.trim())
       formData.append("faqs_json", JSON.stringify(faqsValidas))
 
-      const response = await apiBackend.patch<MinhaFranquia>("/users/franquias/minha/", formData)
+      const query = isSuperAdmin && franquiaSelecionadaId ? `?franquia_id=${franquiaSelecionadaId}` : ""
+      const response = await apiBackend.patch<MinhaFranquia>(`/users/franquias/minha/${query}`, formData)
 
       setMinhaFranquia(response)
       setFranquiaDescricao(response.descricao || "")
@@ -328,7 +368,7 @@ export default function SettingsPage() {
             </p>
           </div>
 
-          {currentUser?.role === "FRANQUEADO" && (
+          {podeVerAbaFranquia && (
             <div className="mb-6 border-b border-gray-700">
               <nav className="-mb-px flex space-x-8">
                 <button
@@ -577,7 +617,35 @@ export default function SettingsPage() {
                 </div>
               )}
 
-              {franquiaFetching ? (
+              {isSuperAdmin && (
+                <div className="mb-6 space-y-2">
+                  <label htmlFor="franquia-select" className="block text-sm font-medium text-gray-300">
+                    Franquia
+                  </label>
+                  <select
+                    id="franquia-select"
+                    value={franquiaSelecionadaId}
+                    onChange={(e) => setFranquiaSelecionadaId(e.target.value ? Number(e.target.value) : "")}
+                    className="w-full h-10 px-3 text-white rounded-md bg-gray-900 border border-gray-700 focus:outline-none focus:ring-2 focus:ring-brand-pink focus:border-brand-pink text-sm"
+                  >
+                    <option value="">Selecione uma franquia...</option>
+                    {listaFranquias.map((f) => (
+                      <option key={f.id} value={f.id}>
+                        {f.nome}
+                      </option>
+                    ))}
+                  </select>
+                  <p className="text-xs text-gray-500">
+                    Como superadmin, você vê e edita a mesma tela que o franqueado dessa unidade acessa.
+                  </p>
+                </div>
+              )}
+
+              {isSuperAdmin && !franquiaSelecionadaId ? (
+                <p className="text-sm text-gray-400 py-8 text-center">
+                  Selecione uma franquia acima para ver e editar as informações.
+                </p>
+              ) : franquiaFetching ? (
                 <div className="flex items-center justify-center py-16">
                   <Loader2 className="w-8 h-8 animate-spin text-brand-pink" />
                 </div>
