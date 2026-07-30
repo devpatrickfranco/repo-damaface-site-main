@@ -21,7 +21,7 @@ const IMAGEM_POR_SLUG: Record<string, string> = {
   "preenchimento-facial": "/images/procedimentos/preenchimento/facial-2.png",
   "bioestimulador": "/images/procedimentos/bioestimulador/gerais/bioestimulador-1.jpeg",
   "bioestimulador-de-colageno": "/images/procedimentos/bioestimulador/gerais/bioestimulador-1.jpeg",
-  "bioestimulador-corporal": "/images/procedimentos/bioestimulador/gerais/bioestimulador-1.jpeg",
+  "bioestimulador-corporal": "/images/procedimentos/.corporal/bioestimulador-coporal/gerais/bioestimulador-coporal-1.webp",
   "fios": "/images/procedimentos/fios/gerais/fios-1.png",
   "fios-de-sustentacao": "/images/procedimentos/fios/gerais/fios-1.png",
   "full-face": "/images/procedimentos/full-face/gerais/full-face-1.png",
@@ -32,6 +32,16 @@ const IMAGEM_POR_SLUG: Record<string, string> = {
   "peeling-quimico": "/images/procedimentos/peeling-quimico/gerais/peeling-quimico-1.png",
   "peim": "/images/procedimentos/peim/gerais/peim-1.png",
   "skinbooster": "/images/procedimentos/skinbooster/gerais/skinbooster-1.png",
+  "criolipolise": "/images/procedimentos/.nao-invasivo/criolipolise/gerais/criolipolis-1.webp",
+  "depilacao-a-laser": "/images/procedimentos/.nao-invasivo/depilacao-laser/gerais/depilacao-laser-1.webp",
+  "enzimas-para-gordura-localizada": "/images/procedimentos/.corporal/gordura-localizada/gerais/gordura-localizada-1.webp",
+  "laser-co2": "/images/procedimentos/.nao-invasivo/laser-co2/gerais/laser-co2-1.webp",
+  "lavieen": "/images/procedimentos/.nao-invasivo/lavieen/gerais/laser-lavieen-1.webp",
+  "limpeza-de-pele": "/images/procedimentos/.nao-invasivo/limpeza-de-pele/gerais/limpeza-de-pele-1.webp",
+  "massagem-modeladora": "/images/procedimentos/.corporal/massagem-modeladora/gerais/massagem-modeladora-1.webp",
+  "massagem-relaxante": "/images/procedimentos/.corporal/massagem-relaxante/gerais/massagem-relaxante-1.webp",
+  "preenchimento-de-gluteo": "/images/procedimentos/.corporal/preenchimento-de-gluteo/gerais/preenchimento-de-gluteo-1.webp",
+  "ultraformer": "/images/categorias/não-invasivo-1.webp",
 }
 
 export function ClinicHero({ unidade, procedimento }: { unidade: Unidade; procedimento?: Procedimento }) {
