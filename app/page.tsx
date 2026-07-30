@@ -5,7 +5,6 @@ import Partners from '@/components/partners';
 import Categories from '@/components/Categories';
 import Franchise from '@/components/Franchise';
 import Copiloto from '@/components/Copiloto';
-import Studio from '@/components/Studio';
 import About from '@/components/About';
 import Testimonials from '@/components/Testimonials';
 import Blog from '@/components/Blog';
@@ -37,7 +36,6 @@ export default async function Home() {
         <Categories />
         <Franchise />
         <Copiloto />
-        <Studio />
         <About />
         <Partners />
         <Testimonials />

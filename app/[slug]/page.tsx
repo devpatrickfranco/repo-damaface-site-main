@@ -1,12 +1,16 @@
 import type { Metadata } from "next"
 import Link from "next/link"
 import { notFound } from "next/navigation"
+import Header from "@/components/Header"
+import Footer from "@/components/Footer"
+import Blog from "@/components/Blog"
 import { Breadcrumb } from "@/components/local-seo/Breadcrumb"
 import { ClinicAddress, ClinicCTA, ClinicDoctors, ClinicGallery, ClinicHero, ClinicHours, ClinicMap, FaqSection, ProcedureList, ReviewSection } from "@/components/local-seo/ClinicSections"
 import { JsonLd } from "@/components/local-seo/JsonLd"
 import { getPaginaRaiz, getProcedimentosDaUnidade, getUnidadesIndexaveis } from "@/services/unidades"
 import { getProcedimentos } from "@/services/procedimentos"
 import { metadataDaUnidade, metadataDoProcedimento, schemaBreadcrumb, schemaDaUnidade, schemaFaq } from "@/services/seo"
+import { getAllPosts } from "@/lib/posts"
 
 export const revalidate = 3600
 
@@ -39,5 +43,16 @@ export default async function PaginaRaiz({ params }: Props) {
 
   const { unidade } = pagina
   const procedimentosDaUnidade = await getProcedimentosDaUnidade(unidade.slug)
-  return <main className="container py-8 sm:py-12"><Breadcrumb items={[{ label: "Início", href: "/" }, { label: unidade.cidade }]} /><JsonLd data={schemaDaUnidade(unidade)} /><JsonLd data={schemaFaq(unidade.faqs)} /><JsonLd data={schemaBreadcrumb([{ label: "Início", href: "/" }, { label: unidade.cidade, href: `/${unidade.slug}` }])} /><ClinicHero unidade={unidade} /><div className="section-padding space-y-16"><ProcedureList unidade={unidade} procedimentos={procedimentosDaUnidade} /><div className="grid gap-5 lg:grid-cols-2"><ClinicAddress unidade={unidade} /><ClinicHours unidade={unidade} /></div><ClinicGallery unidade={unidade} /><ClinicDoctors unidade={unidade} /><ClinicMap unidade={unidade} /><FaqSection faqs={unidade.faqs} cidade={unidade.cidade} /><ReviewSection unidade={unidade} /><ClinicCTA unidade={unidade} /></div></main>
+
+  const todosPosts = await getAllPosts()
+  const recentPosts = todosPosts
+    .filter((post) => post.status === "APROVADO")
+    .sort((a, b) => {
+      const dataA = new Date(a.published_at || a.created_at).getTime()
+      const dataB = new Date(b.published_at || b.created_at).getTime()
+      return dataB - dataA
+    })
+    .slice(0, 3)
+
+  return <><Header /><main className="container pt-28 sm:pt-32"><Breadcrumb items={[{ label: "Início", href: "/" }, { label: unidade.cidade }]} /><JsonLd data={schemaDaUnidade(unidade)} /><JsonLd data={schemaFaq(unidade.faqs)} /><JsonLd data={schemaBreadcrumb([{ label: "Início", href: "/" }, { label: unidade.cidade, href: `/${unidade.slug}` }])} /><ClinicHero unidade={unidade} /><div className="section-padding space-y-16"><ProcedureList unidade={unidade} procedimentos={procedimentosDaUnidade} /><div className="grid gap-5 lg:grid-cols-2"><ClinicAddress unidade={unidade} /><ClinicHours unidade={unidade} /></div><ClinicGallery unidade={unidade} /><ClinicDoctors unidade={unidade} /><ClinicMap unidade={unidade} /><ReviewSection unidade={unidade} /></div></main><Blog posts={recentPosts} /><div className="container space-y-16 pb-16"><FaqSection faqs={unidade.faqs} cidade={unidade.cidade} /><ClinicCTA unidade={unidade} /></div><Footer /></>
 }
