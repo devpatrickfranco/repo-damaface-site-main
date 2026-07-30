@@ -186,7 +186,7 @@ export default function UsuariosPage() {
     setError("")
     setModalStep(1)
     setFotoFile(null)
-    const existingFoto = type === "franquia" ? (item as Franquia | undefined)?.foto : null
+    const existingFoto = type === "franquia" ? (item as Franquia | undefined)?.foto_capa : null
     setFotoPreview(existingFoto ? getMediaUrl(existingFoto) : null)
 
     if (item) {
@@ -333,9 +333,9 @@ export default function UsuariosPage() {
         franquiaData.append("email", formData.franquiaEmail)
         franquiaData.append("instagram", formData.instagram)
         if (fotoFile) {
-          franquiaData.append("foto", fotoFile)
-        } else if (fotoPreview === null && (editingItem as Franquia | null)?.foto) {
-          franquiaData.append("foto", "")
+          franquiaData.append("foto_capa", fotoFile)
+        } else if (fotoPreview === null && (editingItem as Franquia | null)?.foto_capa) {
+          franquiaData.append("foto_capa", "")
         }
 
         await apiBackend[method](url, franquiaData)
