@@ -12,28 +12,26 @@ function truncateSubheadline(texto: string, max = SUBHEADLINE_MAX_LENGTH) {
   return `${cortado.slice(0, cortado.lastIndexOf(" "))}…`
 }
 
-const NORMALIZE = (texto: string) => texto.normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase()
-
-const IMAGENS_PROCEDIMENTOS: { match: RegExp; imagem: string }[] = [
-  { match: /botox|toxina.?botulinica/, imagem: "/images/procedimentos/botox/gerais/botox-2.png" },
-  { match: /preenchimento/, imagem: "/images/procedimentos/preenchimento/facial-2.png" },
-  { match: /bioestimulador.*corporal/, imagem: "/images/procedimentos/.corporal/bioestimulador-coporal/gerais/bioestimulador-coporal-1.jpg" },
-  { match: /bioestimulador/, imagem: "/images/procedimentos/bioestimulador/gerais/bioestimulador-1.jpeg" },
-  { match: /fios/, imagem: "/images/procedimentos/fios/gerais/fios-1.png" },
-  { match: /full.?face|harmonizacao/, imagem: "/images/procedimentos/full-face/gerais/full-face-1.png" },
-  { match: /labial/, imagem: "/images/procedimentos/labial/gerais/labial-1.png" },
-  { match: /lipo.*papada|papada/, imagem: "/images/procedimentos/lipo-de-papada/gerais/lipo-de-papada-1.png" },
-  { match: /microagulhamento/, imagem: "/images/procedimentos/microagulhamento/gerais/microagulhamento-1.png" },
-  { match: /peeling/, imagem: "/images/procedimentos/peeling-quimico/gerais/peeling-quimico-1.png" },
-  { match: /peim/, imagem: "/images/procedimentos/peim/gerais/peim-1.png" },
-  { match: /skinbooster|skin.?booster/, imagem: "/images/procedimentos/skinbooster/gerais/skinbooster-1.png" },
-]
-
-function imagemDoProcedimento(procedimento: Procedimento) {
-  if (procedimento.imagem && procedimento.imagem !== "/placeholder.svg") return procedimento.imagem
-  const chave = NORMALIZE(`${procedimento.slug} ${procedimento.nome}`)
-  const encontrado = IMAGENS_PROCEDIMENTOS.find(({ match }) => match.test(chave))
-  return encontrado?.imagem ?? "/placeholder.svg"
+// Slugs dos procedimentos cadastrados no backend ainda não têm foto própria — usamos as fotos
+// já existentes no repo do front-end como imagem padrão de cada procedimento.
+const IMAGEM_POR_SLUG: Record<string, string> = {
+  "botox": "/images/procedimentos/botox/gerais/botox-2.png",
+  "toxina-botulinica": "/images/procedimentos/botox/gerais/botox-2.png",
+  "preenchimento": "/images/procedimentos/preenchimento/facial-2.png",
+  "preenchimento-facial": "/images/procedimentos/preenchimento/facial-2.png",
+  "bioestimulador": "/images/procedimentos/bioestimulador/gerais/bioestimulador-1.jpeg",
+  "bioestimulador-de-colageno": "/images/procedimentos/bioestimulador/gerais/bioestimulador-1.jpeg",
+  "bioestimulador-corporal": "/images/procedimentos/bioestimulador/gerais/bioestimulador-1.jpeg",
+  "fios": "/images/procedimentos/fios/gerais/fios-1.png",
+  "fios-de-sustentacao": "/images/procedimentos/fios/gerais/fios-1.png",
+  "full-face": "/images/procedimentos/full-face/gerais/full-face-1.png",
+  "harmonizacao-facial": "/images/procedimentos/full-face/gerais/full-face-1.png",
+  "labial": "/images/procedimentos/labial/gerais/labial-1.png",
+  "lipo-de-papada": "/images/procedimentos/lipo-de-papada/gerais/lipo-de-papada-1.png",
+  "microagulhamento": "/images/procedimentos/microagulhamento/gerais/microagulhamento-1.png",
+  "peeling-quimico": "/images/procedimentos/peeling-quimico/gerais/peeling-quimico-1.png",
+  "peim": "/images/procedimentos/peim/gerais/peim-1.png",
+  "skinbooster": "/images/procedimentos/skinbooster/gerais/skinbooster-1.png",
 }
 
 export function ClinicHero({ unidade, procedimento }: { unidade: Unidade; procedimento?: Procedimento }) {
@@ -66,7 +64,7 @@ export function ClinicDoctors({ unidade }: { unidade: Unidade }) {
 }
 
 export function ProcedureList({ procedimentos, unidade }: { procedimentos: Procedimento[]; unidade: Unidade }) {
-  return <section><h2 className="text-2xl font-semibold">Procedimentos em {unidade.cidade}</h2><div className="mt-6 grid gap-4 md:grid-cols-3">{procedimentos.map((procedimento) => <Link href={`/${unidade.slug}/${procedimento.slug}`} className="card-dark group overflow-hidden p-0" key={procedimento.slug}><div className="relative aspect-[4/3] overflow-hidden"><Image src={imagemDoProcedimento(procedimento)} alt={procedimento.nome} fill className="object-cover transition-transform duration-300 group-hover:scale-105" sizes="(max-width: 768px) 100vw, 33vw" /></div><div className="p-5"><h3 className="font-semibold group-hover:text-brand-pink">{procedimento.nome}</h3><p className="mt-3 text-sm text-gray-300">{procedimento.resumo}</p><span className="mt-4 inline-block text-sm text-brand-pink">Saiba mais →</span></div></Link>)}</div></section>
+  return <section><h2 className="text-2xl font-semibold">Procedimentos em {unidade.cidade}</h2><div className="mt-6 grid gap-4 md:grid-cols-3">{procedimentos.map((procedimento) => { const imagem = IMAGEM_POR_SLUG[procedimento.slug] ?? procedimento.imagem; return <Link href={`/${unidade.slug}/${procedimento.slug}`} className="card-dark group overflow-hidden p-0" key={procedimento.slug}><div className="relative aspect-[4/3] overflow-hidden"><Image src={imagem} alt={procedimento.nome} fill className="object-cover transition-transform duration-300 group-hover:scale-105" sizes="(max-width: 768px) 100vw, 33vw" /></div><div className="p-5"><h3 className="font-semibold group-hover:text-brand-pink">{procedimento.nome}</h3><p className="mt-3 text-sm text-gray-300">{procedimento.resumo}</p><span className="mt-4 inline-block text-sm text-brand-pink">Saiba mais →</span></div></Link> })}</div></section>
 }
 
 export function FaqSection({ faqs, cidade }: { faqs: { pergunta: string; resposta: string }[]; cidade?: string }) {
