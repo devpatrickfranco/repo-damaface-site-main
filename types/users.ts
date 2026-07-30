@@ -48,11 +48,18 @@ export interface MinhaFranquia {
   faqs: FaqFranquia[];
 }
 
+export type Profissao = 'COMERCIAL' | 'ESPECIALISTA';
+
+export type Formacao = 'BIOMEDICA_ESTETICA' | 'FARMACEUTICA_ESTETICA' | 'DENTISTA' | 'DERMATOLOGISTA';
+
 export interface Usuario {
   id: number;
   nome: string;
   email: string;
   role: 'SUPERADMIN' | 'ADMIN' | 'FRANQUEADO' | 'FUNCIONARIO';
+  profissao?: Profissao | '';
+  formacao?: Formacao | '';
+  registro?: string;
   imgProfile: string | null;
   franquia: number | null;
   franquia_nome?: string | null;

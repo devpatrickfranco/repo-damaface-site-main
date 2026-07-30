@@ -38,7 +38,13 @@ type UnidadeDetailApi = UnidadeListApi & {
   instagram: string
   google_maps: string
   descricao: string
-  equipe: { nome: string; cargo: string; especialidade: string; descricao: string; foto: string | null }[]
+  equipe: {
+    nome: string
+    profissao: "COMERCIAL" | "ESPECIALISTA"
+    formacao: string
+    registro: string
+    foto: string | null
+  }[]
   faqs: Faq[]
   avaliacoes: { nome: string; nota: number; comentario: string; created_at: string }[]
   procedimentos: ProcedimentoNestedApi[]
@@ -87,8 +93,9 @@ function adaptUnidadeDetail(u: UnidadeDetailApi): Unidade {
     horarios: u.horarios.map((h) => ({ dias: h.dias, aberto: h.aberto, abre: h.abre, fecha: h.fecha })),
     equipe: u.equipe.map((e) => ({
       nome: e.nome,
-      cargo: e.cargo,
-      descricao: e.descricao,
+      profissao: e.profissao,
+      formacao: e.formacao || undefined,
+      registro: e.registro || undefined,
       foto: e.foto ? getMediaUrl(e.foto) : undefined,
     })),
     procedimentos: u.procedimentos.map((p) => p.slug),

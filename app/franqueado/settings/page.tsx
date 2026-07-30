@@ -10,6 +10,13 @@ import type { Profile, MinhaFranquia, FaqFranquia, Franquia } from "@/types/user
 const MAX_FOTOS_GALERIA = 5
 const MAX_FAQS = 10
 
+const FORMACAO_OPTIONS: { value: string; label: string }[] = [
+  { value: "BIOMEDICA_ESTETICA", label: "Biomédica Estética" },
+  { value: "FARMACEUTICA_ESTETICA", label: "Farmacêutica Estética" },
+  { value: "DENTISTA", label: "Dentista" },
+  { value: "DERMATOLOGISTA", label: "Dermatologista" },
+]
+
 export default function SettingsPage() {
   const [activeTab, setActiveTab] = useState<"perfil" | "franquia">("perfil")
 
@@ -31,6 +38,9 @@ export default function SettingsPage() {
     nome: "",
     bio: "",
     telefone: "",
+    profissao: "" as "" | "COMERCIAL" | "ESPECIALISTA",
+    formacao: "",
+    registro: "",
   })
 
   const [originalData, setOriginalData] = useState({
@@ -38,10 +48,14 @@ export default function SettingsPage() {
     imgProfile: "",
     bio: "",
     telefone: "",
+    profissao: "",
+    formacao: "",
+    registro: "",
   })
 
   const PHONE_REGEX = /^\d{10,11}$/
   const [phoneError, setPhoneError] = useState(false)
+  const [profissaoError, setProfissaoError] = useState<string | null>(null)
 
   const MAX_NAME_LENGTH = 100
   const MAX_BIO_LENGTH = 500
@@ -118,12 +132,18 @@ export default function SettingsPage() {
         nome: userData.nome || "",
         bio: userData.bio || "",
         telefone: userData.telefone || "",
+        profissao: (userData.profissao || "") as "" | "COMERCIAL" | "ESPECIALISTA",
+        formacao: userData.formacao || "",
+        registro: userData.registro || "",
       })
       setOriginalData({
         nome: userData.nome || "",
         imgProfile: userData.imgProfile || "",
         bio: userData.bio || "",
         telefone: userData.telefone || "",
+        profissao: userData.profissao || "",
+        formacao: userData.formacao || "",
+        registro: userData.registro || "",
       })
 
       // Define preview com a URL completa do backend
@@ -180,13 +200,23 @@ export default function SettingsPage() {
     }
     setPhoneError(false)
 
+    if (profileData.profissao === "ESPECIALISTA" && (!profileData.formacao || !profileData.registro.trim())) {
+      setProfissaoError("Informe a formação e o registro profissional (CRM/CRO...).")
+      return
+    }
+    setProfissaoError(null)
+
     const hasNameChange = profileData.nome.trim() !== originalData.nome.trim()
     const hasBioChange = (profileData.bio || "").trim() !== (originalData.bio || "").trim()
     const hasTelefoneChange = (profileData.telefone || "").trim() !== (originalData.telefone || "").trim()
     const hasImageChange =
       imageFile !== null || (previewImage === null && originalData.imgProfile)
+    const hasProfissaoChange =
+      profileData.profissao !== originalData.profissao ||
+      profileData.formacao !== originalData.formacao ||
+      profileData.registro !== originalData.registro
 
-    if (!hasNameChange && !hasImageChange && !hasBioChange && !hasTelefoneChange) {
+    if (!hasNameChange && !hasImageChange && !hasBioChange && !hasTelefoneChange && !hasProfissaoChange) {
       alert("Nenhuma alteração foi feita")
       return
     }
@@ -199,6 +229,12 @@ export default function SettingsPage() {
       formData.append("nome", profileData.nome.trim())
       formData.append("bio", profileData.bio.trim())
       formData.append("telefone", profileData.telefone.replace(/\D/g, ""))
+
+      if (currentUser?.role === "FUNCIONARIO") {
+        formData.append("profissao", profileData.profissao)
+        formData.append("formacao", profileData.profissao === "ESPECIALISTA" ? profileData.formacao : "")
+        formData.append("registro", profileData.profissao === "ESPECIALISTA" ? profileData.registro.trim() : "")
+      }
 
       if (imageFile) {
         formData.append("imgProfile", imageFile)
@@ -216,12 +252,18 @@ export default function SettingsPage() {
         nome: response.nome,
         bio: response.bio || "",
         telefone: response.telefone || "",
+        profissao: (response.profissao || "") as "" | "COMERCIAL" | "ESPECIALISTA",
+        formacao: response.formacao || "",
+        registro: response.registro || "",
       })
       setOriginalData({
         nome: response.nome,
         imgProfile: response.imgProfile || "",
         bio: response.bio || "",
         telefone: response.telefone || "",
+        profissao: response.profissao || "",
+        formacao: response.formacao || "",
+        registro: response.registro || "",
       })
 
       if (response.imgProfile) {
@@ -586,6 +628,93 @@ export default function SettingsPage() {
                 Garanta que seu telefone esteja correto, ele será usado em casos de suporte.
               </p>
             </div>
+
+            {currentUser?.role === "FUNCIONARIO" && (
+              <div className="space-y-4 rounded-md border border-gray-800 p-4">
+                <div className="space-y-2">
+                  <label
+                    htmlFor="profissao"
+                    className="block text-sm font-medium text-gray-300"
+                  >
+                    Profissão
+                  </label>
+                  <select
+                    id="profissao"
+                    value={profileData.profissao}
+                    onChange={(e) => {
+                      const profissao = e.target.value as "" | "COMERCIAL" | "ESPECIALISTA"
+                      setProfileData({
+                        ...profileData,
+                        profissao,
+                        ...(profissao !== "ESPECIALISTA" ? { formacao: "", registro: "" } : {}),
+                      })
+                      setProfissaoError(null)
+                    }}
+                    className="w-full h-10 px-3 text-white rounded-md bg-gray-900 border border-gray-700 focus:outline-none focus:ring-2 focus:ring-brand-pink focus:border-brand-pink text-sm"
+                  >
+                    <option value="">Selecione...</option>
+                    <option value="COMERCIAL">Comercial</option>
+                    <option value="ESPECIALISTA">Especialista</option>
+                  </select>
+                  <p className="text-xs text-gray-500">
+                    Usada na exibição da equipe na página da sua unidade.
+                  </p>
+                </div>
+
+                {profileData.profissao === "ESPECIALISTA" && (
+                  <>
+                    <div className="space-y-2">
+                      <label
+                        htmlFor="formacao"
+                        className="block text-sm font-medium text-gray-300"
+                      >
+                        Formação
+                      </label>
+                      <select
+                        id="formacao"
+                        value={profileData.formacao}
+                        onChange={(e) => {
+                          setProfileData({ ...profileData, formacao: e.target.value })
+                          setProfissaoError(null)
+                        }}
+                        className="w-full h-10 px-3 text-white rounded-md bg-gray-900 border border-gray-700 focus:outline-none focus:ring-2 focus:ring-brand-pink focus:border-brand-pink text-sm"
+                      >
+                        <option value="">Selecione...</option>
+                        {FORMACAO_OPTIONS.map((opcao) => (
+                          <option key={opcao.value} value={opcao.value}>
+                            {opcao.label}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+
+                    <div className="space-y-2">
+                      <label
+                        htmlFor="registro"
+                        className="block text-sm font-medium text-gray-300"
+                      >
+                        Registro profissional
+                      </label>
+                      <input
+                        id="registro"
+                        type="text"
+                        value={profileData.registro}
+                        onChange={(e) => {
+                          setProfileData({ ...profileData, registro: e.target.value })
+                          setProfissaoError(null)
+                        }}
+                        placeholder="Ex: CRM 123456, CRO 12345..."
+                        className="w-full h-10 px-3 text-white rounded-md bg-gray-900 border border-gray-700 focus:outline-none focus:ring-2 focus:ring-brand-pink focus:border-brand-pink text-sm placeholder-gray-500"
+                      />
+                    </div>
+                  </>
+                )}
+
+                {profissaoError && (
+                  <p className="text-xs text-red-500">{profissaoError}</p>
+                )}
+              </div>
+            )}
 
             <div className="flex justify-end pt-4">
               <button

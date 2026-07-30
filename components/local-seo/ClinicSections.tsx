@@ -69,8 +69,16 @@ export function ClinicMap({ unidade }: { unidade: Unidade }) {
   return <section className="card-dark"><h2 className="text-2xl font-semibold">Como chegar</h2><p className="mt-3 text-gray-300">Planeje sua rota até a Damaface {unidade.cidade} pelo Google Maps.</p><a className="mt-5 inline-block text-brand-pink hover:underline" href={`https://www.google.com/maps/search/?api=1&query=${query}`} target="_blank" rel="noreferrer">Abrir no Google Maps</a></section>
 }
 
+const FORMACAO_LABEL: Record<string, string> = {
+  BIOMEDICA_ESTETICA: "Biomédica Estética",
+  FARMACEUTICA_ESTETICA: "Farmacêutica Estética",
+  DENTISTA: "Dentista",
+  DERMATOLOGISTA: "Dermatologista",
+}
+
 export function ClinicDoctors({ unidade }: { unidade: Unidade }) {
-  return <section><h2 className="text-2xl font-semibold">Equipe</h2><div className="mt-6 grid gap-4 sm:grid-cols-2">{unidade.equipe.map((pessoa) => <article className="card-dark" key={pessoa.nome}><h3 className="font-semibold">{pessoa.nome}</h3><p className="mt-1 text-sm text-brand-pink">{pessoa.cargo}</p><p className="mt-3 text-gray-300">{pessoa.descricao}</p></article>)}</div></section>
+  if (!unidade.equipe.length) return null
+  return <section><h2 className="text-2xl font-semibold">Equipe</h2><div className="mt-6 grid gap-4 sm:grid-cols-2">{unidade.equipe.map((pessoa) => { const especialista = pessoa.profissao === "ESPECIALISTA"; const formacao = pessoa.formacao ? FORMACAO_LABEL[pessoa.formacao] ?? pessoa.formacao : undefined; return <article className="card-dark flex gap-4" key={pessoa.nome}><div className="relative h-16 w-16 shrink-0 overflow-hidden rounded-full bg-gray-800">{pessoa.foto && <Image src={pessoa.foto} alt={pessoa.nome} fill className="object-cover" sizes="64px" />}</div><div><h3 className="font-semibold">{pessoa.nome}</h3><p className="mt-1 text-sm text-brand-pink">{especialista ? formacao ?? "Especialista" : "Consultor(a) Comercial"}</p>{especialista && pessoa.registro && <p className="mt-2 text-sm text-gray-300">{pessoa.registro}</p>}</div></article> })}</div></section>
 }
 
 export function ProcedureList({ procedimentos, unidade }: { procedimentos: Procedimento[]; unidade: Unidade }) {

@@ -30,8 +30,9 @@ export interface Avaliacao {
 
 export interface Equipe {
   nome: string
-  cargo: string
-  descricao: string
+  profissao: 'COMERCIAL' | 'ESPECIALISTA'
+  formacao?: string
+  registro?: string
   foto?: string
 }
 

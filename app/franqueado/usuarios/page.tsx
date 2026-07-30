@@ -14,6 +14,13 @@ import { Plus, Search, Edit, Trash2, Eye, EyeOff, Building, User, Crown, Shield,
 
 const DIAS_SEMANA = ["Segunda-feira", "Terça-feira", "Quarta-feira", "Quinta-feira", "Sexta-feira", "Sábado", "Domingo"]
 
+const FORMACAO_OPTIONS: { value: string; label: string }[] = [
+  { value: "BIOMEDICA_ESTETICA", label: "Biomédica Estética" },
+  { value: "FARMACEUTICA_ESTETICA", label: "Farmacêutica Estética" },
+  { value: "DENTISTA", label: "Dentista" },
+  { value: "DERMATOLOGISTA", label: "Dermatologista" },
+]
+
 const horariosPadrao = (): HorarioFuncionamento[] =>
   DIAS_SEMANA.map((dias) => ({
     dias,
@@ -65,6 +72,9 @@ export default function UsuariosPage() {
     email: string
     password?: string
     role: Usuario["role"]
+    profissao: "" | "COMERCIAL" | "ESPECIALISTA"
+    formacao: string
+    registro: string
     franquia: number | null
     cnpj: string
     cidade: string
@@ -82,6 +92,9 @@ export default function UsuariosPage() {
     email: "",
     password: "",
     role: "FUNCIONARIO",
+    profissao: "",
+    formacao: "",
+    registro: "",
     franquia: null,
     cnpj: "",
     cidade: "",
@@ -221,6 +234,9 @@ export default function UsuariosPage() {
           email: usuario.email,
           password: "",
           role: usuario.role,
+          profissao: (usuario.profissao || "") as "" | "COMERCIAL" | "ESPECIALISTA",
+          formacao: usuario.formacao || "",
+          registro: usuario.registro || "",
           franquia: usuario.franquia,
           cnpj: "",
           ...emptyFranquiaFields,
@@ -233,6 +249,9 @@ export default function UsuariosPage() {
           email: "",
           password: "",
           role: "FUNCIONARIO",
+          profissao: "",
+          formacao: "",
+          registro: "",
           franquia: null,
           cidade: franquia.cidade || "",
           estado: franquia.estado || "",
@@ -252,6 +271,9 @@ export default function UsuariosPage() {
         email: "",
         password: "",
         role: "FUNCIONARIO",
+        profissao: "",
+        formacao: "",
+        registro: "",
         franquia: null,
         cnpj: "",
         ...emptyFranquiaFields,
@@ -322,6 +344,16 @@ export default function UsuariosPage() {
       return
     }
 
+    if (
+      modalType === "usuario" &&
+      formData.role === "FUNCIONARIO" &&
+      formData.profissao === "ESPECIALISTA" &&
+      (!formData.formacao || !formData.registro.trim())
+    ) {
+      setError("Informe a formação e o registro profissional (CRM/CRO...) do especialista.")
+      return
+    }
+
     setError("")
     setSubmitLoading(true)
 
@@ -336,6 +368,14 @@ export default function UsuariosPage() {
         const dataToSend = { ...formData }
         if (isEditing && !formData.password) {
           delete dataToSend.password
+        }
+        if (dataToSend.role !== "FUNCIONARIO") {
+          dataToSend.profissao = ""
+          dataToSend.formacao = ""
+          dataToSend.registro = ""
+        } else if (dataToSend.profissao !== "ESPECIALISTA") {
+          dataToSend.formacao = ""
+          dataToSend.registro = ""
         }
 
         await apiBackend[method](url, dataToSend)
@@ -1052,6 +1092,73 @@ export default function UsuariosPage() {
                         <option value="SUPERADMIN">Super Admin</option>
                       </select>
                     </div>
+
+                    {formData.role === "FUNCIONARIO" && (
+                      <>
+                        <div className="space-y-2">
+                          <label className="block text-sm font-medium text-gray-300">
+                            <div className="flex items-center space-x-2 mb-2">
+                              <User className="w-4 h-4 text-pink-400" />
+                              <span>Profissão</span>
+                            </div>
+                          </label>
+                          <select
+                            value={formData.profissao}
+                            onChange={(e) =>
+                              setFormData({
+                                ...formData,
+                                profissao: e.target.value as "" | "COMERCIAL" | "ESPECIALISTA",
+                                ...(e.target.value !== "ESPECIALISTA" ? { formacao: "", registro: "" } : {}),
+                              })
+                            }
+                            className="w-full px-4 py-3 bg-gray-700/50 border border-gray-600 rounded-lg text-white focus:outline-none focus:border-pink-500 focus:ring-2 focus:ring-pink-500/20 transition-all"
+                          >
+                            <option value="">Selecione...</option>
+                            <option value="COMERCIAL">Comercial</option>
+                            <option value="ESPECIALISTA">Especialista</option>
+                          </select>
+                        </div>
+
+                        {formData.profissao === "ESPECIALISTA" && (
+                          <>
+                            <div className="space-y-2">
+                              <label className="block text-sm font-medium text-gray-300">
+                                <div className="flex items-center space-x-2 mb-2">
+                                  <span>Formação</span>
+                                </div>
+                              </label>
+                              <select
+                                value={formData.formacao}
+                                onChange={(e) => setFormData({ ...formData, formacao: e.target.value })}
+                                className="w-full px-4 py-3 bg-gray-700/50 border border-gray-600 rounded-lg text-white focus:outline-none focus:border-pink-500 focus:ring-2 focus:ring-pink-500/20 transition-all"
+                              >
+                                <option value="">Selecione...</option>
+                                {FORMACAO_OPTIONS.map((opcao) => (
+                                  <option key={opcao.value} value={opcao.value}>
+                                    {opcao.label}
+                                  </option>
+                                ))}
+                              </select>
+                            </div>
+
+                            <div className="space-y-2">
+                              <label className="block text-sm font-medium text-gray-300">
+                                <div className="flex items-center space-x-2 mb-2">
+                                  <span>Registro profissional</span>
+                                </div>
+                              </label>
+                              <input
+                                type="text"
+                                value={formData.registro}
+                                onChange={(e) => setFormData({ ...formData, registro: e.target.value })}
+                                placeholder="Ex: CRM 123456, CRO 12345..."
+                                className="w-full px-4 py-3 bg-gray-700/50 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-pink-500 focus:ring-2 focus:ring-pink-500/20 transition-all"
+                              />
+                            </div>
+                          </>
+                        )}
+                      </>
+                    )}
 
                     <div className="space-y-2 md:col-span-2">
                       <label className="block text-sm font-medium text-gray-300">

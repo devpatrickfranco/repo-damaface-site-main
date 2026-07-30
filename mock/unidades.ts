@@ -10,7 +10,7 @@ const criarUnidade = (dados: Pick<Unidade, "slug" | "nome" | "cidade" | "estado"
   imagemHero: "/images/hero-damaface.jpg",
   galeria: ["/images/hero-damaface.jpg", "/recepção clinic.jpeg"],
   horarios,
-  equipe: [{ nome: "Equipe Damaface", cargo: "Especialistas em estética", descricao: "Atendimento personalizado, com avaliação antes de cada procedimento." }],
+  equipe: [{ nome: "Equipe Damaface", profissao: "ESPECIALISTA", formacao: "BIOMEDICA_ESTETICA", registro: "CRBM 00000" }],
   procedimentos: ["botox", "preenchimento-facial", "bioestimulador"],
   faqs: [
     { pergunta: `Onde fica a Damaface ${dados.cidade}?`, resposta: `A unidade fica em ${dados.endereco.rua}, ${dados.endereco.numero}, ${dados.endereco.bairro}, em ${dados.cidade}.` },
