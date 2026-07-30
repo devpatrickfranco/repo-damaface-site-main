@@ -16,6 +16,7 @@ export interface Franquia {
   instagram?: string;
   descricao?: string;
   user_count?: number;
+  foto?: string | null;
 }
 
 export interface Usuario {
