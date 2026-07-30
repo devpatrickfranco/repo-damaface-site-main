@@ -71,8 +71,27 @@ export const apiBackend = {
     }
   },
 
-  get<T = any>(path: string, options: NextRequestInit = {}): Promise<T> {
-    return this.request<T>(path, { ...options, method: "GET" });
+  async get<T = any>(path: string, options: NextRequestInit = {}): Promise<T> {
+    // GET é idempotente, então vale a pena tentar de novo em erros transitórios de gateway
+    // (502/503/504) ou de rede — sem isso, uma única falha passageira do backend durante o
+    // build (~700 chamadas geradas pelas páginas de unidade x procedimento) derruba o deploy inteiro.
+    const RETRYABLE_STATUS = new Set([502, 503, 504]);
+    const MAX_TENTATIVAS = 3;
+
+    let ultimoErro: unknown;
+    for (let tentativa = 1; tentativa <= MAX_TENTATIVAS; tentativa++) {
+      try {
+        return await this.request<T>(path, { ...options, method: "GET" });
+      } catch (err) {
+        ultimoErro = err;
+        const deveTentarDeNovo =
+          tentativa < MAX_TENTATIVAS &&
+          (!(err instanceof ApiError) || RETRYABLE_STATUS.has(err.status));
+        if (!deveTentarDeNovo) break;
+        await new Promise((resolve) => setTimeout(resolve, 300 * tentativa));
+      }
+    }
+    throw ultimoErro;
   },
 
   post<T = any>(path: string, body?: any, options: RequestInit = {}): Promise<T> {
