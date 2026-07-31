@@ -1,13 +1,14 @@
 import type { Metadata } from "next"
-import Link from "next/link"
 import { notFound } from "next/navigation"
 import Header from "@/components/Header"
 import Footer from "@/components/Footer"
-import { Breadcrumb } from "@/components/local-seo/Breadcrumb"
 import { ProceduresCarousel } from "@/components/local-seo/ProceduresCarousel"
 import { UnidadeAbout, UnidadeCTA, UnidadeFaq, UnidadeBlog, UnidadeHero, UnidadeHighlights, UnidadeMidCTA, UnidadeReviews, UnidadeTeam } from "@/components/local-seo/UnidadeSections"
+import { ProcedureFaq, ProcedureFinalCTA, ProcedureHero, ProcedureHowItWorks, ProcedureOverview } from "@/components/local-seo/ProcedureSections"
+import { LocationFinder } from "@/components/local-seo/LocationFinder"
+import { PageViewTracker } from "@/components/local-seo/PageViewTracker"
 import { JsonLd } from "@/components/local-seo/JsonLd"
-import { getPaginaRaiz, getProcedimentosDaUnidade, getUnidadesIndexaveis } from "@/services/unidades"
+import { getPaginaRaiz, getProcedimentosDaUnidade, getUnidadesIndexaveis, getUnidadesPorProcedimento } from "@/services/unidades"
 import { getProcedimentos } from "@/services/procedimentos"
 import { metadataDaUnidade, metadataDoProcedimento, schemaBreadcrumb, schemaDaUnidade, schemaFaq } from "@/services/seo"
 import { getAllPosts } from "@/lib/posts"
@@ -38,8 +39,31 @@ export default async function PaginaRaiz({ params }: Props) {
   if (!pagina) notFound()
 
   if (pagina.tipo === "procedimento") {
-    const unidades = await getUnidadesIndexaveis()
-    return <main className="container py-12 sm:py-20"><Breadcrumb items={[{ label: "Início", href: "/" }, { label: pagina.procedimento.nome }]} /><section className="rounded-3xl bg-zinc-900 px-6 py-16 sm:px-12"><p className="text-sm font-semibold uppercase tracking-[0.18em] text-brand-pink">Procedimento Damaface</p><h1 className="mt-4 text-4xl font-bold sm:text-6xl">{pagina.procedimento.nome}</h1><p className="mt-6 max-w-3xl text-lg leading-8 text-gray-300">{pagina.procedimento.descricao}</p><h2 className="mt-12 text-2xl font-semibold">Encontre uma unidade</h2><div className="mt-5 flex flex-wrap gap-3">{unidades.map((unidade) => <Link className="rounded-full border border-gray-700 px-5 py-3 hover:border-brand-pink" href={`/${unidade.slug}/${pagina.procedimento.slug}`} key={unidade.slug}>{pagina.procedimento.nome} em {unidade.cidade}</Link>)}</div></section></main>
+    const { procedimento } = pagina
+    const unidades = await getUnidadesPorProcedimento(procedimento.slug)
+
+    return (
+      <>
+        <Header />
+        <PageViewTracker event="procedure_page_view" payload={{ procedimento: procedimento.slug }} />
+        <JsonLd data={schemaFaq(procedimento.faqs)} />
+        <JsonLd
+          data={schemaBreadcrumb([
+            { label: "Início", href: "/" },
+            { label: procedimento.nome, href: `/${procedimento.slug}` },
+          ])}
+        />
+        <main>
+          <ProcedureHero procedimento={procedimento} />
+          <ProcedureOverview procedimento={procedimento} />
+          <ProcedureHowItWorks procedimento={procedimento} />
+          <LocationFinder unidades={unidades} procedimentoSlug={procedimento.slug} />
+          <ProcedureFaq faqs={procedimento.faqs} />
+          <ProcedureFinalCTA procedimento={procedimento} />
+        </main>
+        <Footer />
+      </>
+    )
   }
 
   const { unidade } = pagina

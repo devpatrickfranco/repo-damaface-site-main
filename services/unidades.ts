@@ -58,7 +58,16 @@ function adaptUnidadeList(u: UnidadeListApi): Unidade {
     nome: u.nome,
     cidade: u.cidade,
     estado: u.estado,
-    endereco: { rua: "", numero: "", bairro: u.bairro, cidade: u.cidade, estado: u.estado, cep: "" },
+    endereco: {
+      rua: "",
+      numero: "",
+      bairro: u.bairro,
+      cidade: u.cidade,
+      estado: u.estado,
+      cep: "",
+      latitude: u.latitude ?? undefined,
+      longitude: u.longitude ?? undefined,
+    },
     whatsapp: u.whatsapp,
     imagemHero: getMediaUrl(u.foto_capa),
     galeria: [],
@@ -85,6 +94,8 @@ function adaptUnidadeDetail(u: UnidadeDetailApi): Unidade {
       cidade: u.cidade,
       estado: u.estado,
       cep: u.cep,
+      latitude: u.latitude ?? undefined,
+      longitude: u.longitude ?? undefined,
     },
     whatsapp: u.whatsapp,
     instagram: u.instagram || undefined,
@@ -155,6 +166,21 @@ export async function getProcedimentosDaUnidade(slug: string) {
 export async function getProcedimentoDaUnidade(unidadeSlug: string, procedimentoSlug: string) {
   const procedimentos = await getProcedimentosDaUnidade(unidadeSlug)
   return procedimentos.find((procedimento) => procedimento.slug === procedimentoSlug) ?? null
+}
+
+/**
+ * Unidades que efetivamente oferecem um procedimento (não assume que toda unidade
+ * oferece todos os procedimentos — consulta os procedimentos reais de cada unidade).
+ */
+export async function getUnidadesPorProcedimento(procedimentoSlug: string): Promise<Unidade[]> {
+  const unidades = await getUnidades()
+  const comOProcedimento = await Promise.all(
+    unidades.map(async (unidade) => {
+      const procedimentos = await getProcedimentosDaUnidade(unidade.slug)
+      return procedimentos.some((p) => p.slug === procedimentoSlug) ? unidade : null
+    }),
+  )
+  return comOProcedimento.filter((unidade): unidade is Unidade => unidade !== null)
 }
 
 export async function getPaginaRaiz(slug: string) {

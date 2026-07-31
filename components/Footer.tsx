@@ -64,29 +64,29 @@ const Footer = ({ unidade }: FooterProps = {}) => {
 
   const quickLinks = [
     // Facial
-    { name: 'Harmonização Facial', href: '/procedimentos/harmonizacao-facial' },
-    { name: 'Toxina Botulínica', href: '/procedimentos/toxina-botulinica' },
-    { name: 'Bioestimulador de Colágeno', href: '/procedimentos/bioestimulador-de-colageno' },
-    { name: 'Preenchimento Facial', href: '/procedimentos/preenchimento-facial' },
-    { name: 'Fios de Sustentação', href: '/procedimentos/fios-de-sustentacao' },
-    { name: 'Lipo de Papada', href: '/procedimentos/lipo-de-papada' },
-    { name: 'Skinbooster', href: '/procedimentos/skinbooster' },
-    { name: 'Peeling Químico', href: '/procedimentos/peeling-quimico' },
+    { name: 'Harmonização Facial', href: '/harmonizacao-facial' },
+    { name: 'Toxina Botulínica', href: '/toxina-botulinica' },
+    { name: 'Bioestimulador de Colágeno', href: '/bioestimulador-de-colageno' },
+    { name: 'Preenchimento Facial', href: '/preenchimento-facial' },
+    { name: 'Fios de Sustentação', href: '/fios-de-sustentacao' },
+    { name: 'Lipo de Papada', href: '/lipo-de-papada' },
+    { name: 'Skinbooster', href: '/skinbooster' },
+    { name: 'Peeling Químico', href: '/peeling-quimico' },
     // Corporal
-    { name: 'Bioestimulador Corporal', href: '/procedimentos/bioestimulador-corporal' },
-    { name: 'PEIM', href: '/procedimentos/peim' },
-    { name: 'Preenchimento de Glúteo', href: '/procedimentos/preenchimento-de-gluteo' },
-    { name: 'Enzimas para Gordura Localizada', href: '/procedimentos/enzimas-para-gordura-localizada' },
-    { name: 'Massagem Relaxante', href: '/procedimentos/massagem-relaxante' },
-    { name: 'Massagem Modeladora', href: '/procedimentos/massagem-modeladora' },
+    { name: 'Bioestimulador Corporal', href: '/bioestimulador-corporal' },
+    { name: 'PEIM', href: '/peim' },
+    { name: 'Preenchimento de Glúteo', href: '/preenchimento-de-gluteo' },
+    { name: 'Enzimas para Gordura Localizada', href: '/enzimas-para-gordura-localizada' },
+    { name: 'Massagem Relaxante', href: '/massagem-relaxante' },
+    { name: 'Massagem Modeladora', href: '/massagem-modeladora' },
     // Não Invasivos
-    { name: 'Ultraformer', href: '/procedimentos/ultraformer' },
-    { name: 'Lavieen', href: '/procedimentos/lavieen' },
-    { name: 'Criolipólise', href: '/procedimentos/criolipolise' },
-    { name: 'Laser CO2', href: '/procedimentos/laser-co2' },
-    { name: 'Depilação a Laser', href: '/procedimentos/depilacao-a-laser' },
-    { name: 'Limpeza de Pele', href: '/procedimentos/limpeza-de-pele' },
-    { name: 'Microagulhamento', href: '/procedimentos/microagulhamento' }
+    { name: 'Ultraformer', href: '/ultraformer' },
+    { name: 'Lavieen', href: '/lavieen' },
+    { name: 'Criolipólise', href: '/criolipolise' },
+    { name: 'Laser CO2', href: '/laser-co2' },
+    { name: 'Depilação a Laser', href: '/depilacao-a-laser' },
+    { name: 'Limpeza de Pele', href: '/limpeza-de-pele' },
+    { name: 'Microagulhamento', href: '/microagulhamento' }
   ];
 
 
