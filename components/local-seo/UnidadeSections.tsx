@@ -4,13 +4,13 @@ import {
   Award,
   Calendar,
   CheckCircle2,
+  ChevronDown,
   ClipboardCheck,
   Clock,
   HeartHandshake,
   MapPin,
   MessageCircle,
   Phone,
-  ShieldCheck,
   Sparkles,
   Users,
   Wand2,
@@ -21,7 +21,7 @@ import type { Faq, Unidade } from "@/types/local-seo"
 import { whatsappUrl } from "./ClinicSections"
 import { Breadcrumb } from "./Breadcrumb"
 
-function formatTelefone(whatsapp: string) {
+export function formatTelefone(whatsapp: string) {
   const digitos = whatsapp.replace(/\D/g, "").replace(/^55/, "")
   const match = digitos.match(/^(\d{2})(\d{4,5})(\d{4})$/)
   if (!match) return whatsapp
@@ -30,10 +30,9 @@ function formatTelefone(whatsapp: string) {
 }
 
 const HERO_DESTAQUES = [
+  { icon: HeartHandshake, texto: "Atendimento personalizado" },
   { icon: Users, texto: "Profissionais especializados" },
-  { icon: Sparkles, texto: "Tecnologia de ponta" },
-  { icon: ShieldCheck, texto: "Protocolos exclusivos" },
-  { icon: HeartHandshake, texto: "Ambiente seguro e acolhedor" },
+  { icon: Sparkles, texto: "Tecnologia estética" },
 ]
 
 export function UnidadeHero({ unidade }: { unidade: Unidade }) {
@@ -44,29 +43,37 @@ export function UnidadeHero({ unidade }: { unidade: Unidade }) {
   return (
     <section className="relative overflow-hidden bg-[#0b0f1a]">
       <div className="absolute inset-0">
-        <Image src={unidade.imagemHero} alt="" fill priority className="object-cover opacity-40" sizes="100vw" />
-        <div className="absolute inset-0 bg-gradient-to-r from-[#0b0f1a] via-[#0b0f1a]/85 to-[#0b0f1a]/20" />
-        <div className="absolute inset-0 bg-gradient-to-t from-[#0b0f1a] via-transparent to-[#0b0f1a]/40" />
+        <Image src={unidade.imagemHero} alt="" fill priority className="object-cover" sizes="100vw" />
+        <div className="absolute inset-0 bg-gradient-to-r from-[#0b0f1a] via-[#0b0f1a]/80 to-transparent sm:via-[#0b0f1a]/70" />
+        <div className="absolute inset-0 bg-gradient-to-t from-[#0b0f1a] via-transparent to-[#0b0f1a]/50" />
       </div>
 
       <div className="container relative pb-14 pt-28 sm:pb-16 sm:pt-36">
         <Breadcrumb items={[{ label: "Início", href: "/" }, { label: "Unidades" }, { label: unidade.cidade }]} />
-        <p className="mb-3 text-sm font-semibold uppercase tracking-[0.18em] text-brand-pink">Damaface {unidade.cidade}</p>
-        <h1 className="max-w-3xl text-4xl font-bold tracking-tight text-white sm:text-6xl">Clínica de estética em {unidade.cidade}</h1>
-        <h3 className="mt-6 max-w-2xl text-lg font-normal leading-8 text-gray-300">{resumo}</h3>
+        <p className="mb-4 text-sm font-semibold uppercase tracking-[0.18em] text-brand-pink">
+          Damaface {unidade.cidade}{unidade.endereco.bairro ? ` · ${unidade.endereco.bairro}` : ""}
+        </p>
+        <h1 className="max-w-2xl text-4xl font-bold leading-[1.1] tracking-tight text-white sm:text-6xl">
+          Realce sua beleza com naturalidade em {unidade.cidade}.
+        </h1>
+        <h2 className="mt-4 max-w-xl text-lg font-medium tracking-tight text-gray-300 sm:text-xl">
+          Clínica de estética em {unidade.cidade}
+        </h2>
+        <h3 className="mt-4 max-w-xl text-base font-normal leading-7 text-gray-400">{resumo}</h3>
 
-        <div className="mt-8 flex flex-wrap gap-x-8 gap-y-4">
-          {HERO_DESTAQUES.map(({ icon: Icon, texto }) => (
-            <div className="flex items-center gap-2 text-sm text-gray-200" key={texto}>
-              <Icon className="h-5 w-5 shrink-0 text-brand-pink" />
-              <span className="max-w-[9rem] leading-tight">{texto}</span>
-            </div>
+        <div className="mt-7 flex flex-wrap items-center gap-x-5 gap-y-2">
+          {HERO_DESTAQUES.map(({ icon: Icon, texto }, index) => (
+            <span className="flex items-center gap-2 text-sm text-gray-300" key={texto}>
+              {index > 0 && <span className="hidden h-1 w-1 rounded-full bg-gray-600 sm:block" aria-hidden />}
+              <Icon className="h-4 w-4 shrink-0 text-brand-pink" />
+              {texto}
+            </span>
           ))}
         </div>
 
-        <div className="mt-9 flex flex-col gap-3 sm:flex-row">
+        <div className="mt-8 flex flex-col gap-3 sm:flex-row">
           <a
-            className="inline-flex items-center justify-center rounded-full bg-brand-pink px-7 py-3 font-semibold text-white shadow-lg shadow-brand-pink/25 transition hover:bg-brand-pink/90"
+            className="inline-flex items-center justify-center rounded-full bg-brand-pink px-7 py-3 font-semibold text-white shadow-lg shadow-brand-pink/25 transition hover:-translate-y-0.5 hover:bg-brand-pink/90 hover:shadow-xl hover:shadow-brand-pink/30"
             href={whatsappUrl(unidade.whatsapp, "Olá! Quero agendar uma avaliação.")}
             target="_blank"
             rel="noreferrer"
@@ -141,7 +148,7 @@ export function UnidadeAbout({ unidade }: { unidade: Unidade }) {
   const miniaturas = resto.slice(0, 3)
 
   return (
-    <section className="bg-white py-20 sm:py-28">
+    <section className="animate-on-scroll bg-white py-20 sm:py-28">
       <div className="container grid gap-12 lg:grid-cols-2 lg:items-center">
         <div>
           <p className="text-sm font-semibold uppercase tracking-[0.18em] text-brand-pink">Sobre a Damaface {unidade.cidade}</p>
@@ -172,12 +179,24 @@ export function UnidadeAbout({ unidade }: { unidade: Unidade }) {
 
         {principal && (
           <div className="grid grid-cols-3 gap-3">
-            <div className="relative col-span-3 aspect-[16/10] overflow-hidden rounded-2xl">
-              <Image src={principal} alt={`Damaface ${unidade.cidade} — ambiente da unidade`} fill className="object-cover" sizes="(max-width: 1024px) 100vw, 50vw" />
+            <div className="group relative col-span-3 aspect-[16/10] overflow-hidden rounded-2xl">
+              <Image
+                src={principal}
+                alt={`Damaface ${unidade.cidade} — ambiente da unidade`}
+                fill
+                className="object-cover transition-transform duration-500 group-hover:scale-[1.03]"
+                sizes="(max-width: 1024px) 100vw, 50vw"
+              />
             </div>
             {miniaturas.map((imagem, index) => (
-              <div className="relative aspect-square overflow-hidden rounded-xl" key={imagem}>
-                <Image src={imagem} alt={`Damaface ${unidade.cidade} — ambiente ${index + 2}`} fill className="object-cover" sizes="(max-width: 1024px) 33vw, 17vw" />
+              <div className="group relative aspect-square overflow-hidden rounded-xl" key={imagem}>
+                <Image
+                  src={imagem}
+                  alt={`Damaface ${unidade.cidade} — ambiente ${index + 2}`}
+                  fill
+                  className="object-cover transition-transform duration-500 group-hover:scale-[1.05]"
+                  sizes="(max-width: 1024px) 33vw, 17vw"
+                />
               </div>
             ))}
           </div>
@@ -196,7 +215,7 @@ const DIFERENCIAIS = [
 
 export function UnidadeHighlights() {
   return (
-    <section className="bg-white pb-20 sm:pb-28">
+    <section className="animate-on-scroll bg-white pb-20 sm:pb-28">
       <div className="container">
         <div className="grid gap-8 rounded-3xl bg-brand-pink/5 px-6 py-10 sm:px-10 md:grid-cols-2 lg:grid-cols-4">
           {DIFERENCIAIS.map(({ icon: Icon, titulo, texto }) => (
@@ -225,16 +244,12 @@ function GoogleLogo() {
   )
 }
 
-const AVALIACOES_MOCK = [
-  { autor: "Juliana M.", texto: "Atendimento impecável desde a recepção até o pós-procedimento. Resultados naturais e me senti muito segura!" },
-  { autor: "Patrícia A.", texto: "Profissionais incríveis e muito atenciosas. Ambiente acolhedor e tecnologia de ponta. Super recomendo!" },
-  { autor: "Carla R.", texto: "Estou amando os resultados! A pele está mais firme e com mais viço. Me senti cuidada em cada etapa." },
-  { autor: "Renata S.", texto: "Melhor clínica da região! Equipe maravilhosa e resultados que realmente fazem a diferença." },
-]
+export function UnidadeReviews({ unidade }: { unidade: Unidade }) {
+  // Avaliações reais cadastradas pela unidade (fonte: Google, replicadas manualmente até a integração via API).
+  if (!unidade.avaliacoes.length) return null
 
-export function UnidadeReviews() {
   return (
-    <section className="bg-gray-50 py-20 sm:py-28">
+    <section className="animate-on-scroll bg-gray-50 py-20 sm:py-28">
       <div className="container">
         <div className="flex flex-wrap items-end justify-between gap-4">
           <div>
@@ -243,7 +258,7 @@ export function UnidadeReviews() {
           </div>
           <a
             className="text-sm font-semibold text-brand-pink hover:underline"
-            href="https://www.google.com/search?q=damaface"
+            href={`https://www.google.com/search?q=Damaface+${encodeURIComponent(unidade.cidade)}`}
             target="_blank"
             rel="noreferrer"
           >
@@ -252,10 +267,13 @@ export function UnidadeReviews() {
         </div>
 
         <div className="mt-10 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
-          {AVALIACOES_MOCK.map((avaliacao) => (
-            <blockquote className="rounded-2xl border border-gray-100 bg-white p-6 shadow-sm" key={avaliacao.autor}>
+          {unidade.avaliacoes.slice(0, 4).map((avaliacao) => (
+            <blockquote className="rounded-2xl border border-gray-100 bg-white p-6 shadow-sm" key={`${avaliacao.autor}-${avaliacao.data}`}>
               <GoogleLogo />
-              <p className="mt-3 text-brand-pink">{"★".repeat(5)}</p>
+              <p className="mt-3 text-brand-pink" aria-label={`${avaliacao.nota} de 5 estrelas`}>
+                {"★".repeat(avaliacao.nota)}
+                {"☆".repeat(Math.max(0, 5 - avaliacao.nota))}
+              </p>
               <p className="mt-3 text-sm leading-6 text-gray-600">“{avaliacao.texto}”</p>
               <footer className="mt-4 text-sm font-medium text-gray-900">{avaliacao.autor}</footer>
             </blockquote>
@@ -277,7 +295,7 @@ export function UnidadeTeam({ unidade }: { unidade: Unidade }) {
   if (!unidade.equipe.length) return null
 
   return (
-    <section className="bg-white py-20 sm:py-28">
+    <section className="animate-on-scroll bg-white py-20 sm:py-28">
       <div className="container grid gap-10 lg:grid-cols-[minmax(0,1fr)_2fr] lg:items-center">
         <div>
           <p className="text-sm font-semibold uppercase tracking-[0.18em] text-brand-pink">Nossa equipe</p>
@@ -323,6 +341,26 @@ export function UnidadeTeam({ unidade }: { unidade: Unidade }) {
   )
 }
 
+export function UnidadeMidCTA({ unidade }: { unidade: Unidade }) {
+  return (
+    <section className="animate-on-scroll border-y border-gray-100 bg-white py-16 text-center sm:py-20">
+      <div className="container">
+        <h2 className="text-2xl font-bold tracking-tight text-gray-900 sm:text-3xl">Pronta para cuidar de você?</h2>
+        <p className="mx-auto mt-3 max-w-md text-gray-600">Agende sua avaliação na Damaface {unidade.cidade} e descubra o protocolo ideal para o seu momento.</p>
+        <a
+          className="mt-6 inline-flex items-center justify-center gap-2 rounded-full bg-brand-pink px-7 py-3 font-semibold text-white shadow-lg shadow-brand-pink/20 transition hover:bg-brand-pink/90"
+          href={whatsappUrl(unidade.whatsapp, "Olá! Quero agendar uma avaliação na Damaface.")}
+          target="_blank"
+          rel="noreferrer"
+        >
+          <MessageCircle className="h-5 w-5" />
+          Falar com a equipe pelo WhatsApp
+        </a>
+      </div>
+    </section>
+  )
+}
+
 function formatDate(dateString: string | null) {
   if (!dateString) return "Data não disponível"
   return new Date(dateString).toLocaleDateString("pt-BR")
@@ -336,15 +374,16 @@ function calculateReadTime(excerpt: string) {
 
 export function UnidadeBlog({ posts }: { posts: PostSummary[] }) {
   if (!posts.length) return null
+  const destaques = posts.slice(0, 3)
 
   return (
-    <section className="bg-gray-50 py-20 sm:py-28">
+    <section className="animate-on-scroll bg-white py-16 sm:py-20">
       <div className="container">
         <div className="flex flex-wrap items-end justify-between gap-4">
           <div>
-            <p className="text-sm font-semibold uppercase tracking-[0.18em] text-brand-pink">Do blog</p>
-            <h2 className="mt-3 max-w-xl text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl">
-              Conteúdos para você se informar e cuidar ainda mais de si
+            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-gray-400">Do blog</p>
+            <h2 className="mt-2 max-w-xl text-2xl font-bold tracking-tight text-gray-900 sm:text-3xl">
+              Conteúdos para você cuidar ainda mais de si
             </h2>
           </div>
           <Link className="text-sm font-semibold text-brand-pink hover:underline" href="/blog">
@@ -352,9 +391,9 @@ export function UnidadeBlog({ posts }: { posts: PostSummary[] }) {
           </Link>
         </div>
 
-        <div className="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
-          {posts.map((post) => (
-            <Link href={`/blog/${post.slug}`} key={post.id} className="group block overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-sm transition hover:shadow-lg">
+        <div className="mt-8 grid gap-6 sm:grid-cols-3">
+          {destaques.map((post) => (
+            <Link href={`/blog/${post.slug}`} key={post.id} className="group block overflow-hidden rounded-2xl border border-gray-100 bg-white transition hover:shadow-md">
               <div className="relative aspect-[4/3] overflow-hidden">
                 <Image
                   src={getMediaUrl(post.cover_image)}
@@ -364,16 +403,15 @@ export function UnidadeBlog({ posts }: { posts: PostSummary[] }) {
                   unoptimized
                   className="object-cover transition-transform duration-300 group-hover:scale-105"
                 />
-                <span className="absolute left-3 top-3 rounded-full bg-brand-pink px-3 py-1 text-xs font-semibold uppercase tracking-wide text-white">
+                <span className="absolute left-3 top-3 rounded-full bg-white/90 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-gray-700">
                   {post.categories[0]?.name || "Geral"}
                 </span>
               </div>
-              <div className="p-5">
+              <div className="py-4">
                 <p className="text-xs text-gray-500">
                   {formatDate(post.published_at)} · {calculateReadTime(post.excerpt)} min de leitura
                 </p>
                 <h3 className="mt-2 font-semibold leading-snug text-gray-900 line-clamp-2 group-hover:text-brand-pink">{post.title}</h3>
-                <span className="mt-3 inline-block text-sm font-medium text-brand-pink">Ler mais →</span>
               </div>
             </Link>
           ))}
@@ -387,14 +425,17 @@ export function UnidadeFaq({ faqs, cidade }: { faqs: Faq[]; cidade: string }) {
   if (!faqs.length) return null
 
   return (
-    <section className="bg-white py-20 sm:py-28">
+    <section className="animate-on-scroll bg-white py-20 sm:py-28">
       <div className="container max-w-3xl">
         <p className="text-sm font-semibold uppercase tracking-[0.18em] text-brand-pink">Dúvidas frequentes</p>
         <h2 className="mt-3 text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl">Perguntas frequentes em {cidade}</h2>
         <div className="mt-8 space-y-3">
           {faqs.map((faq) => (
-            <details className="group rounded-xl border border-gray-200 bg-gray-50 p-5 open:border-brand-pink/40" key={faq.pergunta}>
-              <summary className="cursor-pointer list-none font-medium text-gray-900 marker:content-none">{faq.pergunta}</summary>
+            <details className="group rounded-xl border border-gray-200 bg-gray-50 p-5 open:border-brand-pink/40 open:bg-white open:shadow-sm" key={faq.pergunta}>
+              <summary className="flex cursor-pointer list-none items-center justify-between gap-4 font-medium text-gray-900 marker:content-none">
+                {faq.pergunta}
+                <ChevronDown className="h-5 w-5 shrink-0 text-brand-pink transition-transform duration-300 group-open:rotate-180" />
+              </summary>
               <p className="mt-3 leading-7 text-gray-600">{faq.resposta}</p>
             </details>
           ))}
@@ -409,7 +450,7 @@ export function UnidadeCTA({ unidade }: { unidade: Unidade }) {
   const horariosAbertos = unidade.horarios.filter((horario) => horario.aberto).slice(0, 2)
 
   return (
-    <section className="bg-gray-50 pb-20 sm:pb-28">
+    <section className="animate-on-scroll bg-gray-50 pb-20 sm:pb-28">
       <div className="container">
         <div className="grid gap-8 rounded-3xl bg-[#0b0f1a] px-6 py-10 sm:px-10 lg:grid-cols-[1.4fr_1fr] lg:items-center">
           <div>
@@ -429,6 +470,7 @@ export function UnidadeCTA({ unidade }: { unidade: Unidade }) {
           </div>
 
           <div className="space-y-2 border-t border-white/10 pt-6 text-sm text-gray-300 lg:border-l lg:border-t-0 lg:pl-8 lg:pt-0">
+            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-brand-pink">Localização</p>
             <p className="font-semibold text-white">Damaface {unidade.cidade}</p>
             <p>
               {unidade.endereco.rua}, {unidade.endereco.numero}

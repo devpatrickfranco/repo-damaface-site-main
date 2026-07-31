@@ -5,7 +5,8 @@ import Header from "@/components/Header"
 import Footer from "@/components/Footer"
 import { Breadcrumb } from "@/components/local-seo/Breadcrumb"
 import { ProceduresCarousel } from "@/components/local-seo/ProceduresCarousel"
-import { UnidadeAbout, UnidadeCTA, UnidadeFaq, UnidadeBlog, UnidadeHero, UnidadeHighlights, UnidadeReviews, UnidadeTeam } from "@/components/local-seo/UnidadeSections"
+import { UnidadeAbout, UnidadeCTA, UnidadeFaq, UnidadeBlog, UnidadeHero, UnidadeHighlights, UnidadeMidCTA, UnidadeReviews, UnidadeTeam } from "@/components/local-seo/UnidadeSections"
+import { WhatsAppFloatingCTA } from "@/components/local-seo/WhatsAppFloatingCTA"
 import { JsonLd } from "@/components/local-seo/JsonLd"
 import { getPaginaRaiz, getProcedimentosDaUnidade, getUnidadesIndexaveis } from "@/services/unidades"
 import { getProcedimentos } from "@/services/procedimentos"
@@ -52,7 +53,7 @@ export default async function PaginaRaiz({ params }: Props) {
       const dataB = new Date(b.published_at || b.created_at).getTime()
       return dataB - dataA
     })
-    .slice(0, 4)
+    .slice(0, 3)
 
   return (
     <>
@@ -63,10 +64,11 @@ export default async function PaginaRaiz({ params }: Props) {
       <main>
         <UnidadeHero unidade={unidade} />
 
-        <section className="bg-white py-20 sm:py-28">
+        <section className="animate-on-scroll bg-white py-20 sm:py-28">
           <div className="container">
             <p className="text-sm font-semibold uppercase tracking-[0.18em] text-brand-pink">Nossos tratamentos</p>
-            <h2 className="mt-3 text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl">Tecnologia e naturalidade para realçar sua beleza</h2>
+            <h2 className="mt-3 max-w-xl text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl">Encontre o tratamento ideal para você</h2>
+            <p className="mt-3 max-w-xl text-gray-600">Tecnologia, experiência e protocolos personalizados para valorizar sua beleza.</p>
             <div className="mt-10">
               <ProceduresCarousel unidade={unidade} procedimentos={procedimentosDaUnidade} />
             </div>
@@ -83,13 +85,15 @@ export default async function PaginaRaiz({ params }: Props) {
 
         <UnidadeAbout unidade={unidade} />
         <UnidadeHighlights />
-        <UnidadeReviews />
+        <UnidadeReviews unidade={unidade} />
         <UnidadeTeam unidade={unidade} />
+        <UnidadeMidCTA unidade={unidade} />
         <UnidadeBlog posts={recentPosts} />
         <UnidadeFaq faqs={unidade.faqs} cidade={unidade.cidade} />
         <UnidadeCTA unidade={unidade} />
       </main>
-      <Footer />
+      <Footer unidade={unidade} />
+      <WhatsAppFloatingCTA unidade={unidade} />
     </>
   )
 }

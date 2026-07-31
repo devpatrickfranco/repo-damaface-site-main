@@ -82,6 +82,14 @@
   transform: translateY(0);
 }
 
+@media (prefers-reduced-motion: reduce) {
+  .animate-on-scroll {
+    opacity: 1;
+    transform: none;
+    transition: none;
+  }
+}
+
 /* Keep below-the-fold sections out of the initial layout/paint work. The
    intrinsic size reserves space until Chromium renders each section. */
 .homepage-main > section:not(:first-child) {

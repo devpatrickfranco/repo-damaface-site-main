@@ -8,9 +8,17 @@ import Modal  from './Modal'
 import { Phone, Mail, MapPin, Instagram, Facebook } from 'lucide-react'
 import { useState } from 'react'
 import { newsletter } from '@/lib/utils'
+import type { Unidade } from '@/types/local-seo'
+import { whatsappUrl } from '@/components/local-seo/ClinicSections'
+import { formatTelefone } from '@/components/local-seo/UnidadeSections'
 
+interface FooterProps {
+  // Quando informado, mostra o endereço/telefone da unidade em vez do contato geral da matriz —
+  // evita que uma página de unidade (ex: /vinhedo) exiba o endereço de outra cidade no rodapé.
+  unidade?: Unidade
+}
 
-const Footer = () => {
+const Footer = ({ unidade }: FooterProps = {}) => {
 
   const [email, setEmail] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -122,16 +130,36 @@ const Footer = () => {
             <div className="space-y-3 text-sm">
               <div className="flex items-center space-x-3 text-gray-400">
                 <Phone className="w-4 h-4 text-brand-pink" />
-                <span>(19) 98217-7463</span>
+                <span>{unidade ? formatTelefone(unidade.whatsapp) : '(19) 98217-7463'}</span>
               </div>
-              <div className="flex items-center space-x-3 text-gray-400">
-                <Mail className="w-4 h-4 text-brand-pink" />
-                <span>contato@damaface.com.br</span>
-              </div>
+              {!unidade && (
+                <div className="flex items-center space-x-3 text-gray-400">
+                  <Mail className="w-4 h-4 text-brand-pink" />
+                  <span>contato@damaface.com.br</span>
+                </div>
+              )}
               <div className="flex items-start space-x-3 text-gray-400">
                 <MapPin className="w-4 h-4 text-brand-pink mt-0.5" />
-                <span>R. Gustavo Ambrust, 36 <br />Nova Campinas - Campinas/SP<br />CEP: 13092-106</span>
+                {unidade ? (
+                  <span>
+                    {unidade.endereco.rua}, {unidade.endereco.numero} <br />
+                    {unidade.endereco.bairro} - {unidade.cidade}/{unidade.estado}
+                    {unidade.endereco.cep && <><br />CEP: {unidade.endereco.cep}</>}
+                  </span>
+                ) : (
+                  <span>R. Gustavo Ambrust, 36 <br />Nova Campinas - Campinas/SP<br />CEP: 13092-106</span>
+                )}
               </div>
+              {unidade && (
+                <a
+                  href={whatsappUrl(unidade.whatsapp, `Olá! Gostaria de falar com a Damaface ${unidade.cidade}.`)}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="inline-block text-brand-pink hover:underline"
+                >
+                  Falar no WhatsApp
+                </a>
+              )}
             </div>
 
             {/* Social Links */}
