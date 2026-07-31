@@ -2,7 +2,7 @@ import Image from "next/image"
 import Link from "next/link"
 import type { Procedimento, Unidade } from "@/types/local-seo"
 
-const whatsappUrl = (number: string, text: string) => `https://wa.me/${number}?text=${encodeURIComponent(text)}`
+export const whatsappUrl = (number: string, text: string) => `https://wa.me/${number}?text=${encodeURIComponent(text)}`
 
 const SUBHEADLINE_MAX_LENGTH = 180
 
@@ -14,7 +14,7 @@ function truncateSubheadline(texto: string, max = SUBHEADLINE_MAX_LENGTH) {
 
 // Slugs dos procedimentos cadastrados no backend ainda não têm foto própria — usamos as fotos
 // já existentes no repo do front-end como imagem padrão de cada procedimento.
-const IMAGEM_POR_SLUG: Record<string, string> = {
+export const IMAGEM_POR_SLUG: Record<string, string> = {
   "botox": "/images/procedimentos/botox/gerais/botox-2.png",
   "toxina-botulinica": "/images/procedimentos/botox/gerais/botox-2.png",
   "preenchimento": "/images/procedimentos/preenchimento/facial-2.png",
@@ -95,7 +95,7 @@ const NOMES_PRIORITARIOS = ["Bioestimulador de Colágeno", "Toxina Botulínica",
   nome.toLowerCase(),
 )
 
-function ordenarProcedimentos(procedimentos: Procedimento[]) {
+export function ordenarProcedimentos(procedimentos: Procedimento[]) {
   const prioritarios = NOMES_PRIORITARIOS
     .map((nome) => procedimentos.find((p) => p.nome.toLowerCase() === nome))
     .filter((p): p is Procedimento => Boolean(p))

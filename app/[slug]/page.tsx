@@ -3,9 +3,9 @@ import Link from "next/link"
 import { notFound } from "next/navigation"
 import Header from "@/components/Header"
 import Footer from "@/components/Footer"
-import Blog from "@/components/Blog"
 import { Breadcrumb } from "@/components/local-seo/Breadcrumb"
-import { ClinicAddress, ClinicCTA, ClinicDoctors, ClinicGallery, ClinicHero, ClinicHours, ClinicMap, FaqSection, ProcedureList, ReviewSection } from "@/components/local-seo/ClinicSections"
+import { ProceduresCarousel } from "@/components/local-seo/ProceduresCarousel"
+import { UnidadeAbout, UnidadeCTA, UnidadeFaq, UnidadeBlog, UnidadeHero, UnidadeHighlights, UnidadeReviews, UnidadeTeam } from "@/components/local-seo/UnidadeSections"
 import { JsonLd } from "@/components/local-seo/JsonLd"
 import { getPaginaRaiz, getProcedimentosDaUnidade, getUnidadesIndexaveis } from "@/services/unidades"
 import { getProcedimentos } from "@/services/procedimentos"
@@ -52,7 +52,44 @@ export default async function PaginaRaiz({ params }: Props) {
       const dataB = new Date(b.published_at || b.created_at).getTime()
       return dataB - dataA
     })
-    .slice(0, 3)
+    .slice(0, 4)
 
-  return <><Header /><main className="container pt-28 sm:pt-32"><Breadcrumb items={[{ label: "Início", href: "/" }, { label: unidade.cidade }]} /><JsonLd data={schemaDaUnidade(unidade)} /><JsonLd data={schemaFaq(unidade.faqs)} /><JsonLd data={schemaBreadcrumb([{ label: "Início", href: "/" }, { label: unidade.cidade, href: `/${unidade.slug}` }])} /><ClinicHero unidade={unidade} /><div className="section-padding space-y-16"><ProcedureList unidade={unidade} procedimentos={procedimentosDaUnidade} /><div className="grid gap-5 lg:grid-cols-2"><ClinicAddress unidade={unidade} /><ClinicHours unidade={unidade} /></div><ClinicGallery unidade={unidade} /><ClinicDoctors unidade={unidade} /><ClinicMap unidade={unidade} /><ReviewSection unidade={unidade} /></div></main><Blog posts={recentPosts} /><div className="container space-y-16 pb-16"><FaqSection faqs={unidade.faqs} cidade={unidade.cidade} /><ClinicCTA unidade={unidade} /></div><Footer /></>
+  return (
+    <>
+      <Header />
+      <JsonLd data={schemaDaUnidade(unidade)} />
+      <JsonLd data={schemaFaq(unidade.faqs)} />
+      <JsonLd data={schemaBreadcrumb([{ label: "Início", href: "/" }, { label: unidade.cidade, href: `/${unidade.slug}` }])} />
+      <main>
+        <UnidadeHero unidade={unidade} />
+
+        <section className="bg-white py-20 sm:py-28">
+          <div className="container">
+            <p className="text-sm font-semibold uppercase tracking-[0.18em] text-brand-pink">Nossos tratamentos</p>
+            <h2 className="mt-3 text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl">Tecnologia e naturalidade para realçar sua beleza</h2>
+            <div className="mt-10">
+              <ProceduresCarousel unidade={unidade} procedimentos={procedimentosDaUnidade} />
+            </div>
+            <div className="mt-10 text-center">
+              <Link
+                href="/facial"
+                className="inline-flex items-center justify-center rounded-full border border-brand-pink px-7 py-3 font-semibold text-brand-pink transition hover:bg-brand-pink hover:text-white"
+              >
+                Ver todos os tratamentos
+              </Link>
+            </div>
+          </div>
+        </section>
+
+        <UnidadeAbout unidade={unidade} />
+        <UnidadeHighlights />
+        <UnidadeReviews />
+        <UnidadeTeam unidade={unidade} />
+        <UnidadeBlog posts={recentPosts} />
+        <UnidadeFaq faqs={unidade.faqs} cidade={unidade.cidade} />
+        <UnidadeCTA unidade={unidade} />
+      </main>
+      <Footer />
+    </>
+  )
 }
