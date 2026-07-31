@@ -54,11 +54,10 @@ export function UnidadeHero({ unidade }: { unidade: Unidade }) {
           Damaface {unidade.cidade}{unidade.endereco.bairro ? ` · ${unidade.endereco.bairro}` : ""}
         </p>
         <h1 className="max-w-2xl text-4xl font-bold leading-[1.1] tracking-tight text-white sm:text-6xl">
-          Realce sua beleza com naturalidade em {unidade.cidade}.
+          Clínica de estética em {unidade.cidade}.
         </h1>
         <h2 className="mt-4 max-w-xl text-lg font-medium tracking-tight text-gray-300 sm:text-xl">
-          Clínica de estética em {unidade.cidade}
-        </h2>
+          Beleza, tecnologia e cuidado em tratamentos personalizados para você.        </h2>
         <h3 className="mt-4 max-w-xl text-base font-normal leading-7 text-gray-400">{resumo}</h3>
 
         <div className="mt-7 flex flex-wrap items-center gap-x-5 gap-y-2">
@@ -74,20 +73,11 @@ export function UnidadeHero({ unidade }: { unidade: Unidade }) {
         <div className="mt-8 flex flex-col gap-3 sm:flex-row">
           <a
             className="inline-flex items-center justify-center rounded-full bg-brand-pink px-7 py-3 font-semibold text-white shadow-lg shadow-brand-pink/25 transition hover:-translate-y-0.5 hover:bg-brand-pink/90 hover:shadow-xl hover:shadow-brand-pink/30"
-            href={whatsappUrl(unidade.whatsapp, "Olá! Quero agendar uma avaliação.")}
+            href='https://typebot-typebot-viewer.i4khe5.easypanel.host/agendamento'
             target="_blank"
             rel="noreferrer"
           >
             Agendar avaliação
-          </a>
-          <a
-            className="inline-flex items-center justify-center gap-2 rounded-full border border-white/30 px-7 py-3 font-semibold text-white transition hover:border-brand-pink hover:text-brand-pink"
-            href={whatsappUrl(unidade.whatsapp, "Olá! Gostaria de falar com a Damaface.")}
-            target="_blank"
-            rel="noreferrer"
-          >
-            <MessageCircle className="h-5 w-5" />
-            Falar no WhatsApp
           </a>
         </div>
       </div>
@@ -169,7 +159,7 @@ export function UnidadeAbout({ unidade }: { unidade: Unidade }) {
 
           <a
             className="mt-8 inline-flex items-center justify-center rounded-full bg-brand-pink px-7 py-3 font-semibold text-white shadow-lg shadow-brand-pink/20 transition hover:bg-brand-pink/90"
-            href={whatsappUrl(unidade.whatsapp, "Olá! Quero conhecer a unidade Damaface.")}
+            href='https://typebot-typebot-viewer.i4khe5.easypanel.host/agendamento'
             target="_blank"
             rel="noreferrer"
           >
@@ -303,14 +293,6 @@ export function UnidadeTeam({ unidade }: { unidade: Unidade }) {
           <p className="mt-4 leading-7 text-gray-600">
             Profissionais experientes e em constante atualização para oferecer o melhor em harmonização facial e estética.
           </p>
-          <a
-            className="mt-6 inline-flex items-center justify-center rounded-full border border-brand-pink px-7 py-3 font-semibold text-brand-pink transition hover:bg-brand-pink hover:text-white"
-            href={whatsappUrl(unidade.whatsapp, "Olá! Quero conhecer a equipe da Damaface.")}
-            target="_blank"
-            rel="noreferrer"
-          >
-            Conhecer a equipe
-          </a>
         </div>
 
         <div className="grid grid-cols-2 gap-5 sm:grid-cols-4">
@@ -329,7 +311,7 @@ export function UnidadeTeam({ unidade }: { unidade: Unidade }) {
                     </div>
                   )}
                 </div>
-                <h3 className="mt-3 font-semibold text-gray-900">{pessoa.nome}</h3>
+                <h3 className="mt-3 font-semibold t ext-gray-900">{pessoa.nome}</h3>
                 <p className="text-sm text-brand-pink">{especialista ? formacao ?? "Especialista" : "Consultor(a) Comercial"}</p>
                 {especialista && pessoa.registro && <p className="text-xs text-gray-500">{pessoa.registro}</p>}
               </div>
@@ -349,7 +331,7 @@ export function UnidadeMidCTA({ unidade }: { unidade: Unidade }) {
         <p className="mx-auto mt-3 max-w-md text-gray-600">Agende sua avaliação na Damaface {unidade.cidade} e descubra o protocolo ideal para o seu momento.</p>
         <a
           className="mt-6 inline-flex items-center justify-center gap-2 rounded-full bg-brand-pink px-7 py-3 font-semibold text-white shadow-lg shadow-brand-pink/20 transition hover:bg-brand-pink/90"
-          href={whatsappUrl(unidade.whatsapp, "Olá! Quero agendar uma avaliação na Damaface.")}
+          href='https://typebot-typebot-viewer.i4khe5.easypanel.host/agendamento'
           target="_blank"
           rel="noreferrer"
         >
@@ -461,7 +443,7 @@ export function UnidadeCTA({ unidade }: { unidade: Unidade }) {
             <p className="mt-3 max-w-xl text-gray-300">Agende sua avaliação personalizada e descubra o melhor protocolo para você.</p>
             <a
               className="mt-6 inline-flex items-center justify-center rounded-full bg-brand-pink px-7 py-3 font-semibold text-white shadow-lg shadow-brand-pink/25 transition hover:bg-brand-pink/90"
-              href={whatsappUrl(unidade.whatsapp, "Olá! Quero agendar uma avaliação.")}
+              href='https://typebot-typebot-viewer.i4khe5.easypanel.host/agendamento'
               target="_blank"
               rel="noreferrer"
             >

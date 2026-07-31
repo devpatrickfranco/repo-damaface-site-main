@@ -6,12 +6,12 @@ import Footer from "@/components/Footer"
 import { Breadcrumb } from "@/components/local-seo/Breadcrumb"
 import { ProceduresCarousel } from "@/components/local-seo/ProceduresCarousel"
 import { UnidadeAbout, UnidadeCTA, UnidadeFaq, UnidadeBlog, UnidadeHero, UnidadeHighlights, UnidadeMidCTA, UnidadeReviews, UnidadeTeam } from "@/components/local-seo/UnidadeSections"
-import { WhatsAppFloatingCTA } from "@/components/local-seo/WhatsAppFloatingCTA"
 import { JsonLd } from "@/components/local-seo/JsonLd"
 import { getPaginaRaiz, getProcedimentosDaUnidade, getUnidadesIndexaveis } from "@/services/unidades"
 import { getProcedimentos } from "@/services/procedimentos"
 import { metadataDaUnidade, metadataDoProcedimento, schemaBreadcrumb, schemaDaUnidade, schemaFaq } from "@/services/seo"
 import { getAllPosts } from "@/lib/posts"
+import Blog from "@/components/Blog"
 
 export const revalidate = 3600
 
@@ -72,15 +72,7 @@ export default async function PaginaRaiz({ params }: Props) {
             <div className="mt-10">
               <ProceduresCarousel unidade={unidade} procedimentos={procedimentosDaUnidade} />
             </div>
-            <div className="mt-10 text-center">
-              <Link
-                href="/facial"
-                className="inline-flex items-center justify-center rounded-full border border-brand-pink px-7 py-3 font-semibold text-brand-pink transition hover:bg-brand-pink hover:text-white"
-              >
-                Ver todos os tratamentos
-              </Link>
             </div>
-          </div>
         </section>
 
         <UnidadeAbout unidade={unidade} />
@@ -88,12 +80,11 @@ export default async function PaginaRaiz({ params }: Props) {
         <UnidadeReviews unidade={unidade} />
         <UnidadeTeam unidade={unidade} />
         <UnidadeMidCTA unidade={unidade} />
-        <UnidadeBlog posts={recentPosts} />
+        <Blog posts={recentPosts} />
         <UnidadeFaq faqs={unidade.faqs} cidade={unidade.cidade} />
         <UnidadeCTA unidade={unidade} />
       </main>
       <Footer unidade={unidade} />
-      <WhatsAppFloatingCTA unidade={unidade} />
     </>
   )
 }
