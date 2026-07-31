@@ -17,7 +17,7 @@ import {
 } from "lucide-react"
 import type { PostSummary } from "@/lib/posts"
 import { getMediaUrl } from "@/lib/api-backend"
-import type { Faq, Unidade } from "@/types/local-seo"
+import type { Faq, HorarioFuncionamento, Unidade } from "@/types/local-seo"
 import { whatsappUrl } from "./ClinicSections"
 import { Breadcrumb } from "./Breadcrumb"
 
@@ -29,6 +29,52 @@ export function formatTelefone(whatsapp: string) {
   return `(${ddd}) ${primeiraParte}-${segundaParte}`
 }
 
+const DIA_CURTO: Record<string, string> = {
+  "Segunda-feira": "Segunda",
+  "Terça-feira": "Terça",
+  "Quarta-feira": "Quarta",
+  "Quinta-feira": "Quinta",
+  "Sexta-feira": "Sexta",
+  "Sábado": "Sábado",
+  "Domingo": "Domingo",
+}
+
+// Resumo compacto dos horários: agrupa dias de semana consecutivos com o mesmo
+// horário numa única linha (ex.: "Terça a sexta: 10:00 às 19:00"), lista sábado/domingo
+// à parte só quando abertos, e omite o fim de semana inteiro quando os dois estão fechados.
+export function resumoHorarios(horarios: HorarioFuncionamento[]): string[] {
+  const semana = horarios.slice(0, 5)
+  const fimDeSemana = horarios.slice(5)
+  const linhas: string[] = []
+
+  let i = 0
+  while (i < semana.length) {
+    const atual = semana[i]
+    let j = i
+    while (
+      j + 1 < semana.length &&
+      semana[j + 1].aberto === atual.aberto &&
+      semana[j + 1].abre === atual.abre &&
+      semana[j + 1].fecha === atual.fecha
+    ) {
+      j++
+    }
+    const inicio = DIA_CURTO[semana[i].dias] ?? semana[i].dias
+    const fim = DIA_CURTO[semana[j].dias] ?? semana[j].dias
+    const label = i === j ? inicio : `${inicio} a ${fim}`
+    linhas.push(atual.aberto ? `${label}: ${atual.abre} às ${atual.fecha}` : `${label}: Fechado`)
+    i = j + 1
+  }
+
+  for (const dia of fimDeSemana) {
+    if (dia.aberto) {
+      linhas.push(`${DIA_CURTO[dia.dias] ?? dia.dias}: ${dia.abre} às ${dia.fecha}`)
+    }
+  }
+
+  return linhas
+}
+
 const HERO_DESTAQUES = [
   { icon: HeartHandshake, texto: "Atendimento personalizado" },
   { icon: Users, texto: "Profissionais especializados" },
@@ -37,7 +83,7 @@ const HERO_DESTAQUES = [
 
 export function UnidadeHero({ unidade }: { unidade: Unidade }) {
   const resumo = unidade.descricao?.trim() || `Tratamentos faciais e corporais com atendimento personalizado em ${unidade.cidade}.`
-  const horariosAbertos = unidade.horarios.filter((horario) => horario.aberto).slice(0, 2)
+  const linhasHorario = resumoHorarios(unidade.horarios)
   const enderecoQuery = encodeURIComponent(`${unidade.endereco.rua}, ${unidade.endereco.numero}, ${unidade.cidade} ${unidade.estado}`)
 
   return (
@@ -98,13 +144,13 @@ export function UnidadeHero({ unidade }: { unidade: Unidade }) {
             <span>{formatTelefone(unidade.whatsapp)}</span>
           </div>
 
-          {horariosAbertos.length > 0 && (
+          {linhasHorario.length > 0 && (
             <div className="flex items-start gap-3">
               <Clock className="mt-0.5 h-5 w-5 shrink-0 text-brand-pink" />
               <span>
-                {horariosAbertos.map((horario) => (
-                  <span className="block" key={horario.dias}>
-                    {horario.dias}: {horario.abre} às {horario.fecha}
+                {linhasHorario.map((linha) => (
+                  <span className="block" key={linha}>
+                    {linha}
                   </span>
                 ))}
               </span>
@@ -429,7 +475,6 @@ export function UnidadeFaq({ faqs, cidade }: { faqs: Faq[]; cidade: string }) {
 
 export function UnidadeCTA({ unidade }: { unidade: Unidade }) {
   const enderecoQuery = encodeURIComponent(`${unidade.endereco.rua}, ${unidade.endereco.numero}, ${unidade.cidade} ${unidade.estado}`)
-  const horariosAbertos = unidade.horarios.filter((horario) => horario.aberto).slice(0, 2)
 
   return (
     <section className="animate-on-scroll bg-gray-50 pb-20 sm:pb-28">
@@ -460,9 +505,9 @@ export function UnidadeCTA({ unidade }: { unidade: Unidade }) {
               {unidade.endereco.bairro} · {unidade.cidade}/{unidade.estado}
             </p>
             <p>{formatTelefone(unidade.whatsapp)}</p>
-            {horariosAbertos.map((horario) => (
+            {unidade.horarios.map((horario) => (
               <p key={horario.dias}>
-                {horario.dias}: {horario.abre} às {horario.fecha}
+                {horario.dias}: {horario.aberto ? `${horario.abre} às ${horario.fecha}` : "Fechado"}
               </p>
             ))}
             <a

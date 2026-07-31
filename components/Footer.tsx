@@ -112,7 +112,7 @@ const Footer = ({ unidade }: FooterProps = {}) => {
           <div className="lg:col-span-2">
             <Link href="/" className="inline-block mb-6">
               <Image
-                src="http://damaface.com.br/LOGO-DAMAFACE-HORIZONTAL-BRANCO.png"
+                src="/LOGO-DAMAFACE-HORIZONTAL-BRANCO.webp"
                 alt="Damaface"
                 width={200}
                 height={60}
