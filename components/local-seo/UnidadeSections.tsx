@@ -357,8 +357,8 @@ export function UnidadeTeam({ unidade }: { unidade: Unidade }) {
                     </div>
                   )}
                 </div>
-                <h3 className="mt-3 font-semibold t ext-gray-900">{pessoa.nome}</h3>
-                <p className="text-sm text-brand-pink">{especialista ? formacao ?? "Especialista" : "Consultor(a) Comercial"}</p>
+                <h3 className="mt-3 min-h-[2.5rem] font-semibold leading-tight text-gray-900 line-clamp-2">{pessoa.nome}</h3>
+                <p className="mt-1 text-sm text-brand-pink">{especialista ? formacao ?? "Especialista" : "Consultora Comercial"}</p>
                 {especialista && pessoa.registro && <p className="text-xs text-gray-500">{pessoa.registro}</p>}
               </div>
             )
