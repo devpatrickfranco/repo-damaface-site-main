@@ -44,6 +44,56 @@ export const IMAGEM_POR_SLUG: Record<string, string> = {
   "ultraformer": "/images/categorias/não-invasivo-1.webp",
 }
 
+// Imagem exclusiva de cada procedimento para a seção "o que é" (ProcedureOverview) da página /[slug].
+export const IMAGEM_OVERVIEW_POR_SLUG: Record<string, string> = {
+  "bioestimulador-corporal": "/images/procedimentos/bioestimulador-corporal/overview.webp",
+  "bioestimulador-de-colageno": "/images/procedimentos/bioestimulador-de-colageno/overview.webp",
+  "criolipolise": "/images/procedimentos/criolipolise/overview.webp",
+  "depilacao-a-laser": "/images/procedimentos/depilacao-a-laser/overview.webp",
+  "enzimas-para-gordura-localizada": "/images/procedimentos/enzimas-para-gordura-localizada/overview.webp",
+  "fios-de-sustentacao": "/images/procedimentos/fios-de-sustentacao/overview.webp",
+  "harmonizacao-facial": "/images/procedimentos/harmonizacao-facial/overview.webp",
+  "laser-co2": "/images/procedimentos/laser-co2/overview.webp",
+  "lavieen": "/images/procedimentos/lavieen/overview.webp",
+  "limpeza-de-pele": "/images/procedimentos/limpeza-de-pele/overview.webp",
+  "lipo-de-papada": "/images/procedimentos/lipo-de-papada/overview.webp",
+  "massagem-modeladora": "/images/procedimentos/massagem-modeladora/overview.webp",
+  "massagem-relaxante": "/images/procedimentos/massagem-relaxante/overview.webp",
+  "microagulhamento": "/images/procedimentos/microagulhamento/overview.webp",
+  "peeling-quimico": "/images/procedimentos/peeling-quimico/overview.webp",
+  "peim": "/images/procedimentos/peim/overview.webp",
+  "preenchimento-de-gluteo": "/images/procedimentos/preenchimento-de-gluteo/overview.webp",
+  "preenchimento-facial": "/images/procedimentos/preenchimento-facial/overview.webp",
+  "skinbooster": "/images/procedimentos/skinbooster/overview.webp",
+  "toxina-botulinica": "/images/procedimentos/toxina-botulinica/overview.webp",
+  "ultraformer": "/images/procedimentos/ultraformer/overview.webp",
+}
+
+// Imagem exclusiva de cada procedimento para o card final "Pronta para cuidar de você?" (ProcedureFinalCTA) da página /[slug].
+export const IMAGEM_CTA_POR_SLUG: Record<string, string> = {
+  "bioestimulador-corporal": "/images/procedimentos/bioestimulador-corporal/cta.webp",
+  "bioestimulador-de-colageno": "/images/procedimentos/bioestimulador-de-colageno/cta.webp",
+  "criolipolise": "/images/procedimentos/criolipolise/cta.webp",
+  "depilacao-a-laser": "/images/procedimentos/depilacao-a-laser/cta.webp",
+  "enzimas-para-gordura-localizada": "/images/procedimentos/enzimas-para-gordura-localizada/cta.webp",
+  "fios-de-sustentacao": "/images/procedimentos/fios-de-sustentacao/cta.webp",
+  "harmonizacao-facial": "/images/procedimentos/harmonizacao-facial/cta.webp",
+  "laser-co2": "/images/procedimentos/laser-co2/cta.webp",
+  "lavieen": "/images/procedimentos/lavieen/cta.webp",
+  "limpeza-de-pele": "/images/procedimentos/limpeza-de-pele/cta.webp",
+  "lipo-de-papada": "/images/procedimentos/lipo-de-papada/cta.webp",
+  "massagem-modeladora": "/images/procedimentos/massagem-modeladora/cta.webp",
+  "massagem-relaxante": "/images/procedimentos/massagem-relaxante/cta.webp",
+  "microagulhamento": "/images/procedimentos/microagulhamento/cta.webp",
+  "peeling-quimico": "/images/procedimentos/peeling-quimico/cta.webp",
+  "peim": "/images/procedimentos/peim/cta.webp",
+  "preenchimento-de-gluteo": "/images/procedimentos/preenchimento-de-gluteo/cta.webp",
+  "preenchimento-facial": "/images/procedimentos/preenchimento-facial/cta.webp",
+  "skinbooster": "/images/procedimentos/skinbooster/cta.webp",
+  "toxina-botulinica": "/images/procedimentos/toxina-botulinica/cta.webp",
+  "ultraformer": "/images/procedimentos/ultraformer/cta.webp",
+}
+
 export function ClinicHero({ unidade, procedimento }: { unidade: Unidade; procedimento?: Procedimento }) {
   const titulo = procedimento ? `${procedimento.nome} em ${unidade.cidade}` : `Clínica de estética em ${unidade.cidade}`
   const resumoPadrao = `Tratamentos faciais e corporais com atendimento personalizado em ${unidade.cidade}.`

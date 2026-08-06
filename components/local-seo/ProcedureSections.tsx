@@ -17,9 +17,11 @@ import {
 } from "lucide-react"
 import type { Faq, Procedimento } from "@/types/local-seo"
 import { Breadcrumb } from "./Breadcrumb"
-import { IMAGEM_POR_SLUG } from "./ClinicSections"
+import { IMAGEM_CTA_POR_SLUG, IMAGEM_OVERVIEW_POR_SLUG, IMAGEM_POR_SLUG } from "./ClinicSections"
 
-const imagemProcedimento = (procedimento: Procedimento) => IMAGEM_POR_SLUG[procedimento.slug] ?? procedimento.imagem
+const imagemHero = (procedimento: Procedimento) => IMAGEM_POR_SLUG[procedimento.slug] ?? procedimento.imagem
+const imagemOverview = (procedimento: Procedimento) => IMAGEM_OVERVIEW_POR_SLUG[procedimento.slug] ?? imagemHero(procedimento)
+const imagemCta = (procedimento: Procedimento) => IMAGEM_CTA_POR_SLUG[procedimento.slug] ?? imagemHero(procedimento)
 
 const AGENDAMENTO_URL = "https://typebot-typebot-viewer.i4khe5.easypanel.host/agendamento"
 
@@ -41,7 +43,7 @@ export function ProcedureHero({ procedimento }: { procedimento: Procedimento }) 
   return (
     <section className="relative overflow-hidden bg-[#0b0f1a]">
       <div className="absolute inset-0">
-        <Image src={imagemProcedimento(procedimento)} alt="" fill priority className="object-cover" sizes="100vw" />
+        <Image src={imagemHero(procedimento)} alt="" fill priority className="object-cover" sizes="100vw" />
         <div className="absolute inset-0 bg-gradient-to-r from-[#0b0f1a] via-[#0b0f1a]/80 to-transparent sm:via-[#0b0f1a]/70" />
         <div className="absolute inset-0 bg-gradient-to-t from-[#0b0f1a] via-transparent to-[#0b0f1a]/50" />
       </div>
@@ -88,7 +90,7 @@ export function ProcedureOverview({ procedimento }: { procedimento: Procedimento
       <div className="container grid gap-12 lg:grid-cols-2 lg:items-center">
         <div className="relative order-2 aspect-[4/5] overflow-hidden rounded-2xl lg:order-1">
           <Image
-            src={imagemProcedimento(procedimento)}
+            src={imagemOverview(procedimento)}
             alt={procedimento.nome}
             fill
             className="object-cover"
@@ -194,7 +196,7 @@ export function ProcedureFinalCTA({ procedimento }: { procedimento: Procedimento
       <div className="container">
         <div className="grid overflow-hidden rounded-3xl bg-[#0b0f1a] sm:grid-cols-2 sm:items-center">
           <div className="relative h-56 sm:h-full sm:min-h-[320px]">
-            <Image src={imagemProcedimento(procedimento)} alt="" fill className="object-cover" sizes="(max-width: 640px) 100vw, 50vw" />
+            <Image src={imagemCta(procedimento)} alt="" fill className="object-cover" sizes="(max-width: 640px) 100vw, 50vw" />
           </div>
           <div className="px-6 py-12 sm:px-10 sm:py-16">
             <h2 className="text-3xl font-bold text-white sm:text-4xl">Pronta para cuidar de você?</h2>
