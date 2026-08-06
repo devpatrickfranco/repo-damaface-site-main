@@ -125,7 +125,7 @@ export function ProcedureOverview({ procedimento }: { procedimento: Procedimento
   return (
     <section id="sobre" className="bg-white py-20 sm:py-28">
       <div className="container grid gap-12 lg:grid-cols-2 lg:items-center">
-        <div className="relative order-2 aspect-[3/4] overflow-hidden rounded-2xl lg:order-1">
+        <div className="relative order-2 aspect-square overflow-hidden rounded-2xl lg:order-1">
           <Image
             src={imagemOverview(procedimento)}
             alt={procedimento.nome}

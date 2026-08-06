@@ -78,7 +78,8 @@ export default async function ProcedimentoLocal({ params }: Props) {
             <div className="container">
               <p className="text-sm font-semibold uppercase tracking-[0.18em] text-brand-pink">Continue explorando</p>
               <h2 className="mt-3 max-w-xl text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl">
-                Conheça outros procedimentos em {unidade.cidade}
+                Conheça outros procedimentos da Damaface {unidade.cidade}
+                {unidade.endereco.bairro ? ` ${unidade.endereco.bairro}` : ""}
               </h2>
               <div className="mt-10">
                 <ProceduresCarousel unidade={unidade} procedimentos={outrosProcedimentos} />
