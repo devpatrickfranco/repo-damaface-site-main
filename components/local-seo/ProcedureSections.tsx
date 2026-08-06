@@ -175,11 +175,14 @@ export function ProcedureIndications({ procedimento }: { procedimento: Procedime
           <span className="mx-auto mt-3 block h-1 w-16 rounded-full bg-brand-pink" aria-hidden />
         </div>
 
-        <div className="mt-14 grid grid-cols-2 gap-5 sm:grid-cols-3 lg:grid-cols-5">
+        <div className="mt-14 flex flex-wrap justify-center gap-5">
           {indicacoes.map((indicacao, index) => {
             const Icon = indicationIcon(index)
             return (
-              <div className="flex flex-col items-center gap-4 rounded-2xl border border-gray-100 p-6 text-center" key={indicacao}>
+              <div
+                className="flex w-[calc(50%-0.625rem)] flex-col items-center gap-4 rounded-2xl border border-gray-100 p-6 text-center sm:w-[calc(33.333%-0.9rem)] lg:w-[calc(20%-1rem)]"
+                key={indicacao}
+              >
                 <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-brand-pink/10 text-brand-pink">
                   <Icon className="h-6 w-6" />
                 </span>
@@ -237,7 +240,10 @@ export function ProcedureLocation({ unidade }: { unidade: Unidade }) {
         <div className="overflow-hidden rounded-3xl bg-[#0b0f1a] lg:grid lg:grid-cols-2">
           <div className="px-6 py-10 sm:px-10 sm:py-12">
             <p className="text-sm font-semibold uppercase tracking-[0.18em] text-brand-pink">Localização</p>
-            <h2 className="mt-3 text-2xl font-bold text-white sm:text-3xl">Damaface {unidade.cidade}</h2>
+            <h2 className="mt-3 text-2xl font-bold text-white sm:text-3xl">
+              Damaface {unidade.cidade}
+              {unidade.endereco.bairro ? ` ${unidade.endereco.bairro}` : ""}
+            </h2>
             <p className="mt-2 text-gray-300">Atenda-se na clínica referência em estética avançada.</p>
 
             <div className="mt-6 space-y-3 text-sm text-gray-300">
