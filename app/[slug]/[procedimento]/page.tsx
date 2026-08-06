@@ -12,6 +12,7 @@ import {
   ProcedureHowItWorks,
   ProcedureIndications,
   ProcedureLocation,
+  ProcedureMobileCTA,
   ProcedureOverview,
   ProcedureSafety,
 } from "@/components/local-seo/ProcedureSections"
@@ -63,7 +64,7 @@ export default async function ProcedimentoLocal({ params }: Props) {
       <JsonLd data={schemaFaq(procedimento.faqs)} />
       <JsonLd data={schemaBreadcrumb(breadcrumbItems)} />
 
-      <main>
+      <main className="pb-20 sm:pb-0">
         <ProcedureHero procedimento={procedimento} unidade={unidade} />
         <ProcedureOverview procedimento={procedimento} />
         <ProcedureIndications procedimento={procedimento} />
@@ -74,7 +75,7 @@ export default async function ProcedimentoLocal({ params }: Props) {
         <ProcedureLocation unidade={unidade} />
 
         {outrosProcedimentos.length > 0 && (
-          <section className="bg-gray-50 py-16 sm:py-20">
+          <section className="animate-on-scroll bg-gray-50 py-16 sm:py-20">
             <div className="container">
               <p className="text-sm font-semibold uppercase tracking-[0.18em] text-brand-pink">Continue explorando</p>
               <h2 className="mt-3 max-w-xl text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl">
@@ -92,6 +93,7 @@ export default async function ProcedimentoLocal({ params }: Props) {
       </main>
 
       <Footer unidade={unidade} />
+      <ProcedureMobileCTA procedimento={procedimento} unidade={unidade} />
     </>
   )
 }

@@ -105,10 +105,12 @@ export function ProcedureHero({ procedimento, unidade }: { procedimento: Procedi
           )}
         </div>
 
-        <div className="mt-10 flex flex-wrap items-center gap-x-6 gap-y-3 border-t border-gray-800/60 pt-8">
-          {HERO_DESTAQUES.map(({ icon: Icon, texto }, index) => (
-            <span className="flex items-center gap-2 text-sm text-gray-300" key={texto}>
-              {index > 0 && <span className="hidden h-1 w-1 rounded-full bg-gray-600 sm:block" aria-hidden />}
+        <div className="mt-10 flex flex-wrap items-center gap-3 border-t border-gray-800/60 pt-8">
+          {HERO_DESTAQUES.map(({ icon: Icon, texto }) => (
+            <span
+              className="flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-4 py-2 text-sm text-gray-200"
+              key={texto}
+            >
               <Icon className="h-4 w-4 shrink-0 text-brand-pink" />
               {texto}
             </span>
@@ -123,7 +125,7 @@ export function ProcedureOverview({ procedimento }: { procedimento: Procedimento
   const beneficios = procedimento.beneficios.slice(0, 4)
 
   return (
-    <section id="sobre" className="bg-white py-20 sm:py-28">
+    <section id="sobre" className="animate-on-scroll bg-white py-20 sm:py-28">
       <div className="container grid gap-12 lg:grid-cols-2 lg:items-center">
         <div className="relative order-2 aspect-square overflow-hidden rounded-2xl lg:order-1">
           <Image
@@ -140,11 +142,14 @@ export function ProcedureOverview({ procedimento }: { procedimento: Procedimento
           <p className="mt-5 leading-7 text-gray-600">{procedimento.descricao}</p>
 
           {beneficios.length > 0 && (
-            <div className="mt-8 grid grid-cols-1 gap-5 sm:grid-cols-2">
+            <div className="mt-8 grid grid-cols-1 gap-4 sm:grid-cols-2">
               {beneficios.map((beneficio, index) => {
                 const Icon = benefitIcon(index)
                 return (
-                  <div className="flex items-start gap-3" key={beneficio}>
+                  <div
+                    className="flex items-start gap-3 rounded-xl border border-gray-100 p-4 transition hover:-translate-y-0.5 hover:border-brand-pink/30 hover:shadow-md"
+                    key={beneficio}
+                  >
                     <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-brand-pink/10 text-brand-pink">
                       <Icon className="h-5 w-5" />
                     </span>
@@ -168,7 +173,7 @@ export function ProcedureIndications({ procedimento }: { procedimento: Procedime
   if (!indicacoes.length) return null
 
   return (
-    <section className="bg-white py-20 sm:py-28">
+    <section className="animate-on-scroll bg-white py-20 sm:py-28">
       <div className="container">
         <div className="text-center">
           <h2 className="text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl">Indicado para você que:</h2>
@@ -180,7 +185,7 @@ export function ProcedureIndications({ procedimento }: { procedimento: Procedime
             const Icon = indicationIcon(index)
             return (
               <div
-                className="flex w-[calc(50%-0.625rem)] flex-col items-center gap-4 rounded-2xl border border-gray-100 p-6 text-center sm:w-[calc(33.333%-0.9rem)] lg:w-[calc(20%-1rem)]"
+                className="flex w-[calc(50%-0.625rem)] flex-col items-center gap-4 rounded-2xl border border-gray-100 p-6 text-center transition hover:-translate-y-1 hover:border-brand-pink/30 hover:shadow-md sm:w-[calc(33.333%-0.9rem)] lg:w-[calc(20%-1rem)]"
                 key={indicacao}
               >
                 <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-brand-pink/10 text-brand-pink">
@@ -201,7 +206,7 @@ export function ProcedureSafety({ procedimento }: { procedimento: Procedimento }
   if (!contraindicacoes.length) return null
 
   return (
-    <section className="bg-gray-50 py-20 sm:py-28">
+    <section className="animate-on-scroll bg-gray-50 py-20 sm:py-28">
       <div className="container grid gap-12 lg:grid-cols-[minmax(0,1fr)_1.4fr] lg:items-start">
         <div>
           <span className="flex h-14 w-14 items-center justify-center rounded-full bg-brand-pink/10 text-brand-pink">
@@ -218,7 +223,10 @@ export function ProcedureSafety({ procedimento }: { procedimento: Procedimento }
           <h3 className="font-semibold text-gray-900">Contraindicações e cuidados</h3>
           <ul className="mt-5 space-y-3">
             {contraindicacoes.map((item) => (
-              <li className="flex items-start gap-3 rounded-xl border border-gray-200 bg-white p-4 text-sm leading-6 text-gray-700" key={item}>
+              <li
+                className="flex items-start gap-3 rounded-xl border border-gray-200 bg-white p-4 text-sm leading-6 text-gray-700 transition hover:border-brand-pink/30 hover:shadow-sm"
+                key={item}
+              >
                 <TriangleAlert className="mt-0.5 h-5 w-5 shrink-0 text-brand-pink" />
                 {item}
               </li>
@@ -235,7 +243,7 @@ export function ProcedureLocation({ unidade }: { unidade: Unidade }) {
   const linhasHorario = resumoHorarios(unidade.horarios)
 
   return (
-    <section id="localizacao" className="bg-white py-20 sm:py-28">
+    <section id="localizacao" className="animate-on-scroll bg-white py-20 sm:py-28">
       <div className="container">
         <div className="overflow-hidden rounded-3xl bg-[#0b0f1a] lg:grid lg:grid-cols-2">
           <div className="px-6 py-10 sm:px-10 sm:py-12">
@@ -274,7 +282,7 @@ export function ProcedureLocation({ unidade }: { unidade: Unidade }) {
             </div>
 
             <a
-              className="mt-7 inline-flex items-center justify-center rounded-full border border-white/30 px-6 py-3 text-sm font-semibold text-white transition hover:border-white hover:bg-white/10"
+              className="mt-7 inline-flex items-center justify-center rounded-full border border-white/30 px-6 py-3 text-sm font-semibold text-white shadow-lg shadow-black/10 transition hover:-translate-y-0.5 hover:border-white hover:bg-white/10"
               href={`https://www.google.com/maps/search/?api=1&query=${enderecoQuery}`}
               target="_blank"
               rel="noreferrer"
@@ -302,29 +310,31 @@ export function ProcedureHowItWorks({ procedimento }: { procedimento: Procedimen
   if (!passos.length) return null
 
   return (
-    <section id="como-funciona" className="bg-gray-50 py-20 sm:py-28">
+    <section id="como-funciona" className="animate-on-scroll bg-gray-50 py-20 sm:py-28">
       <div className="container">
         <div className="text-center">
           <h2 className="text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl">Como funciona</h2>
           <span className="mx-auto mt-3 block h-1 w-16 rounded-full bg-brand-pink" aria-hidden />
         </div>
 
-        <ol className="relative mt-14 grid gap-10 sm:grid-cols-2 lg:grid-cols-4">
-          {passos.length > 1 && (
-            <div className="absolute left-0 right-0 top-6 hidden border-t border-dashed border-gray-300 lg:block" aria-hidden />
-          )}
+        <ol className="mt-14 grid gap-6 sm:grid-cols-2 lg:grid-cols-4 lg:gap-8">
           {passos.map((descricao, index) => {
             const Icon = stepIcon(index)
             return (
-              <li className="relative flex flex-col items-center text-center" key={descricao}>
+              <li
+                className="relative flex flex-col items-center gap-4 rounded-2xl border border-gray-100 bg-white p-6 text-center shadow-sm transition hover:-translate-y-1 hover:shadow-md"
+                key={descricao}
+              >
                 <span className="relative z-10 flex h-12 w-12 items-center justify-center rounded-full bg-brand-pink text-sm font-bold text-white">
                   {String(index + 1).padStart(2, "0")}
                 </span>
-                <span className="mt-4 flex h-14 w-14 items-center justify-center rounded-full bg-white text-brand-pink shadow-sm">
+                <span className="flex h-14 w-14 items-center justify-center rounded-full bg-brand-pink/10 text-brand-pink">
                   <Icon className="h-6 w-6" />
                 </span>
-                <h3 className="mt-4 font-semibold text-gray-900">{stepTitle(index)}</h3>
-                <p className="mt-2 text-sm leading-6 text-gray-600">{descricao}</p>
+                <div>
+                  <h3 className="font-semibold text-gray-900">{stepTitle(index)}</h3>
+                  <p className="mt-2 text-sm leading-6 text-gray-600">{descricao}</p>
+                </div>
               </li>
             )
           })}
@@ -338,7 +348,7 @@ export function ProcedureFaq({ faqs }: { faqs: Faq[] }) {
   if (!faqs.length) return null
 
   return (
-    <section id="duvidas" className="bg-white py-20 sm:py-28">
+    <section id="duvidas" className="animate-on-scroll bg-white py-20 sm:py-28">
       <div className="container max-w-5xl">
         <div className="text-center">
           <h2 className="text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl">Dúvidas frequentes</h2>
@@ -373,7 +383,7 @@ export function ProcedureFinalCTA({ procedimento, unidade }: { procedimento: Pro
     : "Agende sua avaliação em uma unidade Damaface e descubra o melhor plano de tratamento para você."
 
   return (
-    <section className="bg-white pb-20 sm:pb-28">
+    <section className="animate-on-scroll bg-white pb-20 sm:pb-28">
       <div className="container">
         <div className="grid overflow-hidden rounded-3xl bg-[#0b0f1a] sm:grid-cols-2 sm:items-center">
           <div className="relative h-56 sm:h-full sm:min-h-[320px]">
@@ -383,7 +393,7 @@ export function ProcedureFinalCTA({ procedimento, unidade }: { procedimento: Pro
             <h2 className="text-3xl font-bold text-white sm:text-4xl">Pronta para cuidar de você?</h2>
             <p className="mt-4 max-w-md text-gray-300">{texto}</p>
             <a
-              className="mt-7 inline-flex items-center gap-2 rounded-full bg-brand-pink px-7 py-3 font-semibold text-white shadow-lg shadow-brand-pink/25 transition hover:bg-brand-pink/90"
+              className="mt-7 inline-flex items-center gap-2 rounded-full bg-brand-pink px-7 py-3 font-semibold text-white shadow-lg shadow-brand-pink/25 transition hover:-translate-y-0.5 hover:bg-brand-pink/90 hover:shadow-xl"
               href={ctaHref}
               target="_blank"
               rel="noreferrer"
@@ -398,5 +408,28 @@ export function ProcedureFinalCTA({ procedimento, unidade }: { procedimento: Pro
         </div>
       </div>
     </section>
+  )
+}
+
+export function ProcedureMobileCTA({ procedimento, unidade }: { procedimento: Procedimento; unidade: Unidade }) {
+  return (
+    <div className="fixed inset-x-0 bottom-0 z-40 flex gap-3 border-t border-gray-200 bg-white/95 p-3 pb-[calc(0.75rem+env(safe-area-inset-bottom))] shadow-[0_-4px_16px_rgba(0,0,0,0.06)] backdrop-blur sm:hidden">
+      <a
+        className="flex flex-1 items-center justify-center gap-2 rounded-full border border-gray-200 px-4 py-3 text-sm font-semibold text-gray-800 transition hover:border-brand-pink hover:text-brand-pink"
+        href={`tel:+${unidade.whatsapp}`}
+      >
+        <Phone className="h-4 w-4" />
+        Ligar
+      </a>
+      <a
+        className="flex flex-1 items-center justify-center gap-2 rounded-full bg-brand-pink px-4 py-3 text-sm font-semibold text-white shadow-lg shadow-brand-pink/25 transition hover:bg-brand-pink/90"
+        href={whatsappUrl(unidade.whatsapp, `Olá! Quero agendar uma avaliação para ${procedimento.nome}.`)}
+        target="_blank"
+        rel="noreferrer"
+      >
+        <MessageCircle className="h-4 w-4" />
+        WhatsApp
+      </a>
+    </div>
   )
 }
