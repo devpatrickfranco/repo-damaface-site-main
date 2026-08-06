@@ -1,4 +1,5 @@
 import Image from "next/image"
+import Link from "next/link"
 import {
   Award,
   CalendarCheck,
@@ -6,18 +7,26 @@ import {
   ClipboardCheck,
   Clock,
   Droplet,
+  Frown,
+  MapPin,
   MessageCircle,
+  Phone,
+  RefreshCw,
   Repeat2,
+  Shield,
   ShieldCheck,
   Sparkles,
   Stethoscope,
   Syringe,
   Target,
+  TrendingDown,
   TrendingUp,
+  TriangleAlert,
 } from "lucide-react"
-import type { Faq, Procedimento } from "@/types/local-seo"
+import type { Faq, Procedimento, Unidade } from "@/types/local-seo"
 import { Breadcrumb } from "./Breadcrumb"
-import { IMAGEM_CTA_POR_SLUG, IMAGEM_OVERVIEW_POR_SLUG, IMAGEM_POR_SLUG } from "./ClinicSections"
+import { IMAGEM_CTA_POR_SLUG, IMAGEM_OVERVIEW_POR_SLUG, IMAGEM_POR_SLUG, whatsappUrl } from "./ClinicSections"
+import { formatTelefone, resumoHorarios } from "./UnidadeSections"
 
 const imagemHero = (procedimento: Procedimento) => IMAGEM_POR_SLUG[procedimento.slug] ?? procedimento.imagem
 const imagemOverview = (procedimento: Procedimento) => IMAGEM_OVERVIEW_POR_SLUG[procedimento.slug] ?? imagemHero(procedimento)
@@ -39,7 +48,13 @@ const HERO_DESTAQUES = [
   { icon: Award, texto: "Feito por especialistas em harmonização" },
 ]
 
-export function ProcedureHero({ procedimento }: { procedimento: Procedimento }) {
+export function ProcedureHero({ procedimento, unidade }: { procedimento: Procedimento; unidade?: Unidade }) {
+  const titulo = unidade ? `${procedimento.nome} em ${unidade.cidade}` : procedimento.nome
+  const rotulo = unidade ? `Damaface ${unidade.cidade}` : "Procedimento Damaface"
+  const breadcrumbItems = unidade
+    ? [{ label: "Início", href: "/" }, { label: unidade.cidade, href: `/${unidade.slug}` }, { label: procedimento.nome }]
+    : [{ label: "Início", href: "/" }, { label: "Procedimentos" }, { label: procedimento.nome }]
+
   return (
     <section className="relative overflow-hidden bg-[#0b0f1a]">
       <div className="absolute inset-0">
@@ -49,23 +64,45 @@ export function ProcedureHero({ procedimento }: { procedimento: Procedimento }) 
       </div>
 
       <div className="container relative pb-14 pt-28 sm:pb-16 sm:pt-36">
-        <Breadcrumb items={[{ label: "Início", href: "/" }, { label: "Procedimentos" }, { label: procedimento.nome }]} />
+        <Breadcrumb items={breadcrumbItems} />
 
-        <p className="mb-4 text-sm font-semibold uppercase tracking-[0.18em] text-brand-pink">Procedimento Damaface</p>
-        <h1 className="max-w-2xl text-4xl font-bold leading-[1.1] tracking-tight text-white sm:text-6xl">{procedimento.nome}</h1>
+        <p className="mb-4 text-sm font-semibold uppercase tracking-[0.18em] text-brand-pink">{rotulo}</p>
+        <h1 className="max-w-2xl text-4xl font-bold leading-[1.1] tracking-tight text-white sm:text-6xl">{titulo}</h1>
         <p className="mt-6 max-w-xl text-lg leading-8 text-gray-300">{procedimento.resumo}</p>
 
         <div className="mt-8 flex flex-col gap-4 sm:flex-row sm:items-center">
-          <a
-            className="inline-flex items-center justify-center gap-2 rounded-full bg-brand-pink px-7 py-3 font-semibold text-white shadow-lg shadow-brand-pink/25 transition hover:-translate-y-0.5 hover:bg-brand-pink/90 hover:shadow-xl hover:shadow-brand-pink/30"
-            href="#localizacao"
-          >
-            Encontrar uma unidade
-          </a>
-          <a className="inline-flex items-center gap-1 text-sm font-semibold text-gray-200 underline-offset-4 hover:text-white hover:underline" href="#sobre">
-            Saiba mais sobre o procedimento
-            <ChevronDown className="h-4 w-4" />
-          </a>
+          {unidade ? (
+            <>
+              <a
+                className="inline-flex items-center justify-center gap-2 rounded-full bg-brand-pink px-7 py-3 font-semibold text-white shadow-lg shadow-brand-pink/25 transition hover:-translate-y-0.5 hover:bg-brand-pink/90 hover:shadow-xl hover:shadow-brand-pink/30"
+                href={whatsappUrl(unidade.whatsapp, `Olá! Quero agendar uma avaliação para ${procedimento.nome}.`)}
+                target="_blank"
+                rel="noreferrer"
+              >
+                <MessageCircle className="h-5 w-5" />
+                Agendar avaliação no WhatsApp
+              </a>
+              <Link
+                className="inline-flex items-center gap-1 text-sm font-semibold text-gray-200 underline-offset-4 hover:text-white hover:underline"
+                href={`/${unidade.slug}`}
+              >
+                Conheça a unidade
+              </Link>
+            </>
+          ) : (
+            <>
+              <a
+                className="inline-flex items-center justify-center gap-2 rounded-full bg-brand-pink px-7 py-3 font-semibold text-white shadow-lg shadow-brand-pink/25 transition hover:-translate-y-0.5 hover:bg-brand-pink/90 hover:shadow-xl hover:shadow-brand-pink/30"
+                href="#localizacao"
+              >
+                Encontrar uma unidade
+              </a>
+              <a className="inline-flex items-center gap-1 text-sm font-semibold text-gray-200 underline-offset-4 hover:text-white hover:underline" href="#sobre">
+                Saiba mais sobre o procedimento
+                <ChevronDown className="h-4 w-4" />
+              </a>
+            </>
+          )}
         </div>
 
         <div className="mt-10 flex flex-wrap items-center gap-x-6 gap-y-3 border-t border-gray-800/60 pt-8">
@@ -117,6 +154,137 @@ export function ProcedureOverview({ procedimento }: { procedimento: Procedimento
               })}
             </div>
           )}
+        </div>
+      </div>
+    </section>
+  )
+}
+
+const INDICATION_ICONS = [Frown, TrendingDown, Sparkles, RefreshCw, Shield]
+const indicationIcon = (index: number) => INDICATION_ICONS[index % INDICATION_ICONS.length]
+
+export function ProcedureIndications({ procedimento }: { procedimento: Procedimento }) {
+  const indicacoes = procedimento.indicacoes
+  if (!indicacoes.length) return null
+
+  return (
+    <section className="bg-white py-20 sm:py-28">
+      <div className="container">
+        <div className="text-center">
+          <h2 className="text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl">Indicado para você que:</h2>
+          <span className="mx-auto mt-3 block h-1 w-16 rounded-full bg-brand-pink" aria-hidden />
+        </div>
+
+        <div className="mt-14 grid grid-cols-2 gap-5 sm:grid-cols-3 lg:grid-cols-5">
+          {indicacoes.map((indicacao, index) => {
+            const Icon = indicationIcon(index)
+            return (
+              <div className="flex flex-col items-center gap-4 rounded-2xl border border-gray-100 p-6 text-center" key={indicacao}>
+                <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-brand-pink/10 text-brand-pink">
+                  <Icon className="h-6 w-6" />
+                </span>
+                <p className="text-sm font-medium leading-tight text-gray-800">{indicacao}</p>
+              </div>
+            )
+          })}
+        </div>
+      </div>
+    </section>
+  )
+}
+
+export function ProcedureSafety({ procedimento }: { procedimento: Procedimento }) {
+  const contraindicacoes = procedimento.contraindicacoes
+  if (!contraindicacoes.length) return null
+
+  return (
+    <section className="bg-gray-50 py-20 sm:py-28">
+      <div className="container grid gap-12 lg:grid-cols-[minmax(0,1fr)_1.4fr] lg:items-start">
+        <div>
+          <span className="flex h-14 w-14 items-center justify-center rounded-full bg-brand-pink/10 text-brand-pink">
+            <ShieldCheck className="h-7 w-7" />
+          </span>
+          <h2 className="mt-5 text-3xl font-bold tracking-tight text-gray-900">Segurança em primeiro lugar</h2>
+          <p className="mt-4 leading-7 text-gray-600">
+            O procedimento é seguro e bem tolerado, desde que realizado por profissionais especializados, como na Damaface. A indicação
+            depende de avaliação individual — informe sua equipe sobre histórico de saúde, medicamentos e condições atuais.
+          </p>
+        </div>
+
+        <div>
+          <h3 className="font-semibold text-gray-900">Contraindicações e cuidados</h3>
+          <ul className="mt-5 space-y-3">
+            {contraindicacoes.map((item) => (
+              <li className="flex items-start gap-3 rounded-xl border border-gray-200 bg-white p-4 text-sm leading-6 text-gray-700" key={item}>
+                <TriangleAlert className="mt-0.5 h-5 w-5 shrink-0 text-brand-pink" />
+                {item}
+              </li>
+            ))}
+          </ul>
+        </div>
+      </div>
+    </section>
+  )
+}
+
+export function ProcedureLocation({ unidade }: { unidade: Unidade }) {
+  const enderecoQuery = encodeURIComponent(`${unidade.endereco.rua}, ${unidade.endereco.numero}, ${unidade.cidade} ${unidade.estado}`)
+  const linhasHorario = resumoHorarios(unidade.horarios)
+
+  return (
+    <section id="localizacao" className="bg-white py-20 sm:py-28">
+      <div className="container">
+        <div className="overflow-hidden rounded-3xl bg-[#0b0f1a] lg:grid lg:grid-cols-2">
+          <div className="px-6 py-10 sm:px-10 sm:py-12">
+            <p className="text-sm font-semibold uppercase tracking-[0.18em] text-brand-pink">Localização</p>
+            <h2 className="mt-3 text-2xl font-bold text-white sm:text-3xl">Damaface {unidade.cidade}</h2>
+            <p className="mt-2 text-gray-300">Atenda-se na clínica referência em estética avançada.</p>
+
+            <div className="mt-6 space-y-3 text-sm text-gray-300">
+              <p className="flex items-start gap-3">
+                <MapPin className="mt-0.5 h-5 w-5 shrink-0 text-brand-pink" />
+                <span>
+                  {unidade.endereco.rua}, {unidade.endereco.numero}
+                  <br />
+                  {unidade.endereco.bairro} · {unidade.cidade}/{unidade.estado}
+                </span>
+              </p>
+              <p className="flex items-center gap-3">
+                <Phone className="h-5 w-5 shrink-0 text-brand-pink" />
+                {formatTelefone(unidade.whatsapp)}
+              </p>
+              {linhasHorario.length > 0 && (
+                <p className="flex items-start gap-3">
+                  <Clock className="mt-0.5 h-5 w-5 shrink-0 text-brand-pink" />
+                  <span>
+                    {linhasHorario.map((linha) => (
+                      <span className="block" key={linha}>
+                        {linha}
+                      </span>
+                    ))}
+                  </span>
+                </p>
+              )}
+            </div>
+
+            <a
+              className="mt-7 inline-flex items-center justify-center rounded-full border border-white/30 px-6 py-3 text-sm font-semibold text-white transition hover:border-white hover:bg-white/10"
+              href={`https://www.google.com/maps/search/?api=1&query=${enderecoQuery}`}
+              target="_blank"
+              rel="noreferrer"
+            >
+              Ver como chegar
+            </a>
+          </div>
+
+          <div className="min-h-[280px]">
+            <iframe
+              title={`Mapa Damaface ${unidade.cidade}`}
+              src={`https://www.google.com/maps?q=${enderecoQuery}&output=embed`}
+              className="h-full min-h-[280px] w-full"
+              loading="lazy"
+            />
+          </div>
         </div>
       </div>
     </section>
@@ -190,7 +358,14 @@ export function ProcedureFaq({ faqs }: { faqs: Faq[] }) {
   )
 }
 
-export function ProcedureFinalCTA({ procedimento }: { procedimento: Procedimento }) {
+export function ProcedureFinalCTA({ procedimento, unidade }: { procedimento: Procedimento; unidade?: Unidade }) {
+  const ctaHref = unidade
+    ? whatsappUrl(unidade.whatsapp, `Olá! Quero agendar uma avaliação para ${procedimento.nome}.`)
+    : AGENDAMENTO_URL
+  const texto = unidade
+    ? `Agende sua avaliação na Damaface ${unidade.cidade} e descubra o melhor plano de tratamento para você.`
+    : "Agende sua avaliação em uma unidade Damaface e descubra o melhor plano de tratamento para você."
+
   return (
     <section className="bg-white pb-20 sm:pb-28">
       <div className="container">
@@ -200,12 +375,10 @@ export function ProcedureFinalCTA({ procedimento }: { procedimento: Procedimento
           </div>
           <div className="px-6 py-12 sm:px-10 sm:py-16">
             <h2 className="text-3xl font-bold text-white sm:text-4xl">Pronta para cuidar de você?</h2>
-            <p className="mt-4 max-w-md text-gray-300">
-              Agende sua avaliação em uma unidade Damaface e descubra o melhor plano de tratamento para você.
-            </p>
+            <p className="mt-4 max-w-md text-gray-300">{texto}</p>
             <a
               className="mt-7 inline-flex items-center gap-2 rounded-full bg-brand-pink px-7 py-3 font-semibold text-white shadow-lg shadow-brand-pink/25 transition hover:bg-brand-pink/90"
-              href={AGENDAMENTO_URL}
+              href={ctaHref}
               target="_blank"
               rel="noreferrer"
             >
