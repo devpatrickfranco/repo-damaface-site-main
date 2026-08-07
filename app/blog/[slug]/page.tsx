@@ -1,6 +1,7 @@
 import { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { getAllPosts, getPostBySlug } from "@/lib/posts";
+import { getMediaUrl } from "@/lib/api-backend";
 import BlogClientPage from "./BlogClientPage";
 import DOMPurify from "isomorphic-dompurify";
 
@@ -54,7 +55,7 @@ export async function generateMetadata(
 
       images: [
         {
-          url: post.cover_image,
+          url: getMediaUrl(post.cover_image),
           width: 1200,
           height: 630,
           alt: post.title,
@@ -66,7 +67,7 @@ export async function generateMetadata(
       card: "summary_large_image",
       title: post.title,
       description: post.excerpt,
-      images: [post.cover_image],
+      images: [getMediaUrl(post.cover_image)],
     },
 
     robots: {
@@ -95,9 +96,7 @@ export default async function BlogPage(
   };
 
   const url = `https://www.damaface.com.br/blog/${encodeURIComponent(post.slug)}`;
-  const image = post.cover_image.startsWith("http")
-    ? post.cover_image
-    : new URL(post.cover_image, process.env.NEXT_PUBLIC_API_BACKEND_URL).toString();
+  const image = getMediaUrl(post.cover_image);
   const structuredData = [
     {
       "@context": "https://schema.org",
