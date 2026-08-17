@@ -6,6 +6,9 @@ import BlogClientPage from "./BlogClientPage";
 import DOMPurify from "isomorphic-dompurify";
 
 export const revalidate = 60;
+// Mantém true (padrão) de propósito: posts publicados depois do build também
+// precisam renderizar sob demanda, sem isso um slug novo cairia em 404 até redeploy.
+export const dynamicParams = true;
 
 // Geração de rotas estáticas
 export async function generateStaticParams() {
