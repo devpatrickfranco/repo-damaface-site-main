@@ -1,6 +1,8 @@
 'use client'
 
 import React, { useEffect } from 'react'
+import { useRouter } from 'next/navigation'
+import { useAuth } from '@/context/AuthContext'
 import { useWhatsAppStore } from '@/modules/whatsapp/store/useWhatsAppStore'
 import { ChatPanel } from '@/modules/whatsapp/components/chat/ChatPanel'
 import WhatsAppActivationStatus from './components/WhatsAppActivationStatus'
@@ -8,11 +10,32 @@ import { MessageSquare, Settings, AlertCircle, RefreshCw } from 'lucide-react'
 import Link from 'next/link'
 
 export default function WhatsAppDashboard() {
+  const { isAuthenticated, loading: authLoading } = useAuth()
+  const router = useRouter()
   const { status, fetchStatus, loading, isSyncing, error, connection } = useWhatsAppStore()
+
+  useEffect(() => {
+    if (!authLoading && !isAuthenticated) {
+      router.push('/franqueado')
+    }
+  }, [isAuthenticated, authLoading, router])
 
   useEffect(() => {
     fetchStatus()
   }, [fetchStatus])
+
+  if (authLoading) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-screen bg-gray-950 text-gray-400">
+        <RefreshCw className="w-8 h-8 animate-spin text-green-500 mb-4" />
+        <p className="text-sm font-medium">Verificando autenticação...</p>
+      </div>
+    )
+  }
+
+  if (!isAuthenticated) {
+    return null
+  }
 
   if (loading && !connection) {
     return (

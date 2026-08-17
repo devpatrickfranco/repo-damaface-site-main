@@ -2,6 +2,8 @@
 
 import type React from "react"
 import { useState, useEffect } from "react"
+import { useRouter } from "next/navigation"
+import { useAuth } from "@/context/AuthContext"
 
 import { Camera, Save, Loader2, X, Plus, Trash2, ImagePlus } from "lucide-react"
 import { apiBackend, getMediaUrl } from "@/lib/api-backend"
@@ -18,6 +20,15 @@ const FORMACAO_OPTIONS: { value: string; label: string }[] = [
 ]
 
 export default function SettingsPage() {
+  const { isAuthenticated, loading: authLoading } = useAuth()
+  const router = useRouter()
+
+  useEffect(() => {
+    if (!authLoading && !isAuthenticated) {
+      router.push("/franqueado")
+    }
+  }, [isAuthenticated, authLoading, router])
+
   const [activeTab, setActiveTab] = useState<"perfil" | "franquia">("perfil")
 
   // --- Estado da aba Franquia ---
@@ -384,7 +395,7 @@ export default function SettingsPage() {
     }
   }
 
-  if (fetching) {
+  if (authLoading || fetching) {
     return (
       <div className="bg-background">
         <main className="pt-16 lg:ml-64">
@@ -394,6 +405,10 @@ export default function SettingsPage() {
         </main>
       </div>
     )
+  }
+
+  if (!isAuthenticated) {
+    return null
   }
 
   return (

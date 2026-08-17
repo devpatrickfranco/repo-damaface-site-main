@@ -1,6 +1,8 @@
 "use client"
 
 import { useState, useEffect } from "react"
+import { useRouter } from "next/navigation"
+import { useAuth } from "@/context/AuthContext"
 import { ConsultantVideo } from "../components/consultant-video"
 import {
     SessionControls,
@@ -21,6 +23,15 @@ const JOIN_TIMEOUT = 120 // 2 minutes to enter the room
 const COOLDOWN_TIME = 7200 // 2 hours in seconds
 
 export default function ConsultantPage() {
+    const { isAuthenticated, loading: authLoading } = useAuth()
+    const router = useRouter()
+
+    useEffect(() => {
+        if (!authLoading && !isAuthenticated) {
+            router.push("/franqueado")
+        }
+    }, [isAuthenticated, authLoading, router])
+
     const [phase, setPhase] = useState<SessionPhase>("queue")
     const [timeRemaining, setTimeRemaining] = useState(TOTAL_SESSION_TIME)
     const [joinCountdown, setJoinCountdown] = useState(JOIN_TIMEOUT)
@@ -206,6 +217,21 @@ export default function ConsultantPage() {
     }
 
     const isSessionActive = phase === "active" || phase === "ending"
+
+    if (authLoading) {
+        return (
+            <div className="min-h-screen bg-gray-900 flex items-center justify-center">
+                <div className="text-white text-center">
+                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-pink-500 mx-auto mb-4"></div>
+                    <p>Verificando autenticação...</p>
+                </div>
+            </div>
+        )
+    }
+
+    if (!isAuthenticated) {
+        return null
+    }
 
     return (
         <div className="flex flex-col min-h-[calc(100vh-8rem)] gap-4">

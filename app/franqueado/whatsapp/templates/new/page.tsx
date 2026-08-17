@@ -1,7 +1,8 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { useAuth } from '@/context/AuthContext';
 import {
   ChevronLeft, Plus, Info, Loader2, Eye, EyeOff
 } from 'lucide-react';
@@ -34,7 +35,14 @@ interface FormErrors {
 
 export default function NewTemplatePage() {
   const router = useRouter();
+  const { isAuthenticated, loading: authLoading } = useAuth();
   const { createTemplate, isLoading } = useCreateTemplate();
+
+  useEffect(() => {
+    if (!authLoading && !isAuthenticated) {
+      router.push('/franqueado');
+    }
+  }, [isAuthenticated, authLoading, router]);
 
   const [name, setName] = useState('');
   const [language, setLanguage] = useState('pt_BR');
@@ -77,6 +85,21 @@ export default function NewTemplatePage() {
       toast.error(apiError);
     }
   };
+
+  if (authLoading) {
+    return (
+      <div className="min-h-screen bg-gray-950 flex items-center justify-center">
+        <div className="text-gray-400 text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-pink-500 mx-auto mb-4"></div>
+          <p>Verificando autenticação...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!isAuthenticated) {
+    return null;
+  }
 
   return (
     <div className="min-h-screen bg-gray-950 p-6 lg:p-8">

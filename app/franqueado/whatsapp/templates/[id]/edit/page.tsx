@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter, useParams } from 'next/navigation';
+import { useAuth } from '@/context/AuthContext';
 import {
   ChevronLeft, GitBranch, Loader2, Eye, EyeOff, AlertTriangle, Info
 } from 'lucide-react';
@@ -23,6 +24,13 @@ export default function EditTemplatePage() {
   const router = useRouter();
   const params = useParams();
   const id = params.id as string;
+  const { isAuthenticated, loading: authLoading } = useAuth();
+
+  useEffect(() => {
+    if (!authLoading && !isAuthenticated) {
+      router.push('/franqueado');
+    }
+  }, [isAuthenticated, authLoading, router]);
 
   const { template, isLoading: isLoadingTemplate } = useTemplate(id);
   const { updateTemplate, isLoading: isSaving } = useUpdateTemplate();
@@ -71,12 +79,16 @@ export default function EditTemplatePage() {
     }
   };
 
-  if (isLoadingTemplate) {
+  if (authLoading || isLoadingTemplate) {
     return (
       <div className="min-h-screen bg-gray-950 flex items-center justify-center">
         <Loader2 className="w-8 h-8 text-pink-500 animate-spin" />
       </div>
     );
+  }
+
+  if (!isAuthenticated) {
+    return null;
   }
 
   if (!template) {

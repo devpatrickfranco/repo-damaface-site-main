@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { useRouter } from 'next/navigation'
 import { useAuth } from '@/context/AuthContext'
 import { Card, CardContent } from '@/components/ui/card'
 import { AlertCircle, CheckCircle2, Loader2 } from 'lucide-react'
@@ -206,7 +207,8 @@ const TYPE_PILL: Record<QuestionType, { label: string; className: string }> = {
 // ─── Page ──────────────────────────────────────────────────────────────────
 
 export default function AutoAvaliacaoPage() {
-    const { user } = useAuth()
+    const { user, isAuthenticated, loading: authLoading } = useAuth()
+    const router = useRouter()
     const [answers, setAnswers] = useState<Record<number, number>>({})
     const [submitted, setSubmitted] = useState(false)
     const [submitting, setSubmitting] = useState(false)
@@ -223,6 +225,12 @@ export default function AutoAvaliacaoPage() {
 
     // TODO: Fetch real date from backend if available
     const nextAnalysisDate = '15/11/2026'
+
+    useEffect(() => {
+        if (!authLoading && !isAuthenticated) {
+            router.push('/franqueado')
+        }
+    }, [isAuthenticated, authLoading, router])
 
     useEffect(() => {
         const loadData = async () => {
@@ -276,7 +284,18 @@ export default function AutoAvaliacaoPage() {
         }
     }
 
-    if (!user) return null
+    if (authLoading) {
+        return (
+            <div className="min-h-screen bg-gray-900 flex items-center justify-center">
+                <div className="text-white text-center">
+                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-pink-500 mx-auto mb-4"></div>
+                    <p>Verificando autenticação...</p>
+                </div>
+            </div>
+        )
+    }
+
+    if (!isAuthenticated || !user) return null
 
     if (user.role === 'SUPERADMIN') return <AdminQuestions />
 

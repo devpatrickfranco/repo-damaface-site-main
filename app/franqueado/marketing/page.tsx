@@ -2,15 +2,22 @@
 
 import { useEffect } from 'react'
 import { useRouter } from 'next/navigation'
+import { useAuth } from '@/context/AuthContext'
 import { FolderOpen } from 'lucide-react'
 
 export default function MarketingPage() {
   const router = useRouter()
+  const { isAuthenticated, loading: authLoading } = useAuth()
 
   useEffect(() => {
+    if (authLoading) return
+    if (!isAuthenticated) {
+      router.push('/franqueado')
+      return
+    }
     // Redireciona automaticamente para o Drive
     router.push('/franqueado/marketing/drive')
-  }, [router])
+  }, [router, isAuthenticated, authLoading])
 
   return (
     <div className="min-h-screen bg-gray-900 flex items-center justify-center">

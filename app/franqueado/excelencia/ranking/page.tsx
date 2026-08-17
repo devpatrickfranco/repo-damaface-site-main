@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { useRouter } from 'next/navigation'
 import { useAuth } from '@/context/AuthContext'
 import { Card, CardContent } from '@/components/ui/card'
 import { Trophy, Medal, TrendingUp, AlertCircle, Loader2, CalendarClock } from 'lucide-react'
@@ -35,10 +36,17 @@ function getDaysUntilNextTrimester() {
 }
 
 export default function RankingPage() {
-    const { user } = useAuth()
+    const { user, isAuthenticated, loading: authLoading } = useAuth()
+    const router = useRouter()
     const [ranking, setRanking] = useState<RankingItem[]>([])
     const [loading, setLoading] = useState(true)
     const [daysFull, setDaysFull] = useState(0)
+
+    useEffect(() => {
+        if (!authLoading && !isAuthenticated) {
+            router.push('/franqueado')
+        }
+    }, [isAuthenticated, authLoading, router])
 
     useEffect(() => {
         setDaysFull(getDaysUntilNextTrimester())
@@ -60,7 +68,11 @@ export default function RankingPage() {
         }
     }, [user])
 
-    if (!user) return null
+    if (authLoading) {
+        return <div className="flex justify-center items-center h-64"><Loader2 className="animate-spin w-8 h-8 text-brand-pink" /></div>
+    }
+
+    if (!isAuthenticated || !user) return null
 
     if (loading) {
         return <div className="flex justify-center items-center h-64"><Loader2 className="animate-spin w-8 h-8 text-brand-pink" /></div>

@@ -10,6 +10,32 @@ export interface ResolvedLocation {
   city: string
   state: string
   stateCode: string
+  latitude: number
+  longitude: number
+}
+
+export interface Coordinates {
+  latitude: number
+  longitude: number
+}
+
+/** Distância em linha reta entre duas coordenadas, em metros (fórmula de Haversine). */
+export const calculateHaversineDistance = (source: Coordinates, destination: Coordinates): number => {
+  const R = 6371e3 // Raio da Terra em metros
+  const toRadians = (deg: number) => (deg * Math.PI) / 180
+
+  const phi1 = toRadians(source.latitude)
+  const phi2 = toRadians(destination.latitude)
+  const deltaPhi = toRadians(destination.latitude - source.latitude)
+  const deltaLambda = toRadians(destination.longitude - source.longitude)
+
+  const a =
+    Math.sin(deltaPhi / 2) * Math.sin(deltaPhi / 2) +
+    Math.cos(phi1) * Math.cos(phi2) * Math.sin(deltaLambda / 2) * Math.sin(deltaLambda / 2)
+
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a))
+
+  return R * c // Distância em metros
 }
 
 /** Normaliza nomes de cidade/estado para comparação: remove acentos, caixa e espaços extras. */
@@ -85,7 +111,7 @@ export async function reverseGeocode(latitude: number, longitude: number): Promi
   const state: string | undefined = address.state
   if (!city || !state) return null
 
-  return { city, state, stateCode: ufFromStateName(state) }
+  return { city, state, stateCode: ufFromStateName(state), latitude, longitude }
 }
 
 export function getGeolocationErrorState(error: GeolocationPositionError): LocationState {

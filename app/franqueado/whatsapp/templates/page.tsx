@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import {
   Plus, Search, RefreshCw, Eye, Pencil, Trash2,
@@ -32,8 +32,14 @@ const CATEGORY_LABELS: Record<string, string> = {
 
 export default function WhatsAppTemplatesPage() {
   const router = useRouter();
-  const { user } = useAuth();
+  const { user, isAuthenticated, loading: authLoading } = useAuth();
   const isAdmin = user?.role === 'SUPERADMIN' || user?.role === 'ADMIN';
+
+  useEffect(() => {
+    if (!authLoading && !isAuthenticated) {
+      router.push('/franqueado');
+    }
+  }, [isAuthenticated, authLoading, router]);
 
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState<TemplateStatus | 'ALL'>('ALL');
@@ -82,6 +88,18 @@ export default function WhatsAppTemplatesPage() {
       return dateStr;
     }
   };
+
+  if (authLoading) {
+    return (
+      <div className="min-h-screen bg-gray-950 flex items-center justify-center">
+        <Loader2 className="w-8 h-8 text-pink-500 animate-spin" />
+      </div>
+    );
+  }
+
+  if (!isAuthenticated) {
+    return null;
+  }
 
   return (
     <div className="min-h-screen bg-gray-950 p-6 lg:p-8 space-y-6">

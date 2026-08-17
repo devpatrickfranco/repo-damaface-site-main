@@ -1,6 +1,7 @@
 "use client"
 
 import { useEffect, useState, useCallback } from "react"
+import { useRouter } from "next/navigation"
 import { useAuth } from "@/context/AuthContext"
 import { apiBackend } from "@/lib/api-backend"
 import { useMetricas } from "@/hooks/useApi"
@@ -68,7 +69,14 @@ function getGreeting() {
 // ========= PAGE =========
 
 export default function Dashboard() {
-  const { user } = useAuth()
+  const { user, isAuthenticated, loading: authLoading } = useAuth()
+  const router = useRouter()
+
+  useEffect(() => {
+    if (!authLoading && !isAuthenticated) {
+      router.push("/franqueado")
+    }
+  }, [isAuthenticated, authLoading, router])
 
   // Estados para dados da API
   const [chamadosAbertos, setChamadosAbertos] = useState(0)
@@ -134,12 +142,16 @@ export default function Dashboard() {
 
 
 
-  if (loading || !user) {
+  if (authLoading || loading || !user) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
         <Loader2 className="w-12 h-12 text-brand-pink animate-spin" />
       </div>
     )
+  }
+
+  if (!isAuthenticated) {
+    return null
   }
 
   return (

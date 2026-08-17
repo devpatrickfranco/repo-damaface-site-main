@@ -1,12 +1,36 @@
 'use client'
 
+import { useEffect } from 'react'
+import { useRouter } from 'next/navigation'
 import { useAuth } from '@/context/AuthContext'
 import { SUBMISSIONS } from '../mocks'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { BarChart3, CheckCircle2, Clock, FileText } from 'lucide-react'
 
 export default function AuditoriaPage() {
-    const { user } = useAuth()
+    const { user, isAuthenticated, loading: authLoading } = useAuth()
+    const router = useRouter()
+
+    useEffect(() => {
+        if (!authLoading && !isAuthenticated) {
+            router.push('/franqueado')
+        }
+    }, [isAuthenticated, authLoading, router])
+
+    if (authLoading) {
+        return (
+            <div className="min-h-screen bg-gray-900 flex items-center justify-center">
+                <div className="text-white text-center">
+                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-pink-500 mx-auto mb-4"></div>
+                    <p>Verificando autenticação...</p>
+                </div>
+            </div>
+        )
+    }
+
+    if (!isAuthenticated) {
+        return null
+    }
 
     // Restrict access (though Sidebar handles this navigation-wise, robust auth check is good)
     if (!user || (user.role !== 'SUPERADMIN' && user.role !== 'ADMIN')) {

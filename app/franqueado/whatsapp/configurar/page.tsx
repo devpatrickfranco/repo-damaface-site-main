@@ -1,6 +1,7 @@
 'use client'
 
 import React, { useEffect } from 'react'
+import { useRouter } from 'next/navigation'
 import { useWhatsAppStore } from '@/modules/whatsapp/store/useWhatsAppStore'
 import { useAuth } from '@/context/AuthContext'
 import { ConnectionBanner } from '@/modules/whatsapp/components/ConnectionBanner'
@@ -30,12 +31,34 @@ export default function WhatsAppConfigPage() {
     resetError
   } = useWhatsAppStore()
 
-  const { user } = useAuth()
+  const { user, isAuthenticated, loading: authLoading } = useAuth()
   const isAdmin = user?.role === 'SUPERADMIN' || user?.role === 'ADMIN'
+  const router = useRouter()
+
+  useEffect(() => {
+    if (!authLoading && !isAuthenticated) {
+      router.push('/franqueado')
+    }
+  }, [isAuthenticated, authLoading, router])
 
   useEffect(() => {
     fetchStatus()
   }, [fetchStatus])
+
+  if (authLoading) {
+    return (
+      <div className="min-h-screen bg-gray-950 flex items-center justify-center">
+        <div className="text-gray-400 text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-pink-500 mx-auto mb-4"></div>
+          <p>Verificando autenticação...</p>
+        </div>
+      </div>
+    )
+  }
+
+  if (!isAuthenticated) {
+    return null
+  }
 
   return (
     <div className="min-h-screen bg-gray-950 p-6 lg:p-8 space-y-6 animate-in fade-in duration-500 text-gray-200">

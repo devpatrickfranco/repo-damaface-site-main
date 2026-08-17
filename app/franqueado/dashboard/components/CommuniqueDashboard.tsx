@@ -1,5 +1,6 @@
 "use client"
 
+import Link from "next/link"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Megaphone } from "lucide-react"
@@ -39,9 +40,12 @@ export default function CommuniqueDashboard({ comunicados }: CommuniqueDashboard
           <Megaphone className="w-5 h-5 text-brand-pink" />
           Comunicados
         </CardTitle>
-        <span className="text-sm text-brand-pink hover:text-brand-pink/80 transition-colors cursor-pointer">
+        <Link
+          href="/franqueado/comunicados"
+          className="text-sm text-brand-pink hover:text-brand-pink/80 transition-colors cursor-pointer"
+        >
           {"Ver mais \u2192"}
-        </span>
+        </Link>
       </CardHeader>
       <CardContent className="space-y-4">
         {comunicadosList.length === 0 ? (
@@ -50,9 +54,10 @@ export default function CommuniqueDashboard({ comunicados }: CommuniqueDashboard
           </div>
         ) : (
           comunicadosList.map((item) => (
-            <div
+            <Link
               key={item.id}
-              className="p-4 rounded-lg bg-secondary border border-border hover:border-brand-pink/50 transition-colors cursor-pointer"
+              href="/franqueado/comunicados"
+              className="block p-4 rounded-lg bg-secondary border border-border hover:border-brand-pink/50 transition-colors cursor-pointer"
             >
               <div className="flex items-start justify-between gap-4">
                 <div className="flex-1 space-y-2">
@@ -75,7 +80,7 @@ export default function CommuniqueDashboard({ comunicados }: CommuniqueDashboard
                   {formatarData(item.data_publicacao)}
                 </span>
               </div>
-            </div>
+            </Link>
           ))
         )}
       </CardContent>

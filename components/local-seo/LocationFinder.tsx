@@ -5,7 +5,14 @@ import Image from "next/image"
 import Link from "next/link"
 import { AlertCircle, CheckCircle2, ChevronDown, Loader2, MapPin, Navigation } from "lucide-react"
 import type { Unidade } from "@/types/local-seo"
-import { getGeolocationErrorState, normalizeLocationName, reverseGeocode, type LocationState, type ResolvedLocation } from "@/lib/geo"
+import {
+  calculateHaversineDistance,
+  getGeolocationErrorState,
+  normalizeLocationName,
+  reverseGeocode,
+  type LocationState,
+  type ResolvedLocation,
+} from "@/lib/geo"
 import { trackEvent } from "@/lib/analytics"
 import { whatsappUrl } from "./ClinicSections"
 import { formatTelefone } from "./UnidadeSections"
@@ -14,9 +21,32 @@ const AGENDAMENTO_URL = "https://typebot-typebot-viewer.i4khe5.easypanel.host/ag
 
 type Grupo = "cidade" | "estado" | "nenhuma" | "todas"
 
+/** Distância em metros até a unidade, ou null se a unidade não tem coordenadas cadastradas. */
+function distanciaAteUnidade(geo: ResolvedLocation, unidade: Unidade): number | null {
+  const { latitude, longitude } = unidade.endereco
+  if (typeof latitude !== "number" || typeof longitude !== "number") return null
+  return calculateHaversineDistance(geo, { latitude, longitude })
+}
+
 function prioritizarUnidades(unidades: Unidade[], geo: ResolvedLocation | null): { ordenadas: Unidade[]; grupo: Grupo } {
   if (!geo) return { ordenadas: unidades, grupo: "todas" }
 
+  const comDistancia = unidades
+    .map((unidade) => ({ unidade, distancia: distanciaAteUnidade(geo, unidade) }))
+    .filter((item): item is { unidade: Unidade; distancia: number } => item.distancia !== null)
+
+  if (comDistancia.length > 0) {
+    const semCoordenadas = unidades.filter((u) => distanciaAteUnidade(geo, u) === null)
+    const ordenadasPorDistancia = [...comDistancia].sort((a, b) => a.distancia - b.distancia).map((item) => item.unidade)
+
+    const maisProxima = ordenadasPorDistancia[0]
+    const mesmaCidade = normalizeLocationName(maisProxima.cidade) === normalizeLocationName(geo.city) && maisProxima.estado === geo.stateCode
+    const grupo: Grupo = mesmaCidade ? "cidade" : "estado"
+
+    return { ordenadas: [...ordenadasPorDistancia, ...semCoordenadas], grupo }
+  }
+
+  // Fallback para unidades sem lat/lng cadastrada: agrupa pela cidade/estado da geocodificação reversa.
   const cidadeAlvo = normalizeLocationName(geo.city)
   const mesmaCidade = unidades.filter((u) => normalizeLocationName(u.cidade) === cidadeAlvo && u.estado === geo.stateCode)
   if (mesmaCidade.length > 0) {
@@ -117,12 +147,15 @@ export function LocationFinder({ unidades, procedimentoSlug }: { unidades: Unida
   const { ordenadas, grupo } = useMemo(() => prioritizarUnidades(unidades, geo), [unidades, geo])
   const temRecomendada = state === "granted" && (grupo === "cidade" || grupo === "estado")
   const recomendada = temRecomendada ? ordenadas[0] : null
-  const outras = recomendada ? ordenadas.slice(1) : ordenadas
+  const outrasTodas = recomendada ? ordenadas.slice(1) : ordenadas
+
+  // Só usa o título "em {estado}" quando a lista abaixo de fato está restrita a esse estado;
+  // caso contrário mostra todas as unidades (ordenadas por distância) com um título genérico.
+  const outrasMesmoEstado = temRecomendada && geo ? outrasTodas.filter((u) => u.estado === geo.stateCode) : []
+  const outras = outrasMesmoEstado.length > 0 ? outrasMesmoEstado : outrasTodas
   const visiveis = showAll ? outras : outras.slice(0, 4)
 
-  const outrasHeading = temRecomendada
-    ? `Outras unidades em ${geo?.state ?? ""}`
-    : "Unidades Damaface"
+  const outrasHeading = outrasMesmoEstado.length > 0 ? `Outras unidades em ${geo?.state ?? ""}` : "Unidades Damaface"
 
   useEffect(() => {
     if (recomendada) trackEvent("unit_recommended_viewed", { unidade: recomendada.slug, grupo })

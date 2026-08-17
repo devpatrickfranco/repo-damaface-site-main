@@ -1,14 +1,34 @@
 'use client'
 
+import { useEffect } from 'react'
+import { useRouter } from 'next/navigation'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { ClipboardCheck, Trophy, ArrowRight } from 'lucide-react'
 import Link from 'next/link'
 import { useAuth } from '@/context/AuthContext'
 
 export default function ExcelenciaDashboardPage() {
-    const { user } = useAuth()
+    const { user, isAuthenticated, loading: authLoading } = useAuth()
+    const router = useRouter()
 
-    if (!user) return null
+    useEffect(() => {
+        if (!authLoading && !isAuthenticated) {
+            router.push('/franqueado')
+        }
+    }, [isAuthenticated, authLoading, router])
+
+    if (authLoading) {
+        return (
+            <div className="min-h-screen bg-gray-900 flex items-center justify-center">
+                <div className="text-white text-center">
+                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-pink-500 mx-auto mb-4"></div>
+                    <p>Verificando autenticação...</p>
+                </div>
+            </div>
+        )
+    }
+
+    if (!isAuthenticated || !user) return null
 
     return (
         <div className="space-y-8">

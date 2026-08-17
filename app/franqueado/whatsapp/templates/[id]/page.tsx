@@ -1,7 +1,8 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useRouter, useParams } from 'next/navigation';
+import { useAuth } from '@/context/AuthContext';
 import {
   ChevronLeft, Pencil, Trash2, GitBranch, Calendar, RefreshCw,
   Clock, Globe, Tag, Hash, Loader2, ExternalLink, AlertCircle,
@@ -44,6 +45,13 @@ export default function TemplateDetailPage() {
   const router = useRouter();
   const params = useParams();
   const id = params.id as string;
+  const { isAuthenticated, loading: authLoading } = useAuth();
+
+  useEffect(() => {
+    if (!authLoading && !isAuthenticated) {
+      router.push('/franqueado');
+    }
+  }, [isAuthenticated, authLoading, router]);
 
   const { template, isLoading, error } = useTemplate(id);
   const { history } = useTemplateHistory(id);
@@ -74,12 +82,16 @@ export default function TemplateDetailPage() {
     }
   };
 
-  if (isLoading) {
+  if (authLoading || isLoading) {
     return (
       <div className="min-h-screen bg-gray-950 flex items-center justify-center">
         <Loader2 className="w-8 h-8 text-pink-500 animate-spin" />
       </div>
     );
+  }
+
+  if (!isAuthenticated) {
+    return null;
   }
 
   if (error || !template) {
