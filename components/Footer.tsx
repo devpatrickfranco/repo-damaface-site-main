@@ -55,13 +55,6 @@ const Footer = ({ unidade }: FooterProps = {}) => {
     }
   };
 
-  // Função para envio com Enter
-  const handleKeyPress = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter') {
-      handleSubscribe();
-    }
-  };
-
   const quickLinks = [
     // Facial
     { name: 'Harmonização Facial', href: '/harmonizacao-facial' },
@@ -127,7 +120,7 @@ const Footer = ({ unidade }: FooterProps = {}) => {
             </p>
 
             {/* Contact Info */}
-            <div className="space-y-3 text-sm">
+            <address className="space-y-3 text-sm not-italic">
               <div className="flex items-center space-x-3 text-gray-400">
                 <Phone className="w-4 h-4 text-brand-pink" />
                 <span>{unidade ? formatTelefone(unidade.whatsapp) : '(19) 98217-7463'}</span>
@@ -160,31 +153,37 @@ const Footer = ({ unidade }: FooterProps = {}) => {
                   Falar no WhatsApp
                 </a>
               )}
-            </div>
+            </address>
 
             {/* Social Links */}
-            <div className="flex space-x-4 mt-6">
-              <a
-                href="https://instagram.com/damafacefranquias"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="p-2 bg-gray-800 rounded-lg text-gray-400 hover:text-brand-pink hover:bg-brand-pink/10 transition-colors"
-              >
-                <Instagram className="w-5 h-5" />
-              </a>
-              <a
-                href="https://facebook.com/profile.php?id=61555121465049"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="p-2 bg-gray-800 rounded-lg text-gray-400 hover:text-brand-pink hover:bg-brand-pink/10 transition-colors"
-              >
-                <Facebook className="w-5 h-5" />
-              </a>
-            </div>
+            <nav aria-label="Redes sociais">
+              <ul role="list" className="flex space-x-4 mt-6">
+                <li>
+                  <a
+                    href="https://instagram.com/damafacefranquias"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="p-2 bg-gray-800 rounded-lg text-gray-400 hover:text-brand-pink hover:bg-brand-pink/10 transition-colors"
+                  >
+                    <Instagram className="w-5 h-5" />
+                  </a>
+                </li>
+                <li>
+                  <a
+                    href="https://facebook.com/profile.php?id=61555121465049"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="p-2 bg-gray-800 rounded-lg text-gray-400 hover:text-brand-pink hover:bg-brand-pink/10 transition-colors"
+                  >
+                    <Facebook className="w-5 h-5" />
+                  </a>
+                </li>
+              </ul>
+            </nav>
           </div>
 
           {/* Quick Links */}
-          <div>
+          <nav aria-label="Procedimentos">
             <h3 className="text-white font-semibold mb-6">Procedimentos</h3>
             <ul className="space-y-3">
               {quickLinks.map((link) => (
@@ -198,10 +197,10 @@ const Footer = ({ unidade }: FooterProps = {}) => {
                 </li>
               ))}
             </ul>
-          </div>
+          </nav>
 
           {/* Services */}
-          <div>
+          <nav aria-label="Serviços">
             <h3 className="text-white font-semibold mb-6">Serviços</h3>
             <ul className="space-y-3">
               {services.map((service) => (
@@ -215,10 +214,10 @@ const Footer = ({ unidade }: FooterProps = {}) => {
                 </li>
               ))}
             </ul>
-          </div>
+          </nav>
 
           {/* Company */}
-          <div>
+          <nav aria-label="Empresa">
             <h3 className="text-white font-semibold mb-6">Empresa</h3>
             <ul className="space-y-3 mb-6">
               {company.map((item) => (
@@ -236,13 +235,22 @@ const Footer = ({ unidade }: FooterProps = {}) => {
             {/* Business Hours */}
             <div>
               <h4 className="text-white font-medium mb-3 text-sm">Horários</h4>
-              <div className="text-gray-400 text-xs space-y-1">
-                <p>Seg - Sex: 9h às 18h</p>
-                <p>Sábado: 9h às 14h</p>
-                <p className="text-brand-pink">Domingo: Fechado</p>
-              </div>
+              <dl className="text-gray-400 text-xs space-y-1">
+                <div>
+                  <dt className="inline">Seg - Sex: </dt>
+                  <dd className="inline">9h às 18h</dd>
+                </div>
+                <div>
+                  <dt className="inline">Sábado: </dt>
+                  <dd className="inline">9h às 14h</dd>
+                </div>
+                <div>
+                  <dt className="inline">Domingo: </dt>
+                  <dd className="inline text-brand-pink">Fechado</dd>
+                </div>
+              </dl>
             </div>
-          </div>
+          </nav>
         </div>
 
         {/* Newsletter */}
@@ -252,23 +260,22 @@ const Footer = ({ unidade }: FooterProps = {}) => {
             <p className="text-gray-400 text-sm mb-4">
               Dicas exclusivas de beleza e promoções especiais direto no seu e-mail
             </p>
-            <div className="flex gap-3">
+            <form className="flex gap-3" onSubmit={(e) => { e.preventDefault(); handleSubscribe(); }}>
               <input
-                 type="email"
+                type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                onKeyPress={handleKeyPress}
                 placeholder="Seu melhor e-mail"
                 disabled={isLoading}
                 className="flex-1 px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-500 text-sm focus:outline-none focus:border-brand-pink transition-colors"
               />
-              <button 
-                onClick={handleSubscribe} 
+              <button
+                type="submit"
                 disabled={isLoading}
                 className="bg-brand-pink hover:bg-brand-pink/90 text-white px-6 py-2 rounded-lg font-medium text-sm transition-colors">
                 {isLoading ? 'Cadastrando...' : 'Assinar Newsletter'}
               </button>
-            </div>
+            </form>
           </div>
         </div>
 
@@ -279,8 +286,9 @@ const Footer = ({ unidade }: FooterProps = {}) => {
               © 2025 Damaface Clínica de Estética. Todos os direitos reservados.
             </p>
             
-            <div className="flex flex-wrap gap-x-6 gap-y-2 mt-4 md:mt-0 items-center">
-              <Modal 
+            <ul role="list" className="flex flex-wrap gap-x-6 gap-y-2 mt-4 md:mt-0 items-center">
+              <li>
+              <Modal
                 title="Termos de Uso"
                 anchor="termsofservice"
                 content={`
@@ -325,8 +333,10 @@ const Footer = ({ unidade }: FooterProps = {}) => {
               Se tiver alguma dúvida ou preocupação sobre estes Termos de Uso, entre em contato conosco através do e-mail contato@damaface.com.br
               `}
               />
+              </li>
 
-              <Modal 
+              <li>
+              <Modal
                 title="Política de Privacidade"
                 anchor="privacypolicy"
                 content={`
@@ -371,7 +381,9 @@ const Footer = ({ unidade }: FooterProps = {}) => {
               Ao utilizar o site Damaface, você concorda com esta política de privacidade. Se tiver alguma dúvida ou preocupação sobre esta política, entre em contato conosco através do e-mail contato@damaface.com.br
               `}
               />
+              </li>
 
+              <li>
               <Modal
                 title="Exclusão de Dados"
                 anchor="datadeletion"
@@ -409,9 +421,10 @@ const Footer = ({ unidade }: FooterProps = {}) => {
               Se tiver dúvidas sobre o tratamento dos seus dados, entre em contato: contato@damaface.com.br
               `}
               />
+              </li>
 
-              <span>CNPJ: 31.336.419/0001-42</span>
-            </div>
+              <li><span>CNPJ: 31.336.419/0001-42</span></li>
+            </ul>
           </div>
         </div>
       </div>

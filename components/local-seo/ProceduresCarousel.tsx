@@ -47,32 +47,35 @@ export function ProceduresCarousel({ unidade, procedimentos }: { unidade: Unidad
         aria-label={`Procedimentos disponíveis na Damaface ${unidade.cidade}`}
         className="flex snap-x snap-mandatory gap-5 overflow-x-auto scroll-smooth pb-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
       >
-        {ordenados.map((procedimento) => {
-          const imagem = IMAGEM_POR_SLUG[procedimento.slug] ?? procedimento.imagem
-          return (
-            <Link
-              data-card
-              href={`/${unidade.slug}/${procedimento.slug}`}
-              key={procedimento.slug}
-              className="group w-[240px] shrink-0 snap-start overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-xl sm:w-[280px] lg:w-[300px]"
-            >
-              <div className="relative aspect-[4/5] overflow-hidden">
-                <Image
-                  src={imagem}
-                  alt={procedimento.nome}
-                  fill
-                  className="object-cover transition-transform duration-300 group-hover:scale-105"
-                  sizes="(max-width: 640px) 65vw, (max-width: 1024px) 40vw, 300px"
-                />
-              </div>
-              <div className="p-5">
-                <h3 className="font-semibold text-gray-900 group-hover:text-brand-pink">{procedimento.nome}</h3>
-                <p className="mt-2 line-clamp-2 text-sm text-gray-500">{procedimento.resumo}</p>
-                <span className="mt-3 inline-block text-sm font-medium text-brand-pink">Saiba mais →</span>
-              </div>
-            </Link>
-          )
-        })}
+        <ul role="list" className="contents">
+          {ordenados.map((procedimento) => {
+            const imagem = IMAGEM_POR_SLUG[procedimento.slug] ?? procedimento.imagem
+            return (
+              <li key={procedimento.slug} className="contents">
+                <Link
+                  data-card
+                  href={`/${unidade.slug}/${procedimento.slug}`}
+                  className="group w-[240px] shrink-0 snap-start overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-xl sm:w-[280px] lg:w-[300px]"
+                >
+                  <div className="relative aspect-[4/5] overflow-hidden">
+                    <Image
+                      src={imagem}
+                      alt={procedimento.nome}
+                      fill
+                      className="object-cover transition-transform duration-300 group-hover:scale-105"
+                      sizes="(max-width: 640px) 65vw, (max-width: 1024px) 40vw, 300px"
+                    />
+                  </div>
+                  <div className="p-5">
+                    <h3 className="font-semibold text-gray-900 group-hover:text-brand-pink">{procedimento.nome}</h3>
+                    <p className="mt-2 line-clamp-2 text-sm text-gray-500">{procedimento.resumo}</p>
+                    <span className="mt-3 inline-block text-sm font-medium text-brand-pink">Saiba mais →</span>
+                  </div>
+                </Link>
+              </li>
+            )
+          })}
+        </ul>
       </div>
 
       <button

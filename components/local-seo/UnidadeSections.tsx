@@ -104,7 +104,7 @@ export function UnidadeHero({ unidade }: { unidade: Unidade }) {
         </h1>
         <h2 className="mt-4 max-w-xl text-lg font-medium tracking-tight text-gray-300 sm:text-xl">
           Beleza, tecnologia e cuidado em tratamentos personalizados para você.        </h2>
-        <h3 className="mt-4 max-w-xl text-base font-normal leading-7 text-gray-400">{resumo}</h3>
+        <p className="mt-4 max-w-xl text-base font-normal leading-7 text-gray-400">{resumo}</p>
 
         <div className="mt-7 flex flex-wrap items-center gap-x-5 gap-y-2">
           {HERO_DESTAQUES.map(({ icon: Icon, texto }, index) => (
@@ -129,7 +129,7 @@ export function UnidadeHero({ unidade }: { unidade: Unidade }) {
       </div>
 
       <div className="relative border-t border-white/10 bg-black/40 backdrop-blur-sm">
-        <div className="container flex flex-wrap items-start gap-x-10 gap-y-4 py-6 text-sm text-gray-200">
+        <address className="container flex flex-wrap items-start gap-x-10 gap-y-4 py-6 text-sm text-gray-200 not-italic">
           <div className="flex items-start gap-3">
             <MapPin className="mt-0.5 h-5 w-5 shrink-0 text-brand-pink" />
             <span>
@@ -166,7 +166,7 @@ export function UnidadeHero({ unidade }: { unidade: Unidade }) {
             <MapPin className="h-5 w-5 shrink-0 text-brand-pink" />
             Ver no mapa
           </a>
-        </div>
+        </address>
       </div>
     </section>
   )
@@ -215,7 +215,7 @@ export function UnidadeAbout({ unidade }: { unidade: Unidade }) {
 
         {principal && (
           <div className="grid grid-cols-3 gap-3">
-            <div className="group relative col-span-3 aspect-[16/10] overflow-hidden rounded-2xl">
+            <figure className="group relative col-span-3 aspect-[16/10] overflow-hidden rounded-2xl">
               <Image
                 src={principal}
                 alt={`Damaface ${unidade.cidade} — ambiente da unidade`}
@@ -223,9 +223,9 @@ export function UnidadeAbout({ unidade }: { unidade: Unidade }) {
                 className="object-cover transition-transform duration-500 group-hover:scale-[1.03]"
                 sizes="(max-width: 1024px) 100vw, 50vw"
               />
-            </div>
+            </figure>
             {miniaturas.map((imagem, index) => (
-              <div className="group relative aspect-square overflow-hidden rounded-xl" key={imagem}>
+              <figure className="group relative aspect-square overflow-hidden rounded-xl" key={imagem}>
                 <Image
                   src={imagem}
                   alt={`Damaface ${unidade.cidade} — ambiente ${index + 2}`}
@@ -233,7 +233,7 @@ export function UnidadeAbout({ unidade }: { unidade: Unidade }) {
                   className="object-cover transition-transform duration-500 group-hover:scale-[1.05]"
                   sizes="(max-width: 1024px) 33vw, 17vw"
                 />
-              </div>
+              </figure>
             ))}
           </div>
         )}
@@ -253,17 +253,17 @@ export function UnidadeHighlights() {
   return (
     <section className="animate-on-scroll bg-white pb-20 sm:pb-28">
       <div className="container">
-        <div className="grid gap-8 rounded-3xl bg-brand-pink/5 px-6 py-10 sm:px-10 md:grid-cols-2 lg:grid-cols-4">
+        <ul role="list" className="grid gap-8 rounded-3xl bg-brand-pink/5 px-6 py-10 sm:px-10 md:grid-cols-2 lg:grid-cols-4">
           {DIFERENCIAIS.map(({ icon: Icon, titulo, texto }) => (
-            <div className="flex items-start gap-4" key={titulo}>
+            <li className="flex items-start gap-4" key={titulo}>
               <Icon className="h-7 w-7 shrink-0 text-brand-pink" />
               <div>
                 <h3 className="font-semibold text-gray-900">{titulo}</h3>
                 <p className="mt-1 text-sm text-gray-600">{texto}</p>
               </div>
-            </div>
+            </li>
           ))}
-        </div>
+        </ul>
       </div>
     </section>
   )
@@ -302,19 +302,21 @@ export function UnidadeReviews({ unidade }: { unidade: Unidade }) {
           </a>
         </div>
 
-        <div className="mt-10 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
+        <ul role="list" className="mt-10 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
           {unidade.avaliacoes.slice(0, 4).map((avaliacao) => (
-            <blockquote className="rounded-2xl border border-gray-100 bg-white p-6 shadow-sm" key={`${avaliacao.autor}-${avaliacao.data}`}>
-              <GoogleLogo />
-              <p className="mt-3 text-brand-pink" aria-label={`${avaliacao.nota} de 5 estrelas`}>
-                {"★".repeat(avaliacao.nota)}
-                {"☆".repeat(Math.max(0, 5 - avaliacao.nota))}
-              </p>
-              <p className="mt-3 text-sm leading-6 text-gray-600">“{avaliacao.texto}”</p>
-              <footer className="mt-4 text-sm font-medium text-gray-900">{avaliacao.autor}</footer>
-            </blockquote>
+            <li key={`${avaliacao.autor}-${avaliacao.data}`} className="contents">
+              <blockquote className="rounded-2xl border border-gray-100 bg-white p-6 shadow-sm">
+                <GoogleLogo />
+                <p className="mt-3 text-brand-pink" aria-label={`${avaliacao.nota} de 5 estrelas`}>
+                  {"★".repeat(avaliacao.nota)}
+                  {"☆".repeat(Math.max(0, 5 - avaliacao.nota))}
+                </p>
+                <p className="mt-3 text-sm leading-6 text-gray-600">“{avaliacao.texto}”</p>
+                <footer className="mt-4 text-sm font-medium text-gray-900">{avaliacao.autor}</footer>
+              </blockquote>
+            </li>
           ))}
-        </div>
+        </ul>
       </div>
     </section>
   )
@@ -341,29 +343,31 @@ export function UnidadeTeam({ unidade }: { unidade: Unidade }) {
           </p>
         </div>
 
-        <div className="grid grid-cols-2 gap-5 sm:grid-cols-4">
+        <ul role="list" className="grid grid-cols-2 gap-5 sm:grid-cols-4">
           {unidade.equipe.map((pessoa) => {
             const especialista = pessoa.profissao === "ESPECIALISTA"
             const formacao = pessoa.formacao ? FORMACAO_LABEL[pessoa.formacao] ?? pessoa.formacao : undefined
             const iniciais = pessoa.nome.trim().split(/\s+/).slice(0, 2).map((parte) => parte[0]).join("").toUpperCase()
             return (
-              <div className="text-center" key={pessoa.nome}>
-                <div className="relative mx-auto aspect-square w-full max-w-[9rem] overflow-hidden rounded-2xl bg-gray-100">
-                  {pessoa.foto ? (
-                    <Image src={pessoa.foto} alt={pessoa.nome} fill className="object-cover" sizes="144px" />
-                  ) : (
-                    <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-brand-pink/20 to-gray-100 text-xl font-semibold text-brand-pink">
-                      {iniciais || "?"}
-                    </div>
-                  )}
-                </div>
-                <h3 className="mt-3 min-h-[2.5rem] font-semibold leading-tight text-gray-900 line-clamp-2">{pessoa.nome}</h3>
-                <p className="mt-1 text-sm text-brand-pink">{especialista ? formacao ?? "Especialista" : "Consultora Comercial"}</p>
-                {especialista && pessoa.registro && <p className="text-xs text-gray-500">{pessoa.registro}</p>}
-              </div>
+              <li key={pessoa.nome}>
+                <article className="text-center">
+                  <div className="relative mx-auto aspect-square w-full max-w-[9rem] overflow-hidden rounded-2xl bg-gray-100">
+                    {pessoa.foto ? (
+                      <Image src={pessoa.foto} alt={pessoa.nome} fill className="object-cover" sizes="144px" />
+                    ) : (
+                      <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-brand-pink/20 to-gray-100 text-xl font-semibold text-brand-pink">
+                        {iniciais || "?"}
+                      </div>
+                    )}
+                  </div>
+                  <h3 className="mt-3 min-h-[2.5rem] font-semibold leading-tight text-gray-900 line-clamp-2">{pessoa.nome}</h3>
+                  <p className="mt-1 text-sm text-brand-pink">{especialista ? formacao ?? "Especialista" : "Consultora Comercial"}</p>
+                  {especialista && pessoa.registro && <p className="text-xs text-gray-500">{pessoa.registro}</p>}
+                </article>
+              </li>
             )
           })}
-        </div>
+        </ul>
       </div>
     </section>
   )
@@ -419,31 +423,35 @@ export function UnidadeBlog({ posts }: { posts: PostSummary[] }) {
           </Link>
         </div>
 
-        <div className="mt-8 grid gap-6 sm:grid-cols-3">
+        <ul role="list" className="mt-8 grid gap-6 sm:grid-cols-3">
           {destaques.map((post) => (
-            <Link href={`/blog/${post.slug}`} key={post.id} className="group block overflow-hidden rounded-2xl border border-gray-100 bg-white transition hover:shadow-md">
-              <div className="relative aspect-[4/3] overflow-hidden">
-                <Image
-                  src={getMediaUrl(post.cover_image)}
-                  alt=""
-                  fill
-                  sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
-                  unoptimized
-                  className="object-cover transition-transform duration-300 group-hover:scale-105"
-                />
-                <span className="absolute left-3 top-3 rounded-full bg-white/90 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-gray-700">
-                  {post.categories[0]?.name || "Geral"}
-                </span>
-              </div>
-              <div className="py-4">
-                <p className="text-xs text-gray-500">
-                  {formatDate(post.published_at)} · {calculateReadTime(post.excerpt)} min de leitura
-                </p>
-                <h3 className="mt-2 font-semibold leading-snug text-gray-900 line-clamp-2 group-hover:text-brand-pink">{post.title}</h3>
-              </div>
-            </Link>
+            <li key={post.id} className="contents">
+              <article className="group block overflow-hidden rounded-2xl border border-gray-100 bg-white transition hover:shadow-md">
+                <Link href={`/blog/${post.slug}`} className="block">
+                  <div className="relative aspect-[4/3] overflow-hidden">
+                    <Image
+                      src={getMediaUrl(post.cover_image)}
+                      alt=""
+                      fill
+                      sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
+                      unoptimized
+                      className="object-cover transition-transform duration-300 group-hover:scale-105"
+                    />
+                    <span className="absolute left-3 top-3 rounded-full bg-white/90 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-gray-700">
+                      {post.categories[0]?.name || "Geral"}
+                    </span>
+                  </div>
+                  <div className="py-4">
+                    <p className="text-xs text-gray-500">
+                      {formatDate(post.published_at)} · {calculateReadTime(post.excerpt)} min de leitura
+                    </p>
+                    <h3 className="mt-2 font-semibold leading-snug text-gray-900 line-clamp-2 group-hover:text-brand-pink">{post.title}</h3>
+                  </div>
+                </Link>
+              </article>
+            </li>
           ))}
-        </div>
+        </ul>
       </div>
     </section>
   )
@@ -457,17 +465,19 @@ export function UnidadeFaq({ faqs, cidade }: { faqs: Faq[]; cidade: string }) {
       <div className="container max-w-3xl">
         <p className="text-sm font-semibold uppercase tracking-[0.18em] text-brand-pink">Dúvidas frequentes</p>
         <h2 className="mt-3 text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl">Perguntas frequentes em {cidade}</h2>
-        <div className="mt-8 space-y-3">
+        <ul role="list" className="mt-8 space-y-3">
           {faqs.map((faq) => (
-            <details className="group rounded-xl border border-gray-200 bg-gray-50 p-5 open:border-brand-pink/40 open:bg-white open:shadow-sm" key={faq.pergunta}>
-              <summary className="flex cursor-pointer list-none items-center justify-between gap-4 font-medium text-gray-900 marker:content-none">
-                {faq.pergunta}
-                <ChevronDown className="h-5 w-5 shrink-0 text-brand-pink transition-transform duration-300 group-open:rotate-180" />
-              </summary>
-              <p className="mt-3 leading-7 text-gray-600">{faq.resposta}</p>
-            </details>
+            <li key={faq.pergunta} className="contents">
+              <details className="group rounded-xl border border-gray-200 bg-gray-50 p-5 open:border-brand-pink/40 open:bg-white open:shadow-sm">
+                <summary className="flex cursor-pointer list-none items-center justify-between gap-4 font-medium text-gray-900 marker:content-none">
+                  {faq.pergunta}
+                  <ChevronDown className="h-5 w-5 shrink-0 text-brand-pink transition-transform duration-300 group-open:rotate-180" />
+                </summary>
+                <p className="mt-3 leading-7 text-gray-600">{faq.resposta}</p>
+              </details>
+            </li>
           ))}
-        </div>
+        </ul>
       </div>
     </section>
   )
@@ -496,7 +506,7 @@ export function UnidadeCTA({ unidade }: { unidade: Unidade }) {
             </a>
           </div>
 
-          <div className="space-y-2 border-t border-white/10 pt-6 text-sm text-gray-300 lg:border-l lg:border-t-0 lg:pl-8 lg:pt-0">
+          <address className="space-y-2 border-t border-white/10 pt-6 text-sm text-gray-300 not-italic lg:border-l lg:border-t-0 lg:pl-8 lg:pt-0">
             <p className="text-xs font-semibold uppercase tracking-[0.18em] text-brand-pink">Localização</p>
             <p className="font-semibold text-white">Damaface {unidade.cidade}</p>
             <p>
@@ -523,7 +533,7 @@ export function UnidadeCTA({ unidade }: { unidade: Unidade }) {
                 loading="lazy"
               />
             </a>
-          </div>
+          </address>
         </div>
       </div>
     </section>

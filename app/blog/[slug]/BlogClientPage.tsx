@@ -41,7 +41,7 @@ export default function BlogClientPage({ post }: Props) {
   return (
     <>
       <Header />
-      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-black relative">
+      <main className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-black relative">
         <div className="absolute inset-0">
           <div className="absolute top-20 left-10 w-72 h-72 bg-brand-pink/10 rounded-full blur-3xl animate-pulse"></div>
           <div className="absolute bottom-20 right-10 w-96 h-96 bg-purple-500/5 rounded-full blur-3xl animate-pulse"></div>
@@ -110,7 +110,7 @@ export default function BlogClientPage({ post }: Props) {
                 </button>
               </div>
 
-              <div className="relative w-full h-64 md:h-96 overflow-hidden rounded-xl mb-8">
+              <figure className="relative w-full h-64 md:h-96 overflow-hidden rounded-xl mb-8">
                 <Image
                   src={getMediaUrl(post.cover_image)}
                   alt={post.title}
@@ -119,7 +119,7 @@ export default function BlogClientPage({ post }: Props) {
                   priority
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/20 via-transparent to-transparent" />
-              </div>
+              </figure>
             </header>
 
             <div className="prose prose-invert prose-pink prose-lg max-w-none animate-on-scroll">
@@ -131,21 +131,21 @@ export default function BlogClientPage({ post }: Props) {
 
             <div className="mt-12 pt-8 border-t border-gray-700/50 animate-on-scroll">
               <h3 className="text-lg font-semibold text-white mb-4">Tags</h3>
-              <div className="flex flex-wrap gap-3">
+              <ul role="list" className="flex flex-wrap gap-3">
                 {post.tags.map((tag) => (
-                  <span
+                  <li
                     key={tag.slug}
                     className="inline-flex items-center space-x-1 text-sm text-gray-300 bg-gray-800/50 hover:bg-brand-pink/20 hover:text-brand-pink px-3 py-2 rounded-full transition-colors cursor-pointer"
                   >
                     <Tag className="w-3 h-3" />
                     <span>{tag.name}</span>
-                  </span>
+                  </li>
                 ))}
-              </div>
+              </ul>
             </div>
           </article>
         </div>
-      </div>
+      </main>
       <Contact />
       <Footer />
     </>

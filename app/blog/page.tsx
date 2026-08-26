@@ -43,7 +43,7 @@ const BlogPage = async () => {
   return (
     <>
       <Header />
-      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-black relative">
+      <main className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-black relative">
         <div className="absolute inset-0">
           <div className="absolute top-20 left-10 w-72 h-72 bg-brand-pink/10 rounded-full blur-3xl animate-pulse"></div>
           <div className="absolute bottom-20 right-10 w-96 h-96 bg-purple-500/5 rounded-full blur-3xl animate-pulse"></div>
@@ -62,10 +62,10 @@ const BlogPage = async () => {
             </p>
           </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-8 mb-16">
+          <ul role="list" className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-8 mb-16">
               {posts.map((post, index) => (
+                <li key={post.id}>
                 <article
-                  key={post.id}
                   className="card-dark group cursor-pointer animate-on-scroll hover:scale-105 transition-all duration-300"
                   style={{ animationDelay: `${index * 0.1}s` }}
                 >
@@ -147,8 +147,9 @@ const BlogPage = async () => {
                     </div>
                   </div>
                 </article>
+                </li>
               ))}
-          </div>
+          </ul>
 
           <div className="text-center animate-on-scroll">
             <div className="card-dark max-w-2xl mx-auto">
@@ -162,7 +163,7 @@ const BlogPage = async () => {
             </div>
           </div>
         </div>
-      </div>
+      </main>
       <Footer />
     </>
   );

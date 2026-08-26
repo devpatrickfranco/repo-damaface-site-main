@@ -26,20 +26,19 @@ export default function NewsletterForm() {
   }
 
   return (
-    <div className="flex flex-col sm:flex-row gap-4 max-w-md mx-auto">
+    <form className="flex flex-col sm:flex-row gap-4 max-w-md mx-auto" onSubmit={(event) => { event.preventDefault(); subscribe(); }}>
       <input
         type="email"
         aria-label="Seu melhor e-mail"
         placeholder="Seu melhor e-mail"
         value={email}
         onChange={(event) => setEmail(event.target.value)}
-        onKeyDown={(event) => event.key === 'Enter' && subscribe()}
         disabled={isLoading}
         className="flex-1 px-4 py-3 bg-gray-800/50 border border-gray-700 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-brand-pink transition-colors"
       />
-      <button onClick={subscribe} disabled={isLoading} className="btn-primary whitespace-nowrap">
+      <button type="submit" disabled={isLoading} className="btn-primary whitespace-nowrap">
         {isLoading ? 'Cadastrando...' : 'Assinar Newsletter'}
       </button>
-    </div>
+    </form>
   )
 }

@@ -156,14 +156,15 @@ export default function FacialPage() {
             </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+          <ul role="list" className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             {facialProcedures.map((procedure, index) => (
-              <Link
-                key={procedure.id}
-                href={`/procedimentos/${procedure.id}`}
-                className="card-dark group cursor-pointer animate-on-scroll block"
-                style={{ animationDelay: `${index * 0.1}s` }}
-              >
+              <li key={procedure.id}>
+                <Link
+                  href={`/procedimentos/${procedure.id}`}
+                  className="card-dark group cursor-pointer animate-on-scroll block"
+                  style={{ animationDelay: `${index * 0.1}s` }}
+                >
+                  <article>
                 <div className="relative overflow-hidden rounded-lg mb-4">
                   <Image
                     src={procedure.image || "/placeholder.svg"}
@@ -207,9 +208,11 @@ export default function FacialPage() {
                     </span>
                   </div>
                 </div>
-              </Link>
+                  </article>
+                </Link>
+              </li>
             ))}
-          </div>
+          </ul>
         </div>
       </section>
 

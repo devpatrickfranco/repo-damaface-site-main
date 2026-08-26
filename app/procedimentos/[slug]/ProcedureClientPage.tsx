@@ -215,14 +215,14 @@ export default function ProcedureClientPage({ procedure }: ProcedureClientPagePr
               <span className="text-white">Benefícios</span> <span className="text-brand-pink">Esperados</span>
             </h2>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            <ul role="list" className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
               {procedure.benefits.map((benefit: string, index: number) => (
-                <div key={index} className="card-dark text-center">
+                <li key={index} className="card-dark text-center">
                   <CheckCircle className="w-8 h-8 text-brand-pink mx-auto mb-4" />
                   <p className="text-white font-medium">{benefit}</p>
-                </div>
+                </li>
               ))}
-            </div>
+            </ul>
           </div>
         </div>
       </section>
@@ -281,7 +281,7 @@ export default function ProcedureClientPage({ procedure }: ProcedureClientPagePr
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {procedure.beforeAfterImages.map((img: { src: string; alt?: string }, idx: number) => (
-                <div key={idx} className="card-dark">
+                <figure key={idx} className="card-dark">
                   <div className="relative mb-4">
                     <Image
                       src={img.src}
@@ -290,11 +290,11 @@ export default function ProcedureClientPage({ procedure }: ProcedureClientPagePr
                       height={300}
                       className="rounded-lg w-full"
                     />
-                    <div className="absolute top-2 left-2 bg-black/70 text-white px-2 py-1 rounded text-sm">
+                    <figcaption className="absolute top-2 left-2 bg-black/70 text-white px-2 py-1 rounded text-sm">
                       Antes/Depois
-                    </div>
+                    </figcaption>
                   </div>
-                </div>
+                </figure>
               ))}
             </div>
           </div>
@@ -311,18 +311,18 @@ export default function ProcedureClientPage({ procedure }: ProcedureClientPagePr
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               {procedure.testimonials.map((testimonial: any, index: number) => (
-                <div key={index} className="card-dark">
+                <blockquote key={index} className="card-dark">
                   <div className="flex items-center mb-4">
                     {[...Array(testimonial.rating)].map((_, i) => (
                       <Star key={i} className="w-5 h-5 text-yellow-400 fill-current" />
                     ))}
                   </div>
-                  <p className="text-gray-300 mb-4 italic">"{testimonial.text}"</p>
-                  <div className="border-t border-gray-700 pt-4">
-                    <p className="text-white font-semibold">{testimonial.name}</p>
+                  <p className="text-gray-300 mb-4 italic">{testimonial.text}</p>
+                  <footer className="border-t border-gray-700 pt-4">
+                    <cite className="not-italic text-white font-semibold">{testimonial.name}</cite>
                     <p className="text-gray-400 text-sm">{testimonial.age} anos</p>
-                  </div>
-                </div>
+                  </footer>
+                </blockquote>
               ))}
             </div>
           </div>
@@ -337,7 +337,7 @@ export default function ProcedureClientPage({ procedure }: ProcedureClientPagePr
               <span className="text-white">Preços e</span> <span className="text-brand-pink">Pacotes</span>
             </h2>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+            <ul role="list" className="grid grid-cols-1 md:grid-cols-2 gap-8">
               {pricingPackages.map((pkg: {
                 title: string;
                 price: string;
@@ -345,31 +345,33 @@ export default function ProcedureClientPage({ procedure }: ProcedureClientPagePr
                 features: string[];
                 popular?: boolean;
               }, idx: number) => (
-                <div
+                <li
                   key={idx}
                   className={`card-dark${pkg.popular ? ' border-2 border-brand-pink relative' : ''}`}
                 >
-                  {pkg.popular && (
-                    <div className="absolute -top-3 left-1/2 transform -translate-x-1/2 bg-brand-pink text-white px-4 py-1 rounded-full text-sm font-semibold">
-                      Mais Popular
-                    </div>
-                  )}
-                  <h3 className="text-2xl font-bold text-brand-pink mb-4">{pkg.title}</h3>
-                  <div className="text-4xl font-bold text-white mb-2">{pkg.price}</div>
-                  {pkg.oldPrice && (
-                    <div className="text-gray-400 line-through mb-4">{pkg.oldPrice}</div>
-                  )}
-                  <ul className="space-y-2 text-gray-300 mb-6">
-                    {pkg.features.map((feature, fidx) => (
-                      <li key={fidx}>• {feature}</li>
-                    ))}
-                  </ul>
-                  <button onClick={handleWhatsAppClick} className="w-full btn-primary">
-                    Agendar Avaliação
-                  </button>
-                </div>
+                  <article>
+                    {pkg.popular && (
+                      <div className="absolute -top-3 left-1/2 transform -translate-x-1/2 bg-brand-pink text-white px-4 py-1 rounded-full text-sm font-semibold">
+                        Mais Popular
+                      </div>
+                    )}
+                    <h3 className="text-2xl font-bold text-brand-pink mb-4">{pkg.title}</h3>
+                    <div className="text-4xl font-bold text-white mb-2">{pkg.price}</div>
+                    {pkg.oldPrice && (
+                      <div className="text-gray-400 line-through mb-4">{pkg.oldPrice}</div>
+                    )}
+                    <ul className="space-y-2 text-gray-300 mb-6">
+                      {pkg.features.map((feature, fidx) => (
+                        <li key={fidx}>• {feature}</li>
+                      ))}
+                    </ul>
+                    <button onClick={handleWhatsAppClick} className="w-full btn-primary">
+                      Agendar Avaliação
+                    </button>
+                  </article>
+                </li>
               ))}
-            </div>
+            </ul>
 
             <div className="mt-8 text-center">
               <p className="text-gray-400 mb-4">Parcelamos em até 12x sem juros no cartão de crédito</p>

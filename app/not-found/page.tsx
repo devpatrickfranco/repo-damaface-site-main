@@ -5,7 +5,7 @@ import Link from 'next/link';
 
 const NotFound = () => {
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-black flex items-center justify-center relative overflow-hidden">
+    <main className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-black flex items-center justify-center relative overflow-hidden">
       {/* Background Effects */}
       <div className="absolute inset-0">
         <div className="absolute top-20 left-10 w-72 h-72 bg-brand-pink/10 rounded-full blur-3xl animate-pulse"></div>
@@ -18,13 +18,13 @@ const NotFound = () => {
           
           {/* Animated 404 */}
           <div className="mb-8 animate-on-scroll">
-            <div className="relative inline-block">
-              <h1 className="text-4xl md:text-6xl lg:text-7xl font-black text-transparent bg-clip-text bg-gradient-to-r from-brand-pink via-purple-400 to-brand-pink animate-pulse">
+            <div className="relative inline-block" aria-hidden="true">
+              <p className="text-4xl md:text-6xl lg:text-7xl font-black text-transparent bg-clip-text bg-gradient-to-r from-brand-pink via-purple-400 to-brand-pink animate-pulse">
                 Em desenvolvimento
-              </h1>
-              <div className="absolute inset-0 text-4xl md:text-6xl lg:text-7xl font-black text-brand-pink/20 blur-sm">
+              </p>
+              <span className="absolute inset-0 text-4xl md:text-6xl lg:text-7xl font-black text-brand-pink/20 blur-sm">
                 Em desenvolvimento
-              </div>
+              </span>
             </div>
           </div>
 
@@ -37,10 +37,10 @@ const NotFound = () => {
 
           {/* Main Content */}
           <div className="mb-12 animate-on-scroll space-y-6">
-            <h2 className="text-3xl md:text-5xl font-bold mb-4">
+            <h1 className="text-3xl md:text-5xl font-bold mb-4">
               <span className="text-gradient">Página</span>{' '}
               <span className="text-brand-pink">Não Encontrada</span>
-            </h2>
+            </h1>
             
             <p className="text-lg text-gray-300 max-w-2xl mx-auto leading-relaxed">
               Ops! A página que você está procurando não foi encontrada. 
@@ -78,22 +78,25 @@ const NotFound = () => {
             <h3 className="text-xl font-semibold text-white mb-6">
               Páginas Populares
             </h3>
-            <div className="flex flex-wrap justify-center gap-4">
+            <nav aria-label="Páginas Populares">
+            <ul role="list" className="flex flex-wrap justify-center gap-4">
               {[
                 { name: 'Tratamentos Faciais', href: '/facial' },
                 { name: 'Botox', href: '/procedimentos/toxina-botulinica' },
                 { name: 'Harmonização', href: '/procedimentos/harmonizacao-facial' },
               ].map((link, index) => (
-                <Link 
-                  key={index}
+                <li key={index}>
+                <Link
                   href={link.href}
                   className="px-4 py-2 bg-gray-800/50 hover:bg-brand-pink/20 border border-gray-700 hover:border-brand-pink/40 rounded-full text-gray-300 hover:text-white transition-all duration-300 text-sm"
                   style={{ animationDelay: `${index * 0.1}s` }}
                 >
                   {link.name}
                 </Link>
+                </li>
               ))}
-            </div>
+            </ul>
+            </nav>
           </div>
 
           {/* CTA Button */}
@@ -104,7 +107,7 @@ const NotFound = () => {
           </div>
         </div>
       </div>
-    </div>
+    </main>
   );
 };
 

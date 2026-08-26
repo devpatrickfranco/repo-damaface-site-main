@@ -48,15 +48,15 @@ const Categories = () => {
           </p>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <ul role="list" className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {categories.map((category, index) => (
-            <div
+            <li
               key={category.title}
               className="group cursor-pointer animate-on-scroll"
               style={{ animationDelay: `${index * 0.2}s` }}
             >
               <Link href={category.href}>
-                <div className="relative overflow-hidden rounded-2xl bg-gray-900/50 border border-gray-800 transition-all duration-500 hover:border-brand-pink/50 hover:shadow-2xl hover:shadow-brand-pink/10 hover:-translate-y-2">
+                <article className="relative overflow-hidden rounded-2xl bg-gray-900/50 border border-gray-800 transition-all duration-500 hover:border-brand-pink/50 hover:shadow-2xl hover:shadow-brand-pink/10 hover:-translate-y-2">
                   {/* Background Image */}
                   <div className="relative h-64 overflow-hidden">
                     <div
@@ -83,16 +83,16 @@ const Categories = () => {
                     </p>
 
                     {/* Treatment List */}
-                    <div className="grid grid-cols-2 gap-2 mb-6">
+                    <ul role="list" className="grid grid-cols-2 gap-2 mb-6">
                       {category.treatments.map((treatment) => (
-                        <div
+                        <li
                           key={treatment}
                           className="text-sm text-gray-400 bg-gray-800/50 rounded-lg px-3 py-2 border border-gray-700"
                         >
                           {treatment}
-                        </div>
+                        </li>
                       ))}
-                    </div>
+                    </ul>
 
                     {/* CTA */}
                     <div className="flex items-center justify-between">
@@ -100,11 +100,11 @@ const Categories = () => {
                       <ArrowRight className="w-5 h-5 text-brand-pink group-hover:translate-x-2 transition-transform duration-300" />
                     </div>
                   </div>
-                </div>
+                </article>
               </Link>
-            </div>
+            </li>
           ))}
-        </div>
+        </ul>
       </div>
         <div className="flex justify-center gap-6 text-center mt-12 animate-on-scroll">
           <CtaButtonWhatsapp className='mt-12' />

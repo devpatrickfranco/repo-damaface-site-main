@@ -169,3 +169,8 @@
 .animate-scale {
   animation: modal-scale .2s ease-out;
 }
+
+/* Fundo escuro do <dialog> nativo (substitui o overlay customizado do Modal) */
+dialog::backdrop {
+  background-color: rgba(0, 0, 0, 0.7);
+}

@@ -64,16 +64,16 @@ const Franchise = () => {
             </div>
 
             {/* Stats */}
-            <div className="grid grid-cols-2 gap-6 mb-8">
+            <dl className="grid grid-cols-2 gap-6 mb-8">
               <div className="text-center p-4 bg-gray-800/30 rounded-xl border border-gray-700">
-                <div className="text-2xl font-bold text-brand-pink mb-1">50+</div>
-                <div className="text-sm text-gray-400">Franquias Ativas</div>
+                <dt className="text-2xl font-bold text-brand-pink mb-1">50+</dt>
+                <dd className="text-sm text-gray-400">Franquias Ativas</dd>
               </div>
               <div className="text-center p-4 bg-gray-800/30 rounded-xl border border-gray-700">
-                <div className="text-2xl font-bold text-brand-pink mb-1">12-24</div>
-                <div className="text-sm text-gray-400">Payback</div>
+                <dt className="text-2xl font-bold text-brand-pink mb-1">12-24</dt>
+                <dd className="text-sm text-gray-400">Payback</dd>
               </div>
-            </div>
+            </dl>
  
             <button
               onClick={handleFranchiseClick}
@@ -84,17 +84,17 @@ const Franchise = () => {
             </button>
 
             {/* Contact Info */}
-            <div className="text-sm text-gray-400">
+            <address className="text-sm text-gray-400 not-italic">
               <p>📞 Central de Franquias: (19) 99553-4809</p>
               <p>📧 franquia@damaface.com.br</p>
-            </div>
+            </address>
           </div>
 
           {/* Benefits */}
           <div className="animate-on-scroll">
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+            <ul role="list" className="grid grid-cols-1 sm:grid-cols-2 gap-6">
               {benefits.map((benefit, index) => (
-                <div
+                <li
                   key={benefit.title}
                   className="card-dark text-center group"
                   style={{ animationDelay: `${index * 0.1}s` }}
@@ -108,18 +108,27 @@ const Franchise = () => {
                   <p className="text-gray-400 text-sm leading-relaxed">
                     {benefit.description}
                   </p>
-                </div>
+                </li>
               ))}
-            </div>
+            </ul>
 
             {/* Investment Info */}
             <div className="mt-8 p-6 bg-gradient-to-r from-brand-pink/10 to-purple-500/10 rounded-xl border border-brand-pink/20">
               <h3 className="text-xl font-semibold text-white mb-3">Investimento</h3>
-              <div className="space-y-2 text-sm">
-                <p className="text-gray-300">Taxa de Franquia: <span className="text-brand-pink font-semibold">R$ 47.900</span></p>
-                <p className="text-gray-300">Implantação: <span className="text-brand-pink font-semibold">R$ 79.900</span></p>
-                <p className="text-gray-300">Investimento inicial: <span className="text-brand-pink font-semibold">a partir de R$ 127.000</span></p>
-              </div>
+              <dl className="space-y-2 text-sm">
+                <div className="text-gray-300">
+                  <dt className="inline">Taxa de Franquia: </dt>
+                  <dd className="inline text-brand-pink font-semibold">R$ 47.900</dd>
+                </div>
+                <div className="text-gray-300">
+                  <dt className="inline">Implantação: </dt>
+                  <dd className="inline text-brand-pink font-semibold">R$ 79.900</dd>
+                </div>
+                <div className="text-gray-300">
+                  <dt className="inline">Investimento inicial: </dt>
+                  <dd className="inline text-brand-pink font-semibold">a partir de R$ 127.000</dd>
+                </div>
+              </dl>
             </div>
           </div>
         </div>

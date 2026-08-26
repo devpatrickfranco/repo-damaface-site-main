@@ -68,16 +68,16 @@ const About = () => {
             </p>
 
             {/* Stats */}
-            <div className="grid grid-cols-2 gap-6">
+            <dl className="grid grid-cols-2 gap-6">
               <div className="text-center lg:text-left">
-                <div className="text-3xl font-bold text-brand-pink mb-2">1.2M</div>
-                <div className="text-gray-400 text-sm">Clientes Atendidos</div>
+                <dt className="text-3xl font-bold text-brand-pink mb-2">1.2M</dt>
+                <dd className="text-gray-400 text-sm">Clientes Atendidos</dd>
               </div>
               <div className="text-center lg:text-left">
-                <div className="text-3xl font-bold text-brand-pink mb-2">5+</div>
-                <div className="text-gray-400 text-sm">Anos no Mercado</div>
+                <dt className="text-3xl font-bold text-brand-pink mb-2">5+</dt>
+                <dd className="text-gray-400 text-sm">Anos no Mercado</dd>
               </div>
-            </div>
+            </dl>
           </div>
 
           <div className="animate-on-scroll">
@@ -105,13 +105,14 @@ const About = () => {
             </p>
           </div>
 
-          <div className="flex flex-wrap justify-center items-stretch gap-8">
+          <ul role="list" className="flex flex-wrap justify-center items-stretch gap-8">
             {team.map((member, index) => (
-              <div
+              <li
                 key={member.name}
                 className="card-dark flex flex-col text-center group animate-on-scroll justify-between items-center max-w-sm w-full p-8"
                 style={{ animationDelay: `${index * 0.1}s` }}
               >
+                <article>
                 <div className="relative w-36 h-36 mx-auto mb-6">
                   <div
                     className="w-full h-full rounded-full bg-cover bg-center border-4 border-brand-pink/50 group-hover:border-brand-pink transition-colors"
@@ -130,9 +131,10 @@ const About = () => {
                 <p className="text-gray-300 text-base leading-relaxed break-words whitespace-pre-line">
                   {member.description}
                 </p>
-              </div>
+                </article>
+              </li>
             ))}
-          </div>
+          </ul>
         </div>
 
         {/* Differentials */}
@@ -147,9 +149,9 @@ const About = () => {
             </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+          <ul role="list" className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
             {differentials.map((item, index) => (
-              <div
+              <li
                 key={item.title}
                 className="text-center animate-on-scroll group"
                 style={{ animationDelay: `${index * 0.1}s` }}
@@ -163,9 +165,9 @@ const About = () => {
                 <p className="text-gray-400 text-sm leading-relaxed">
                   {item.description}
                 </p>
-              </div>
+              </li>
             ))}
-          </div>
+          </ul>
         </div>
       </div>
       <div className="flex justify-center gap-6 text-center mt-12 animate-on-scroll">

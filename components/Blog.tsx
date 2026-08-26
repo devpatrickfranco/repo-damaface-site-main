@@ -50,13 +50,6 @@ const Blog = ({ posts: initialPosts }: BlogProps) => {
     }
   };
 
-  // Função para envio com Enter
-  const handleKeyPress = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter') {
-      handleSubscribe();
-    }
-  };
-
   const formatDate = (dateString: string | null) => {
     if (!dateString) return 'Data não disponível';
     return new Date(dateString).toLocaleDateString('pt-BR');
@@ -84,10 +77,10 @@ const Blog = ({ posts: initialPosts }: BlogProps) => {
           </p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-12">
+        <ul role="list" className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-12">
           {displayPosts.map((post, index) => (
+            <li key={post.id}>
             <article
-              key={post.id}
               className="card-dark group cursor-pointer animate-on-scroll"
               style={{ animationDelay: `${index * 0.1}s` }}
             >
@@ -122,7 +115,7 @@ const Blog = ({ posts: initialPosts }: BlogProps) => {
                   </p>
 
                   {/* Meta Info */}
-                  <div className="flex items-center justify-between text-xs text-gray-500 pt-4 border-t border-gray-800">
+                  <footer className="flex items-center justify-between text-xs text-gray-500 pt-4 border-t border-gray-800">
                     <div className="flex items-center space-x-4">
                       <div className="flex items-center space-x-1">
                         <Calendar className="w-3 h-3" />
@@ -133,7 +126,7 @@ const Blog = ({ posts: initialPosts }: BlogProps) => {
                         <span>{calculateReadTime(post.excerpt)} min</span>
                       </div>
                     </div>
-                  </div>
+                  </footer>
 
                   <div className="flex items-center justify-between pt-2">
                     <span className="text-gray-500 text-xs">{post.author?.name || 'Damaface'}</span>
@@ -142,8 +135,9 @@ const Blog = ({ posts: initialPosts }: BlogProps) => {
                 </div>
               </Link>
             </article>
+            </li>
           ))}
-        </div>
+        </ul>
 
         {/* Newsletter Subscription */}
         <div className="max-w-2xl mx-auto text-center animate-on-scroll">
@@ -155,24 +149,23 @@ const Blog = ({ posts: initialPosts }: BlogProps) => {
               Assine nossa newsletter e receba conteúdos exclusivos sobre estética e cuidados com a pele
             </p>
             
-            <div className="flex flex-col sm:flex-row gap-4">
+            <form className="flex flex-col sm:flex-row gap-4" onSubmit={(e) => { e.preventDefault(); handleSubscribe(); }}>
               <input
                 type="email"
                 onChange={(e) => setEmail(e.target.value)}
-                onKeyPress={handleKeyPress}
                 placeholder="Seu melhor e-mail"
                 disabled={isLoading}
                 className="flex-1 px-4 py-3 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-brand-pink transition-colors"
                 value={email}
               />
-              <button 
-                onClick={handleSubscribe} 
+              <button
+                type="submit"
                 disabled={isLoading}
                 className="btn-primary disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {isLoading ? 'Cadastrando...' : 'Assinar Newsletter'}
               </button>
-            </div>
+            </form>
           </div>
         </div>
 

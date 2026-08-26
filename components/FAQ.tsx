@@ -65,12 +65,12 @@ const FAQ = () => {
           </p>
         </div>
 
-        <div className="space-y-4">
+        <ul role="list" className="space-y-4">
           {faqs.map((faq, index) => {
             const isOpen = openItems.has(index);
-            
+
             return (
-              <div
+              <li
                 key={index}
                 className="card-dark animate-on-scroll"
                 style={{ animationDelay: `${index * 0.05}s` }}
@@ -102,10 +102,10 @@ const FAQ = () => {
                     </p>
                   </div>
                 </div>
-              </div>
+              </li>
             );
           })}
-        </div>
+        </ul>
 
         {/* CTA */}
         <div className="text-center mt-12 animate-on-scroll">

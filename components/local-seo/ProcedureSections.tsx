@@ -142,11 +142,11 @@ export function ProcedureOverview({ procedimento }: { procedimento: Procedimento
           <p className="mt-5 leading-7 text-gray-600">{procedimento.descricao}</p>
 
           {beneficios.length > 0 && (
-            <div className="mt-8 grid grid-cols-1 gap-4 sm:grid-cols-2">
+            <ul role="list" className="mt-8 grid grid-cols-1 gap-4 sm:grid-cols-2">
               {beneficios.map((beneficio, index) => {
                 const Icon = benefitIcon(index)
                 return (
-                  <div
+                  <li
                     className="flex items-start gap-3 rounded-xl border border-gray-100 p-4 transition hover:-translate-y-0.5 hover:border-brand-pink/30 hover:shadow-md"
                     key={beneficio}
                   >
@@ -154,10 +154,10 @@ export function ProcedureOverview({ procedimento }: { procedimento: Procedimento
                       <Icon className="h-5 w-5" />
                     </span>
                     <span className="pt-2 text-sm font-medium leading-tight text-gray-800">{beneficio}</span>
-                  </div>
+                  </li>
                 )
               })}
-            </div>
+            </ul>
           )}
         </div>
       </div>
@@ -180,11 +180,11 @@ export function ProcedureIndications({ procedimento }: { procedimento: Procedime
           <span className="mx-auto mt-3 block h-1 w-16 rounded-full bg-brand-pink" aria-hidden />
         </div>
 
-        <div className="mt-14 flex flex-wrap justify-center gap-5">
+        <ul role="list" className="mt-14 flex flex-wrap justify-center gap-5">
           {indicacoes.map((indicacao, index) => {
             const Icon = indicationIcon(index)
             return (
-              <div
+              <li
                 className="flex w-[calc(50%-0.625rem)] flex-col items-center gap-4 rounded-2xl border border-gray-100 p-6 text-center transition hover:-translate-y-1 hover:border-brand-pink/30 hover:shadow-md sm:w-[calc(33.333%-0.9rem)] lg:w-[calc(20%-1rem)]"
                 key={indicacao}
               >
@@ -192,10 +192,10 @@ export function ProcedureIndications({ procedimento }: { procedimento: Procedime
                   <Icon className="h-6 w-6" />
                 </span>
                 <p className="text-sm font-medium leading-tight text-gray-800">{indicacao}</p>
-              </div>
+              </li>
             )
           })}
-        </div>
+        </ul>
       </div>
     </section>
   )
@@ -254,7 +254,7 @@ export function ProcedureLocation({ unidade }: { unidade: Unidade }) {
             </h2>
             <p className="mt-2 text-gray-300">Atenda-se na clínica referência em estética avançada.</p>
 
-            <div className="mt-6 space-y-3 text-sm text-gray-300">
+            <address className="mt-6 space-y-3 text-sm text-gray-300 not-italic">
               <p className="flex items-start gap-3">
                 <MapPin className="mt-0.5 h-5 w-5 shrink-0 text-brand-pink" />
                 <span>
@@ -279,7 +279,7 @@ export function ProcedureLocation({ unidade }: { unidade: Unidade }) {
                   </span>
                 </p>
               )}
-            </div>
+            </address>
 
             <a
               className="mt-7 inline-flex items-center justify-center rounded-full border border-white/30 px-6 py-3 text-sm font-semibold text-white shadow-lg shadow-black/10 transition hover:-translate-y-0.5 hover:border-white hover:bg-white/10"

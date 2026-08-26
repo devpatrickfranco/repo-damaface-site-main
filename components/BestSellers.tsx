@@ -86,7 +86,7 @@ const BestSellers = () => {
           </p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+        <ul role="list" className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
           {treatments.map((treatment, index) => {
             // Gerar slug para o procedimento
             const slugMap = {
@@ -99,16 +99,16 @@ const BestSellers = () => {
             };
             const slug = (slugMap as Record<string, string>)[treatment.id] || treatment.id;
             return (
+              <li key={treatment.id}>
               <Link
-                key={treatment.id}
                 href={`/procedimentos/${slug}`}
                 className="card-dark group cursor-pointer animate-on-scroll block"
                 style={{ animationDelay: `${index * 0.1}s` }}
               >
                 {treatment.popular && (
-                  <div className="absolute -top-3 left-6 bg-brand-pink text-white text-sm font-semibold px-3 py-1 rounded-full">
+                  <span className="absolute -top-3 left-6 bg-brand-pink text-white text-sm font-semibold px-3 py-1 rounded-full">
                     Mais Popular
-                  </div>
+                  </span>
                 )}
 
                 {/* Imagem com Next/Image */}
@@ -148,9 +148,10 @@ const BestSellers = () => {
                   </div>
                 </div>
               </Link>
+              </li>
             );
           })}
-        </div>
+        </ul>
 
         <div className="flex gap-6 text-center mt-12 animate-on-scroll justify-center">
           <Link href="/facial" className="btn-primary">

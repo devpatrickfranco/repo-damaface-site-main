@@ -112,7 +112,7 @@ export function ClinicHours({ unidade }: { unidade: Unidade }) {
 }
 
 export function ClinicGallery({ unidade }: { unidade: Unidade }) {
-  return <section><h2 className="text-2xl font-semibold">Conheça a unidade</h2><div className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">{unidade.galeria.map((imagem, index) => <div className="relative aspect-square overflow-hidden rounded-xl" key={imagem}><Image src={imagem} alt={`Damaface ${unidade.cidade} — ambiente ${index + 1}`} fill className="object-cover" sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 20vw" /></div>)}</div></section>
+  return <section><h2 className="text-2xl font-semibold">Conheça a unidade</h2><ul role="list" className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">{unidade.galeria.map((imagem, index) => <li className="contents" key={imagem}><figure className="relative aspect-square overflow-hidden rounded-xl"><Image src={imagem} alt={`Damaface ${unidade.cidade} — ambiente ${index + 1}`} fill className="object-cover" sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 20vw" /></figure></li>)}</ul></section>
 }
 
 export function ClinicMap({ unidade }: { unidade: Unidade }) {
@@ -157,7 +157,7 @@ export function ordenarProcedimentos(procedimentos: Procedimento[]) {
 
 export function ProcedureList({ procedimentos, unidade }: { procedimentos: Procedimento[]; unidade: Unidade }) {
   const ordenados = ordenarProcedimentos(procedimentos)
-  return <section><h2 className="text-2xl font-semibold">Procedimentos em {unidade.cidade}</h2><div className="mt-6 grid gap-4 md:grid-cols-3">{ordenados.map((procedimento) => { const imagem = IMAGEM_POR_SLUG[procedimento.slug] ?? procedimento.imagem; return <Link href={`/${unidade.slug}/${procedimento.slug}`} className="card-dark group overflow-hidden p-0" key={procedimento.slug}><div className="relative aspect-[4/3] overflow-hidden"><Image src={imagem} alt={procedimento.nome} fill className="object-cover transition-transform duration-300 group-hover:scale-105" sizes="(max-width: 768px) 100vw, 33vw" /></div><div className="p-5"><h3 className="font-semibold group-hover:text-brand-pink">{procedimento.nome}</h3><p className="mt-3 text-sm text-gray-300">{procedimento.resumo}</p><span className="mt-4 inline-block text-sm text-brand-pink">Saiba mais →</span></div></Link> })}</div></section>
+  return <section><h2 className="text-2xl font-semibold">Procedimentos em {unidade.cidade}</h2><ul role="list" className="mt-6 grid gap-4 md:grid-cols-3">{ordenados.map((procedimento) => { const imagem = IMAGEM_POR_SLUG[procedimento.slug] ?? procedimento.imagem; return <li className="contents" key={procedimento.slug}><article className="card-dark group overflow-hidden p-0"><Link href={`/${unidade.slug}/${procedimento.slug}`} className="block"><div className="relative aspect-[4/3] overflow-hidden"><Image src={imagem} alt={procedimento.nome} fill className="object-cover transition-transform duration-300 group-hover:scale-105" sizes="(max-width: 768px) 100vw, 33vw" /></div><div className="p-5"><h3 className="font-semibold group-hover:text-brand-pink">{procedimento.nome}</h3><p className="mt-3 text-sm text-gray-300">{procedimento.resumo}</p><span className="mt-4 inline-block text-sm text-brand-pink">Saiba mais →</span></div></Link></article></li> })}</ul></section>
 }
 
 export function FaqSection({ faqs, cidade }: { faqs: { pergunta: string; resposta: string }[]; cidade?: string }) {

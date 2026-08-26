@@ -65,7 +65,7 @@ function prioritizarUnidades(unidades: Unidade[], geo: ResolvedLocation | null):
 
 function UnitCard({ unidade, procedimentoSlug, destaque = false }: { unidade: Unidade; procedimentoSlug: string; destaque?: boolean }) {
   return (
-    <div className={`overflow-hidden rounded-2xl border bg-white shadow-sm transition ${destaque ? "border-brand-pink/30 shadow-lg" : "border-gray-100"}`}>
+    <article className={`overflow-hidden rounded-2xl border bg-white shadow-sm transition ${destaque ? "border-brand-pink/30 shadow-lg" : "border-gray-100"}`}>
       <div className="relative aspect-[16/10] overflow-hidden bg-gray-100">
         <Image src={unidade.imagemHero} alt={unidade.nome} fill className="object-cover" sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw" />
       </div>
@@ -94,7 +94,7 @@ function UnitCard({ unidade, procedimentoSlug, destaque = false }: { unidade: Un
           </Link>
         </div>
       </div>
-    </div>
+    </article>
   )
 }
 
@@ -102,7 +102,7 @@ function RecommendedUnitCard({ unidade, procedimentoSlug, tier }: { unidade: Uni
   const ribbon = tier === "cidade" ? "Mais próxima de você" : "Disponível no seu estado"
 
   return (
-    <div className="relative overflow-hidden rounded-2xl border border-brand-pink/20 bg-white shadow-xl shadow-brand-pink/10 lg:flex">
+    <article className="relative overflow-hidden rounded-2xl border border-brand-pink/20 bg-white shadow-xl shadow-brand-pink/10 lg:flex">
       <span className="absolute left-4 top-4 z-10 rounded-full bg-brand-pink px-3 py-1 text-xs font-bold uppercase tracking-wide text-white">
         {ribbon}
       </span>
@@ -135,7 +135,7 @@ function RecommendedUnitCard({ unidade, procedimentoSlug, tier }: { unidade: Uni
           </Link>
         </div>
       </div>
-    </div>
+    </article>
   )
 }
 
@@ -218,11 +218,13 @@ export function LocationFinder({ unidades, procedimentoSlug }: { unidades: Unida
         {outras.length > 0 && (
           <div className="mt-16">
             <h3 className="text-xl font-bold text-gray-900">{outrasHeading}</h3>
-            <div className="mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+            <ul role="list" className="mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
               {visiveis.map((unidade) => (
-                <UnitCard key={unidade.slug} unidade={unidade} procedimentoSlug={procedimentoSlug} />
+                <li key={unidade.slug}>
+                  <UnitCard unidade={unidade} procedimentoSlug={procedimentoSlug} />
+                </li>
               ))}
-            </div>
+            </ul>
             {outras.length > 4 && (
               <div className="mt-8 text-center">
                 <button

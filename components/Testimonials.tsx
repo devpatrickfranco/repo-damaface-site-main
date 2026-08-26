@@ -113,9 +113,10 @@ const Testimonials = () => {
                 </div>
 
                 {/* Comment */}
-                <p className="text-gray-300 text-lg leading-relaxed mb-6 italic">
-                  "{testimonials[currentSlide].comment}"
-                </p>
+                <blockquote className="text-gray-300 text-lg leading-relaxed mb-6 italic">
+                  {testimonials[currentSlide].comment}
+                  <cite className="sr-only">{testimonials[currentSlide].name}</cite>
+                </blockquote>
               </div>
             </div>
 
@@ -129,16 +130,17 @@ const Testimonials = () => {
               </button>
 
               {/* Dots */}
-              <div className="flex space-x-2">
+              <ul role="list" className="flex space-x-2">
                 {testimonials.map((_, index) => (
-                  <button
-                    key={index}
-                    onClick={() => setCurrentSlide(index)}
-                    className={`w-3 h-3 rounded-full transition-colors ${index === currentSlide ? 'bg-brand-pink' : 'bg-gray-600'
-                      }`}
-                  />
+                  <li key={index}>
+                    <button
+                      onClick={() => setCurrentSlide(index)}
+                      className={`w-3 h-3 rounded-full transition-colors ${index === currentSlide ? 'bg-brand-pink' : 'bg-gray-600'
+                        }`}
+                    />
+                  </li>
                 ))}
-              </div>
+              </ul>
 
               <button
                 onClick={nextSlide}
@@ -151,24 +153,24 @@ const Testimonials = () => {
         </div>
 
         {/* Stats Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-12 animate-on-scroll">
+        <dl className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-12 animate-on-scroll">
           <div className="text-center p-6 bg-gray-900/30 rounded-xl border border-gray-800">
-            <div className="text-3xl font-bold text-brand-pink mb-2">98%</div>
-            <div className="text-gray-400 text-sm">Taxa de Satisfação</div>
+            <dt className="text-3xl font-bold text-brand-pink mb-2">98%</dt>
+            <dd className="text-gray-400 text-sm">Taxa de Satisfação</dd>
           </div>
           <div className="text-center p-6 bg-gray-900/30 rounded-xl border border-gray-800">
-            <div className="text-3xl font-bold text-brand-pink mb-2">1.2M</div>
-            <div className="text-gray-400 text-sm">Clientes Atendidos</div>
+            <dt className="text-3xl font-bold text-brand-pink mb-2">1.2M</dt>
+            <dd className="text-gray-400 text-sm">Clientes Atendidos</dd>
           </div>
           <div className="text-center p-6 bg-gray-900/30 rounded-xl border border-gray-800">
-            <div className="text-3xl font-bold text-brand-pink mb-2">4.9/5</div>
-            <div className="text-gray-400 text-sm">Avaliação Média</div>
+            <dt className="text-3xl font-bold text-brand-pink mb-2">4.9/5</dt>
+            <dd className="text-gray-400 text-sm">Avaliação Média</dd>
           </div>
           <div className="text-center p-6 bg-gray-900/30 rounded-xl border border-gray-800">
-            <div className="text-3xl font-bold text-brand-pink mb-2">90%</div>
-            <div className="text-gray-400 text-sm">Clientes Retornam</div>
+            <dt className="text-3xl font-bold text-brand-pink mb-2">90%</dt>
+            <dd className="text-gray-400 text-sm">Clientes Retornam</dd>
           </div>
-        </div>
+        </dl>
       </div>
       <div className="flex justify-center gap-6 text-center mt-12 animate-on-scroll">
         <CtaButtonWhatsapp className='mt-12' />

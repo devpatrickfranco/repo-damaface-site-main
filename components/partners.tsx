@@ -86,9 +86,9 @@ const Partners = () => {
         </div>
 
         {/* Certifications */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-16">
+        <ul role="list" className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-16">
           {certifications.map((cert, index) => (
-            <div
+            <li
               key={index}
               className="card-dark text-center animate-on-scroll"
               style={{ animationDelay: `${index * 0.1}s` }}
@@ -102,18 +102,19 @@ const Partners = () => {
               <p className="text-gray-400 text-sm">
                 {cert.description}
               </p>
-            </div>
+            </li>
           ))}
-        </div>
+        </ul>
 
         {/* Partners Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 mb-16">
+        <ul role="list" className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 mb-16">
           {partners.map((partner, index) => (
-            <div
+            <li
               key={partner.id}
               className="card-dark group cursor-pointer animate-on-scroll hover:scale-105 transition-all duration-300"
               style={{ animationDelay: `${index * 0.1}s` }}
             >
+              <article>
               {/* Logo */}
               <div className="relative w-full h-32 overflow-hidden rounded-lg mb-6 bg-white/5"> {/* Mantido w-full h-32 no pai para definir o espaço */}
                 <img
@@ -151,21 +152,22 @@ const Partners = () => {
                 {/* Products */}
                 <div>
                   <h4 className="text-sm font-medium text-white mb-2">Principais Produtos:</h4>
-                  <div className="flex flex-wrap gap-2">
+                  <ul role="list" className="flex flex-wrap gap-2">
                     {partner.products.map((product, idx) => (
-                      <span
+                      <li
                         key={idx}
                         className="text-xs bg-gray-800/50 text-gray-300 px-2 py-1 rounded-full"
                       >
                         {product}
-                      </span>
+                      </li>
                     ))}
-                  </div>
+                  </ul>
                 </div>
               </div>
-            </div>
+              </article>
+            </li>
           ))}
-        </div>
+        </ul>
 
         {/* Trust Section */}
         <div className="text-center animate-on-scroll">
@@ -183,24 +185,24 @@ const Partners = () => {
               e possuem registro na ANVISA. Nossa equipe é constantemente treinada e certificada pelas marcas parceiras,
               garantindo que você receba sempre o melhor tratamento com os mais altos padrões de segurança.
             </p>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
+            <dl className="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
               <div>
-                <div className="text-2xl font-bold text-brand-pink mb-1">100%</div>
-                <div className="text-xs text-gray-400">Produtos Originais</div>
+                <dt className="text-2xl font-bold text-brand-pink mb-1">100%</dt>
+                <dd className="text-xs text-gray-400">Produtos Originais</dd>
               </div>
               <div>
-                <div className="text-2xl font-bold text-brand-pink mb-1">6+</div>
-                <div className="text-xs text-gray-400">Marcas Parceiras</div>
+                <dt className="text-2xl font-bold text-brand-pink mb-1">6+</dt>
+                <dd className="text-xs text-gray-400">Marcas Parceiras</dd>
               </div>
               <div>
-                <div className="text-2xl font-bold text-brand-pink mb-1">50+</div>
-                <div className="text-xs text-gray-400">Produtos Disponíveis</div>
+                <dt className="text-2xl font-bold text-brand-pink mb-1">50+</dt>
+                <dd className="text-xs text-gray-400">Produtos Disponíveis</dd>
               </div>
               <div>
-                <div className="text-2xl font-bold text-brand-pink mb-1">5★</div>
-                <div className="text-xs text-gray-400">Avaliação Média</div>
+                <dt className="text-2xl font-bold text-brand-pink mb-1">5★</dt>
+                <dd className="text-xs text-gray-400">Avaliação Média</dd>
               </div>
-            </div>
+            </dl>
           </div>
         </div>
       </div>

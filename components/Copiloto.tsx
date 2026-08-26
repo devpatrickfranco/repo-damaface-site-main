@@ -102,9 +102,9 @@ const Copiloto = () => {
 
           {/* Right Features Grid */}
           <div className="animate-on-scroll">
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+            <ul role="list" className="grid grid-cols-1 sm:grid-cols-2 gap-6">
               {features.map((feature, index) => (
-                <div
+                <li
                   key={feature.title}
                   className="bg-gray-900/40 backdrop-blur-sm border border-gray-800 rounded-2xl p-6 transition-all duration-300 hover:border-emerald-500/50 hover:bg-gray-900/60 group"
                 >
@@ -117,12 +117,12 @@ const Copiloto = () => {
                   <p className="text-gray-400 text-sm leading-relaxed">
                     {feature.description}
                   </p>
-                </div>
+                </li>
               ))}
-            </div>
+            </ul>
 
             {/* Disclaimer B2B vs B2C */}
-            <div className="mt-8 p-6 bg-gradient-to-r from-emerald-500/10 to-transparent rounded-2xl border border-emerald-500/20">
+            <aside className="mt-8 p-6 bg-gradient-to-r from-emerald-500/10 to-transparent rounded-2xl border border-emerald-500/20">
               <div className="flex gap-4 items-center">
                 <div className="flex-shrink-0 w-10 h-10 bg-emerald-500/20 rounded-full flex items-center justify-center text-emerald-500 font-bold">
                   B2B
@@ -132,7 +132,7 @@ const Copiloto = () => {
                   <p className="text-gray-400 text-sm">O Copiloto foi desenhado para profissionais, focando em diagnóstico e planejamento técnico.</p>
                 </div>
               </div>
-            </div>
+            </aside>
           </div>
         </div>
       </div>

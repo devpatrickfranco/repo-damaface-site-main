@@ -119,10 +119,12 @@ const Contact = () => {
                     <Phone className="w-6 h-6" />
                   </div>
                   <h3 className="text-lg font-semibold text-white mb-2">Telefone</h3>
-                  <p className="text-brand-pink font-medium mb-1">
-                    {unidade.contatos.whatsapp.replace(/^(\d{2})(\d{2})(\d{5})(\d{4})$/, "($2) $3-$4")}
-                  </p>
-                  <p className="text-gray-400 text-sm">WhatsApp</p>
+                  <address className="not-italic">
+                    <p className="text-brand-pink font-medium mb-1">
+                      {unidade.contatos.whatsapp.replace(/^(\d{2})(\d{2})(\d{5})(\d{4})$/, "($2) $3-$4")}
+                    </p>
+                    <p className="text-gray-400 text-sm">WhatsApp</p>
+                  </address>
                 </div>
 
                 {/* Endereço */}
@@ -131,13 +133,15 @@ const Contact = () => {
                     <MapPin className="w-6 h-6" />
                   </div>
                   <h3 className="text-lg font-semibold text-white mb-2">Endereço</h3>
-                  <p className="text-brand-pink font-medium mb-1">
-                    {unidade.endereço.rua}, {unidade.endereço.numero}
-                    <br />
-                    {unidade.endereço.bairro}
-                    <br />
-                    {unidade.endereço.cidade}
-                  </p>
+                  <address className="not-italic">
+                    <p className="text-brand-pink font-medium mb-1">
+                      {unidade.endereço.rua}, {unidade.endereço.numero}
+                      <br />
+                      {unidade.endereço.bairro}
+                      <br />
+                      {unidade.endereço.cidade}
+                    </p>
+                  </address>
                 </div>
 
                 {/* Horário */}
@@ -184,7 +188,7 @@ const Contact = () => {
             </div>
 
             {/* WhatsApp CTA + Social */}
-            <div className="space-y-6">
+            <aside className="space-y-6">
               {/* WhatsApp */}
               <div className="card-dark text-center animate-on-scroll">
                 <div className="text-brand-pink mb-4 flex justify-center">
@@ -205,50 +209,56 @@ const Contact = () => {
                 <h3 className="text-lg font-semibold text-white mb-4 text-center">
                   Nos siga nas redes sociais
                 </h3>
-                <div className="space-y-3">
-                  <a
-                    href={`https://instagram.com/${unidade.contatos.instagram}`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    onClick={handleSocialClick}
-                    className="flex items-center justify-between p-3 bg-gray-800/50 rounded-lg hover:bg-brand-pink/10 hover:border-brand-pink/30 border border-gray-700 transition-all group"
-                  >
-                    <div className="flex items-center space-x-3">
-                      <div className="text-brand-pink group-hover:scale-110 transition-transform">
-                        <Instagram className="w-5 h-5" />
-                      </div>
-                      <div>
-                        <div className="text-white font-medium">Instagram</div>
-                        <div className="text-gray-400 text-sm">
-                          {unidade.contatos.followersInstagram} seguidores
+                <nav aria-label="Redes sociais">
+                  <ul role="list" className="space-y-3">
+                    <li>
+                      <a
+                        href={`https://instagram.com/${unidade.contatos.instagram}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        onClick={handleSocialClick}
+                        className="flex items-center justify-between p-3 bg-gray-800/50 rounded-lg hover:bg-brand-pink/10 hover:border-brand-pink/30 border border-gray-700 transition-all group"
+                      >
+                        <div className="flex items-center space-x-3">
+                          <div className="text-brand-pink group-hover:scale-110 transition-transform">
+                            <Instagram className="w-5 h-5" />
+                          </div>
+                          <div>
+                            <div className="text-white font-medium">Instagram</div>
+                            <div className="text-gray-400 text-sm">
+                              {unidade.contatos.followersInstagram} seguidores
+                            </div>
+                          </div>
                         </div>
-                      </div>
-                    </div>
-                    <div className="text-gray-400 group-hover:text-brand-pink transition-colors">→</div>
-                  </a>
-                  <a
-                    href={`https://facebook.com/${unidade.contatos.facebook.replace(/ /g, "")}`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    onClick={handleSocialClick}
-                    className="flex items-center justify-between p-3 bg-gray-800/50 rounded-lg hover:bg-brand-pink/10 hover:border-brand-pink/30 border border-gray-700 transition-all group"
-                  >
-                    <div className="flex items-center space-x-3">
-                      <div className="text-brand-pink group-hover:scale-110 transition-transform">
-                        <Facebook className="w-5 h-5" />
-                      </div>
-                      <div>
-                        <div className="text-white font-medium">Facebook</div>
-                        <div className="text-gray-400 text-sm">
-                          {unidade.contatos.followersFacebook} seguidores 
+                        <div className="text-gray-400 group-hover:text-brand-pink transition-colors">→</div>
+                      </a>
+                    </li>
+                    <li>
+                      <a
+                        href={`https://facebook.com/${unidade.contatos.facebook.replace(/ /g, "")}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        onClick={handleSocialClick}
+                        className="flex items-center justify-between p-3 bg-gray-800/50 rounded-lg hover:bg-brand-pink/10 hover:border-brand-pink/30 border border-gray-700 transition-all group"
+                      >
+                        <div className="flex items-center space-x-3">
+                          <div className="text-brand-pink group-hover:scale-110 transition-transform">
+                            <Facebook className="w-5 h-5" />
+                          </div>
+                          <div>
+                            <div className="text-white font-medium">Facebook</div>
+                            <div className="text-gray-400 text-sm">
+                              {unidade.contatos.followersFacebook} seguidores
+                            </div>
+                          </div>
                         </div>
-                      </div>
-                    </div>
-                    <div className="text-gray-400 group-hover:text-brand-pink transition-colors">→</div>
-                  </a>
-                </div>
+                        <div className="text-gray-400 group-hover:text-brand-pink transition-colors">→</div>
+                      </a>
+                    </li>
+                  </ul>
+                </nav>
               </div>
-            </div>
+            </aside>
           </div>
         ) : (
           /* Placeholder quando nenhuma unidade está selecionada */
