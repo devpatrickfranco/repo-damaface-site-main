@@ -5,6 +5,7 @@ import Image from 'next/image';
 
 import { Star, ArrowRight } from 'lucide-react';
 import { CtaButtonWhatsapp } from './CtaButtonWhatsapp'
+import { deveExibirPreco } from '@/lib/utils'
 
 const BestSellers = () => {
   const treatments = [
@@ -137,11 +138,13 @@ const BestSellers = () => {
                     {treatment.description}
                   </p>
 
-                  <div className="flex items-center justify-between pt-4">
-                    <span className="text-lg font-semibold text-brand-pink">
-                      {treatment.price}
-                    </span>
-                    <span className="flex items-center space-x-1 text-white/80 group-hover:text-brand-pink transition-colors">
+                  <div className="flex items-center pt-4">
+                    {deveExibirPreco(treatment.price) && (
+                      <span className="text-lg font-semibold text-brand-pink">
+                        {treatment.price}
+                      </span>
+                    )}
+                    <span className="ml-auto flex items-center space-x-1 text-white/80 group-hover:text-brand-pink transition-colors">
                       <span className="text-sm font-medium">Saiba mais</span>
                       <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
                     </span>

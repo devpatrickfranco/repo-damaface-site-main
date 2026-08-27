@@ -4,6 +4,7 @@ import Contact from "@/components/Contact"
 import { ArrowRight, Star, Clock, Users } from "lucide-react"
 import Link from "next/link"
 import Image from "next/image"
+import { deveExibirPreco } from "@/lib/utils"
 
 export default function NaoInvasivosPage() {
   const nonInvasiveProcedures = [
@@ -192,9 +193,11 @@ export default function NaoInvasivosPage() {
                     </div>
                   </div>
 
-                  <div className="flex items-center justify-between pt-4">
-                    <span className="text-lg font-semibold text-brand-pink">{procedure.price}</span>
-                    <span className="flex items-center space-x-1 text-white/80 group-hover:text-brand-pink transition-colors">
+                  <div className="flex items-center pt-4">
+                    {deveExibirPreco(procedure.price) && (
+                      <span className="text-lg font-semibold text-brand-pink">{procedure.price}</span>
+                    )}
+                    <span className="ml-auto flex items-center space-x-1 text-white/80 group-hover:text-brand-pink transition-colors">
                       <span className="text-sm font-medium">Saiba mais</span>
                       <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
                     </span>

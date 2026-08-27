@@ -21,6 +21,15 @@ export function cn(...inputs: ClassValue[]) {
 }
 
 /**
+ * Define se um texto de preço deve ser exibido publicamente.
+ * Apenas preços sem valor monetário ("Sob consulta" / "Preço sobre consulta") são exibidos;
+ * valores em reais ficam ocultos.
+ */
+export function deveExibirPreco(preco?: string | null): boolean {
+  return !!preco && /consulta/i.test(preco)
+}
+
+/**
  * Converte uma imagem para base64
  */
 async function imageToBase64(url: string): Promise<string> {

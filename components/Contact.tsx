@@ -194,7 +194,7 @@ const Contact = () => {
                 <div className="text-brand-pink mb-4 flex justify-center">
                   <MessageCircle className="w-12 h-12" />
                 </div>
-                <h3 className="text-xl font-bold text-white mb-4">Agende sua Avaliação Gratuita</h3>
+                <h3 className="text-xl font-bold text-white mb-4">Agende sua Avaliação</h3>
                 <p className="text-gray-300 mb-6 text-sm">
                   Converse com nossa equipe pelo WhatsApp e tire todas as suas dúvidas sobre nossos tratamentos.
                 </p>

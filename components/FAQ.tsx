@@ -22,7 +22,7 @@ const FAQ = () => {
     },
     {
       question: 'Como escolher o melhor tratamento para mim?',
-      answer: 'O ideal é agendar uma avaliação gratuita com nossa equipe. Durante a consulta, analisamos suas características individuais, objetivos e indicamos os procedimentos mais adequados para alcançar os resultados desejados.'
+      answer: 'O ideal é agendar uma avaliação com nossa equipe. Durante a consulta, analisamos suas características individuais, objetivos e indicamos os procedimentos mais adequados para alcançar os resultados desejados.'
     },
     {
       question: 'Os procedimentos são seguros?',
@@ -38,7 +38,7 @@ const FAQ = () => {
     },
     {
       question: 'Como funciona o agendamento?',
-      answer: 'O agendamento pode ser feito pelo WhatsApp, telefone ou presencialmente. Oferecemos avaliação gratuita para novos clientes e flexibilidade de horários, incluindo atendimentos aos sábados.'
+      answer: 'O agendamento pode ser feito pelo WhatsApp, telefone ou presencialmente. Oferecemos avaliação para novos clientes e flexibilidade de horários, incluindo atendimentos aos sábados.'
     }
   ];
 

@@ -5,6 +5,7 @@ import Header from "@/components/Header"
 import Footer from "@/components/Footer"
 import Contact from "@/components/Contact"
 import { ArrowRight, CheckCircle, Clock, Users, Star, Shield, Award, Heart } from "lucide-react"
+import { deveExibirPreco } from "@/lib/utils"
 
 interface ProcedureClientPageProps {
   procedure: any;
@@ -14,38 +15,6 @@ interface ProcedureClientPageProps {
 
 export default function ProcedureClientPage({ procedure }: ProcedureClientPageProps) {
 
-
-  const pricingPackages: Array<{
-    title: string;
-    price: string;
-    oldPrice?: string;
-    features: string[];
-    popular?: boolean;
-  }> = procedure.pricingPackages || [
-    {
-      title: "Sessão Avulsa",
-      price: "R$ 2.500,00",
-      features: [
-        "Avaliação completa",
-        "1 sessão de bioestimulador",
-        "Acompanhamento pós-procedimento",
-        "Orientações personalizadas"
-      ]
-    },
-    {
-      title: "Pacote Completo",
-      price: "R$ 5.997,00",
-      oldPrice: "R$ 7.500,00",
-      features: [
-        "3 sessões de bioestimulador",
-        "Avaliação e acompanhamento",
-        "Desconto de 20%",
-        "Garantia de resultados",
-        "Retornos inclusos"
-      ],
-      popular: true
-    }
-  ];
 
   const handleWhatsAppClick = () => {
     window.open(
@@ -115,11 +84,13 @@ export default function ProcedureClientPage({ procedure }: ProcedureClientPagePr
                 <div className="text-sm text-gray-400">Resultados</div>
                 <div className="text-white font-semibold">{procedure.results}</div>
               </div>
-              <div className="text-center lg:text-left">
-                <Heart className="w-6 h-6 text-brand-pink mb-2 mx-auto lg:mx-0" />
-                <div className="text-sm text-gray-400">Preço</div>
-                <div className="text-white font-semibold">{procedure.price}</div>
-              </div>
+              {deveExibirPreco(procedure.price) && (
+                <div className="text-center lg:text-left">
+                  <Heart className="w-6 h-6 text-brand-pink mb-2 mx-auto lg:mx-0" />
+                  <div className="text-sm text-gray-400">Preço</div>
+                  <div className="text-white font-semibold">{procedure.price}</div>
+                </div>
+              )}
             </div>
           </div>
         </div>
@@ -324,59 +295,6 @@ export default function ProcedureClientPage({ procedure }: ProcedureClientPagePr
                   </footer>
                 </blockquote>
               ))}
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Pricing */}
-      <section className="section-padding bg-gray-900/30">
-        <div className="container">
-          <div className="max-w-4xl mx-auto text-center">
-            <h2 className="text-3xl md:text-4xl font-bold mb-12">
-              <span className="text-white">Preços e</span> <span className="text-brand-pink">Pacotes</span>
-            </h2>
-
-            <ul role="list" className="grid grid-cols-1 md:grid-cols-2 gap-8">
-              {pricingPackages.map((pkg: {
-                title: string;
-                price: string;
-                oldPrice?: string;
-                features: string[];
-                popular?: boolean;
-              }, idx: number) => (
-                <li
-                  key={idx}
-                  className={`card-dark${pkg.popular ? ' border-2 border-brand-pink relative' : ''}`}
-                >
-                  <article>
-                    {pkg.popular && (
-                      <div className="absolute -top-3 left-1/2 transform -translate-x-1/2 bg-brand-pink text-white px-4 py-1 rounded-full text-sm font-semibold">
-                        Mais Popular
-                      </div>
-                    )}
-                    <h3 className="text-2xl font-bold text-brand-pink mb-4">{pkg.title}</h3>
-                    <div className="text-4xl font-bold text-white mb-2">{pkg.price}</div>
-                    {pkg.oldPrice && (
-                      <div className="text-gray-400 line-through mb-4">{pkg.oldPrice}</div>
-                    )}
-                    <ul className="space-y-2 text-gray-300 mb-6">
-                      {pkg.features.map((feature, fidx) => (
-                        <li key={fidx}>• {feature}</li>
-                      ))}
-                    </ul>
-                    <button onClick={handleWhatsAppClick} className="w-full btn-primary">
-                      Agendar Avaliação
-                    </button>
-                  </article>
-                </li>
-              ))}
-            </ul>
-
-            <div className="mt-8 text-center">
-              <p className="text-gray-400 mb-4">Parcelamos em até 12x sem juros no cartão de crédito</p>
-              <p className="text-gray-400 mb-4">Parcelamos em até 24x no boleto bancario</p>
-              <p className="text-gray-400">Aceitamos PIX, dinheiro e todos os cartões</p>
             </div>
           </div>
         </div>
