@@ -10,6 +10,7 @@ const About = () => {
       role: 'Owner',
       speciality: 'Administração e Gestão de Franquias',
       image: '/images/about/Fernanda-Valim.png',
+      imageAlt: 'Fernanda Valim, fundadora',
       description: 'Especialista em gestão de empresas e finanças com 15 anos de experiência'
     },
     {
@@ -17,6 +18,7 @@ const About = () => {
       role: 'CEO',
       speciality: 'Expansão e Desenvolvimento de Franquias',
       image: '/images/about/Wellison-Santos.png',
+      imageAlt: 'Wellison Santos, fundador',
       description: 'Especialista em expansão de negócios com foco em franquias, atuando há 10 anos no setor'
     },
 
@@ -87,6 +89,8 @@ const About = () => {
                 style={{
                   backgroundImage: 'url("/images/about/img-evento.jpeg")'
                 }}
+                role="img"
+                aria-label="Evento e estrutura da clínica Damaface"
               />
               <div className="absolute inset-0 bg-gradient-to-br from-brand-pink/20 to-transparent rounded-2xl"></div>
             </div>
@@ -117,6 +121,8 @@ const About = () => {
                   <div
                     className="w-full h-full rounded-full bg-cover bg-center border-4 border-brand-pink/50 group-hover:border-brand-pink transition-colors"
                     style={{ backgroundImage: `url("${member.image}")` }}
+                    role="img"
+                    aria-label={member.imageAlt}
                   />
                 </div>
                 <h3 className="text-2xl font-semibold text-white mb-2 group-hover:text-brand-pink transition-colors">

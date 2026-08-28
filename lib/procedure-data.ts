@@ -12,7 +12,7 @@ export const procedures: { [key: string]: any } = {
     "price": "A partir de R$ 449,00",
     "beforeAfterImages": [
       { "src": "/images/procedimentos/botox/antes-x-depois/BOTOX-1.png", "alt": "Botox Antes e Depois" },
-      { "src": "/images/procedimentos/botox/antes-x-depois/BOTOX-2.jpeg", "alt": "Botox Resultado 2" },
+      { "src": "/images/procedimentos/botox/antes-x-depois/BOTOX-2.jpeg", "alt": "Botox na Testa - Antes e Depois" },
       { "src": "/images/procedimentos/botox/antes-x-depois/BOTOX-3.png", "alt": "Botox Antes e Depois" }
     ],
     "pricingPackages": [
@@ -820,7 +820,7 @@ export const procedures: { [key: string]: any } = {
       { "src": "/images/procedimentos/peeling-quimico/antes-x-depois/peeling-quimico-1.png", "alt": "Peeling Químico Antes e Depois" },
       { "src": "/images/procedimentos/peeling-quimico/antes-x-depois/peeling-quimico-2.jpg", "alt": "Resultado Peeling para Manchas" },
       { "src": "/images/procedimentos/peeling-quimico/antes-x-depois/peeling-quimico-3.png", "alt": "Pele Renovada com Peeling Químico" },
-      { "src": "/images/procedimentos/peeling-quimico/antes-x-depois/peeling-quimico-4.png", "alt": "Paciente Feliz após Peeling Químico" }
+      { "src": "/images/procedimentos/peeling-quimico/antes-x-depois/peeling-quimico-4.png", "alt": "Peeling Químico no Rosto - Antes e Depois" }
 
     ],
     "pricingPackages": [
@@ -1267,16 +1267,16 @@ export const procedures: { [key: string]: any } = {
     "results": "Progressivos ao longo das sessões",
     "price": "A partir de R$ 389,00",
     "beforeAfterImages": [
-      { "src": "/images/procedimentos/.corporal/gordura-localizada/antes-x-depois/gordura-localizada-1.png", "alt": "Redução de Gordura Localizada no Abdômen - Antes e Depois 1" },
-      { "src": "/images/procedimentos/.corporal/gordura-localizada/antes-x-depois/gordura-localizada-2.png", "alt": "Resultados Visíveis de Gordura no Abdômen - Antes e Depois 2" },
-      { "src": "/images/procedimentos/.corporal/gordura-localizada/antes-x-depois/gordura-localizada-3.jpeg", "alt": "Transformação na Gordura Abdominal com Enzimas - Antes e Depois 3" },
-      { "src": "/images/procedimentos/.corporal/gordura-localizada/antes-x-depois/gordura-localizada-4.png", "alt": "Gordura Localizada Diminuída no Abdômen - Antes e Depois 4" },
-      { "src": "/images/procedimentos/.corporal/gordura-localizada/antes-x-depois/gordura-localizada-5.png", "alt": "Melhora Visível na Região Abdominal - Antes e Depois 5" },
-      { "src": "/images/procedimentos/.corporal/gordura-localizada/antes-x-depois/gordura-localizada-6.png", "alt": "Resultados de Enzimas para Gordura no Abdômen - Antes e Depois 6" },
-      { "src": "/images/procedimentos/.corporal/gordura-localizada/antes-x-depois/gordura-localizada-7.png", "alt": "Redução Abdominal Natural - Antes e Depois 7" },
-      { "src": "/images/procedimentos/.corporal/gordura-localizada/antes-x-depois/gordura-localizada-8.png", "alt": "Transformação Visível da Gordura Localizada - Antes e Depois 8" },
-      { "src": "/images/procedimentos/.corporal/gordura-localizada/antes-x-depois/gordura-localizada-9.png", "alt": "Resultados Reais de Gordura no Abdômen - Antes e Depois 9" },
-      { "src": "/images/procedimentos/.corporal/gordura-localizada/antes-x-depois/gordura-localizada-10.png", "alt": "Melhora na Gordura Localizada Abdominal - Antes e Depois 10" }
+      { "src": "/images/procedimentos/.corporal/gordura-localizada/antes-x-depois/gordura-localizada-1.png", "alt": "Redução de Gordura Localizada no Abdômen - Antes e Depois" },
+      { "src": "/images/procedimentos/.corporal/gordura-localizada/antes-x-depois/gordura-localizada-2.png", "alt": "Redução de Gordura Localizada nos Flancos - Antes e Depois" },
+      { "src": "/images/procedimentos/.corporal/gordura-localizada/antes-x-depois/gordura-localizada-3.jpeg", "alt": "Redução de Gordura Localizada nas Costas - Antes e Depois" },
+      { "src": "/images/procedimentos/.corporal/gordura-localizada/antes-x-depois/gordura-localizada-4.png", "alt": "Redução de Gordura Localizada no Abdômen - Antes e Depois" },
+      { "src": "/images/procedimentos/.corporal/gordura-localizada/antes-x-depois/gordura-localizada-5.png", "alt": "Redução de Gordura Localizada no Abdômen - Antes e Depois" },
+      { "src": "/images/procedimentos/.corporal/gordura-localizada/antes-x-depois/gordura-localizada-6.png", "alt": "Redução de Gordura Localizada nos Flancos - Antes e Depois" },
+      { "src": "/images/procedimentos/.corporal/gordura-localizada/antes-x-depois/gordura-localizada-7.png", "alt": "Redução de Gordura Localizada no Abdômen - Antes e Depois" },
+      { "src": "/images/procedimentos/.corporal/gordura-localizada/antes-x-depois/gordura-localizada-8.png", "alt": "Redução de Gordura Localizada nos Flancos - Antes e Depois" },
+      { "src": "/images/procedimentos/.corporal/gordura-localizada/antes-x-depois/gordura-localizada-9.png", "alt": "Redução de Gordura Localizada no Abdômen - Antes e Depois" },
+      { "src": "/images/procedimentos/.corporal/gordura-localizada/antes-x-depois/gordura-localizada-10.png", "alt": "Redução de Gordura Localizada no Abdômen e nas Costas - Antes e Depois" }
 
     ],
     "pricingPackages": [

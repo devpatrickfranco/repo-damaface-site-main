@@ -1,3 +1,4 @@
+import type { Metadata } from "next"
 import Header from "@/components/Header"
 import Footer from "@/components/Footer"
 import Contact from "@/components/Contact"
@@ -5,6 +6,13 @@ import { ArrowRight, Star, Clock, Users } from "lucide-react"
 import Link from "next/link"
 import Image from "next/image"
 import { deveExibirPreco } from "@/lib/utils"
+
+export const metadata: Metadata = {
+  title: "Tratamentos Faciais",
+  description:
+    "Tratamentos faciais na Damaface: toxina botulínica, preenchimento facial, bioestimulador de colágeno e fios de sustentação. Agende sua avaliação.",
+  alternates: { canonical: "/facial" },
+}
 
 export default function FacialPage() {
   const facialProcedures = [
@@ -99,7 +107,7 @@ export default function FacialPage() {
         <div className="absolute inset-0 z-0">
           <Image
             src="/images/categorias/facial-1.png"
-            alt="Tratamentos Faciais"
+            alt=""
             fill
             className="object-cover"
             priority

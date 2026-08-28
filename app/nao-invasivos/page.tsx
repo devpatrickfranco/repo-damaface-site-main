@@ -1,3 +1,4 @@
+import type { Metadata } from "next"
 import Header from "@/components/Header"
 import Footer from "@/components/Footer"
 import Contact from "@/components/Contact"
@@ -5,6 +6,13 @@ import { ArrowRight, Star, Clock, Users } from "lucide-react"
 import Link from "next/link"
 import Image from "next/image"
 import { deveExibirPreco } from "@/lib/utils"
+
+export const metadata: Metadata = {
+  title: "Tratamentos Não Invasivos",
+  description:
+    "Procedimentos não invasivos na Damaface: Ultraformer, criolipólise, laser CO2 e depilação a laser. Resultados naturais sem cirurgia. Agende sua avaliação.",
+  alternates: { canonical: "/nao-invasivos" },
+}
 
 export default function NaoInvasivosPage() {
   const nonInvasiveProcedures = [
@@ -90,7 +98,7 @@ export default function NaoInvasivosPage() {
         <div className="absolute inset-0 z-0">
           <Image
             src="/images/categorias/não-invasivo-1.png"
-            alt="Tratamentos Não Invasivos"
+            alt=""
             fill
             className="object-cover"
             priority

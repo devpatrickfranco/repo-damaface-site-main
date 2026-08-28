@@ -15,7 +15,14 @@ export function metadataDoProcedimento(procedimento: Procedimento, unidade?: Uni
   const local = unidade ? ` em ${unidade.cidade}` : ""
   const path = unidade ? `/${unidade.slug}/${procedimento.slug}` : `/${procedimento.slug}`
   const title = `${procedimento.nome}${local}`
-  const description = unidade ? `Conheça o tratamento de ${procedimento.nome} na ${unidade.nome}, em ${unidade.cidade}. Agende sua avaliação.` : `Conheça o tratamento de ${procedimento.nome} na Damaface.`
+  const beneficio = procedimento.beneficios?.[0]
+  const description = unidade
+    ? beneficio
+      ? `${procedimento.nome} em ${unidade.cidade} na Damaface. ${beneficio} com uma abordagem natural e personalizada. Agende sua avaliação.`
+      : `Conheça o tratamento de ${procedimento.nome} na ${unidade.nome}, em ${unidade.cidade}. Agende sua avaliação.`
+    : procedimento.resumo
+      ? `Tratamento de ${procedimento.nome} na Damaface: ${procedimento.resumo} Agende sua avaliação com especialistas.`
+      : `Conheça o tratamento de ${procedimento.nome} na Damaface.`
   return { title, description, alternates: { canonical: path }, openGraph: { title, description, url: path, type: "website", images: [{ url: procedimento.imagem, alt: procedimento.nome }] }, twitter: { card: "summary_large_image", title, description, images: [procedimento.imagem] } }
 }
 

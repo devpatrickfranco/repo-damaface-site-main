@@ -1,3 +1,4 @@
+import type { Metadata } from "next"
 import Header from "@/components/Header"
 import Footer from "@/components/Footer"
 import Contact from "@/components/Contact"
@@ -5,6 +6,13 @@ import { ArrowRight, Star, Clock, Users } from "lucide-react"
 import Link from "next/link"
 import Image from "next/image"
 import { deveExibirPreco } from "@/lib/utils"
+
+export const metadata: Metadata = {
+  title: "Tratamentos Corporais",
+  description:
+    "Tratamentos corporais na Damaface: bioestimulador de colágeno, PEIM, enzimas para gordura localizada e massagens. Agende sua avaliação.",
+  alternates: { canonical: "/corporal" },
+}
 
 export default function CorporalPage() {
   const corporalProcedures = [
@@ -80,7 +88,7 @@ export default function CorporalPage() {
         <div className="absolute inset-0 z-0">
           <Image
             src="images/categorias/corporal-1.png"
-            alt="Tratamentos Corporais"
+            alt=""
             fill
             className="object-cover"
             priority

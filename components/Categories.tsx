@@ -62,6 +62,7 @@ const Categories = () => {
                     <div
                       className="w-full h-full bg-cover bg-center transition-transform duration-700 group-hover:scale-110"
                       style={{ backgroundImage: `url("${category.image}")` }}
+                      aria-hidden="true"
                     />
                     <div className={`absolute inset-0 bg-gradient-to-br ${category.color} opacity-80`}></div>
                     <div className="absolute inset-0 bg-gradient-to-t from-gray-900 via-gray-900/40 to-transparent"></div>
