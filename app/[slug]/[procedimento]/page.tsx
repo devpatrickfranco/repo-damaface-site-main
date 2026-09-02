@@ -8,6 +8,7 @@ import { ProceduresCarousel } from "@/components/local-seo/ProceduresCarousel"
 import {
   ProcedureFaq,
   ProcedureFinalCTA,
+  ProcedureFunnelCTA,
   ProcedureHero,
   ProcedureHowItWorks,
   ProcedureIndications,
@@ -69,6 +70,7 @@ export default async function ProcedimentoLocal({ params }: Props) {
         <ProcedureOverview procedimento={procedimento} />
         <ProcedureIndications procedimento={procedimento} />
         <ProcedureHowItWorks procedimento={procedimento} />
+        <ProcedureFunnelCTA procedimento={procedimento} unidade={unidade} />
         <UnidadeReviews unidade={unidade} />
         <ProcedureSafety procedimento={procedimento} />
         <ProcedureFaq faqs={procedimento.faqs} />

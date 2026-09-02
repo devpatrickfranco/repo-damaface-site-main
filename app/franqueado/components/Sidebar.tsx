@@ -31,7 +31,8 @@ import {
   Hash,
   Send,
   Library,
-  DollarSign
+  DollarSign,
+  Filter
 } from 'lucide-react'
 import { useRouter, usePathname } from 'next/navigation'
 import { useAuth } from '@/context/AuthContext'
@@ -97,6 +98,7 @@ const NAV_LINKS: NavItem[] = [
   { id: 'marketing', name: 'Marketing', icon: Megaphone, route: '/franqueado/marketing', roles: ALL_ROLES, hasSubModules: true, subModules: MARKETING_SUBMODULES },
   { id: 'whatsapp', name: 'Atendimento WA', icon: MessageSquare, route: '/franqueado/whatsapp', roles: SUPERADMIN_ROLES, hasSubModules: true, subModules: WHATSAPP_SUBMODULES },
   { id: 'blog', name: 'Blog', icon: FileText, route: '/franqueado/blog', roles: ADMIN_ROLES },
+  { id: 'funnels', name: 'Funnels', icon: Filter, route: '/franqueado/funnels', roles: SUPERADMIN_ROLES },
   //{ id: 'excelencia', name: 'Programa de Excelência', icon: Award, route: '/franqueado/excelencia', roles: ['SUPERADMIN', 'FRANQUEADO'], hasSubModules: true, subModules: EXCELENCIA_SUBMODULES },
   { id: 'usuarios', name: 'Usuarios', icon: Users2, route: '/franqueado/usuarios', roles: ADMIN_ROLES },
 ]

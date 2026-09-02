@@ -1,0 +1,121 @@
+'use client'
+
+// hooks/useFunnelBuilder.ts
+// Estado do editor de funil (`app/franqueado/funnels/[id]/page.tsx`), no mesmo
+// espírito de `useCourseWizard.ts`: um hook que centraliza o estado local do
+// wizard/editor e expõe handlers `handleAddX/handleUpdateX/handleRemoveX`.
+//
+// Reordenação é feita por botões subir/descer (não drag-and-drop) — suficiente
+// para o "esqueleto" da Fase 2; drag-and-drop real fica pra quando o editor
+// visual entrar em pauta (fora do escopo da V3, back-end-funil.md §12).
+
+import { useCallback, useState } from 'react'
+import type { FunnelBlockType, FunnelOption, FunnelStep } from '@/types/funnels'
+
+let localIdCounter = 0
+function localId(prefix: string): string {
+  localIdCounter += 1
+  return `${prefix}_local_${localIdCounter}`
+}
+
+const MVP_BLOCK_DEFAULTS: Record<string, Partial<FunnelStep>> = {
+  choice: { title: 'Nova pergunta', options: [] },
+  image_choice: { title: 'Nova pergunta com imagem', options: [] },
+  before_after: { title: 'Antes / depois', pairs: [] },
+  text_input: { title: 'Como podemos te chamar?', placeholder: 'Seu nome' },
+  phone: { title: 'Qual seu WhatsApp?', placeholder: '(19) 99999-9999' },
+  cta: { title: 'Seu próximo passo começa aqui.', cta_label: 'Falar com nossa equipe' },
+}
+
+export function useFunnelBuilder(initialSteps: FunnelStep[]) {
+  const [steps, setSteps] = useState<FunnelStep[]>(initialSteps)
+  const [selectedStepId, setSelectedStepId] = useState<string | null>(initialSteps[0]?.id ?? null)
+
+  const handleAddStep = useCallback((type: FunnelBlockType) => {
+    const defaults = MVP_BLOCK_DEFAULTS[type] ?? { title: 'Novo step' }
+    const newStep: FunnelStep = {
+      id: localId('step'),
+      type,
+      position: 0,
+      required: type === 'choice' || type === 'image_choice' || type === 'text_input' || type === 'phone',
+      tracking_key: localId('tracking'),
+      ...defaults,
+    } as FunnelStep
+
+    setSteps((prev) => {
+      const next = [...prev, newStep].map((step, index) => ({ ...step, position: index }))
+      return next
+    })
+    setSelectedStepId(newStep.id)
+  }, [])
+
+  const handleUpdateStep = useCallback((stepId: string, patch: Partial<FunnelStep>) => {
+    setSteps((prev) => prev.map((step) => (step.id === stepId ? { ...step, ...patch } : step)))
+  }, [])
+
+  const handleRemoveStep = useCallback((stepId: string) => {
+    setSteps((prev) => prev.filter((step) => step.id !== stepId).map((step, index) => ({ ...step, position: index })))
+    setSelectedStepId((current) => (current === stepId ? null : current))
+  }, [])
+
+  const handleMoveStep = useCallback((stepId: string, direction: 'up' | 'down') => {
+    setSteps((prev) => {
+      const index = prev.findIndex((step) => step.id === stepId)
+      const targetIndex = direction === 'up' ? index - 1 : index + 1
+      if (index === -1 || targetIndex < 0 || targetIndex >= prev.length) return prev
+
+      const next = [...prev]
+      ;[next[index], next[targetIndex]] = [next[targetIndex], next[index]]
+      return next.map((step, position) => ({ ...step, position }))
+    })
+  }, [])
+
+  const handleAddOption = useCallback((stepId: string) => {
+    setSteps((prev) =>
+      prev.map((step) => {
+        if (step.id !== stepId) return step
+        const options = step.options ?? []
+        const newOption: FunnelOption = {
+          id: localId('option'),
+          label: 'Nova opção',
+          value: `opcao_${options.length + 1}`,
+          next_step_id: null,
+          position: options.length,
+        }
+        return { ...step, options: [...options, newOption] }
+      }),
+    )
+  }, [])
+
+  const handleUpdateOption = useCallback((stepId: string, optionId: string, patch: Partial<FunnelOption>) => {
+    setSteps((prev) =>
+      prev.map((step) => {
+        if (step.id !== stepId) return step
+        return { ...step, options: (step.options ?? []).map((option) => (option.id === optionId ? { ...option, ...patch } : option)) }
+      }),
+    )
+  }, [])
+
+  const handleRemoveOption = useCallback((stepId: string, optionId: string) => {
+    setSteps((prev) =>
+      prev.map((step) => {
+        if (step.id !== stepId) return step
+        return { ...step, options: (step.options ?? []).filter((option) => option.id !== optionId) }
+      }),
+    )
+  }, [])
+
+  return {
+    steps,
+    setSteps,
+    selectedStepId,
+    setSelectedStepId,
+    handleAddStep,
+    handleUpdateStep,
+    handleRemoveStep,
+    handleMoveStep,
+    handleAddOption,
+    handleUpdateOption,
+    handleRemoveOption,
+  }
+}

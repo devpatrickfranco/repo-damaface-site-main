@@ -27,6 +27,10 @@ import type { Faq, Procedimento, Unidade } from "@/types/local-seo"
 import { Breadcrumb } from "./Breadcrumb"
 import { IMAGEM_CTA_POR_SLUG, IMAGEM_OVERVIEW_POR_SLUG, IMAGEM_POR_SLUG, whatsappUrl } from "./ClinicSections"
 import { formatTelefone, resumoHorarios } from "./UnidadeSections"
+import { FunnelLauncher } from "@/components/funnel-runtime/FunnelLauncher"
+// Fixture de dev — trocar pela config real assim que existir o endpoint de
+// vinculação página → funil (back-end-funil.md §5, PDI-front-end-funil.md §2).
+import { funilExemplo } from "@/lib/funnels/fixtures/funil-exemplo"
 
 const imagemHero = (procedimento: Procedimento) => IMAGEM_POR_SLUG[procedimento.slug] ?? procedimento.imagem
 const imagemOverview = (procedimento: Procedimento) => IMAGEM_OVERVIEW_POR_SLUG[procedimento.slug] ?? imagemHero(procedimento)
@@ -404,6 +408,33 @@ export function ProcedureFinalCTA({ procedimento, unidade }: { procedimento: Pro
             <a className="mt-4 block text-sm font-medium text-gray-300 underline-offset-4 hover:text-white hover:underline" href="#localizacao">
               Falar com nossa equipe
             </a>
+          </div>
+        </div>
+      </div>
+    </section>
+  )
+}
+
+export function ProcedureFunnelCTA({ procedimento, unidade }: { procedimento: Procedimento; unidade: Unidade }) {
+  return (
+    <section className="animate-on-scroll bg-gray-50 py-16 sm:py-20">
+      <div className="container">
+        <div className="mx-auto max-w-2xl text-center">
+          <p className="text-sm font-semibold uppercase tracking-[0.18em] text-brand-pink">Descubra o seu tratamento</p>
+          <h2 className="mt-3 text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl">
+            Qual o tratamento ideal para você?
+          </h2>
+          <p className="mt-4 text-gray-600">
+            Responda algumas perguntas rápidas sobre {procedimento.nome.toLowerCase()} e veja uma recomendação
+            personalizada antes de falar com a nossa equipe.
+          </p>
+          <div className="mt-8 flex justify-center">
+            <FunnelLauncher
+              config={funilExemplo}
+              whatsappNumber={unidade.whatsapp}
+              whatsappMessage={`Olá! Fiz o teste sobre ${procedimento.nome} no site e quero saber mais.`}
+              ctaLabel="Descubra qual tratamento combina com você"
+            />
           </div>
         </div>
       </div>
