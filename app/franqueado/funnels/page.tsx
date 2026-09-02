@@ -31,11 +31,10 @@ export default function FunnelsListPage() {
     funnelAdminApi
       .list()
       .then(setFunnels)
-      .catch(() =>
-        setError(
-          'Não foi possível conectar à API do Funnel Engine. Os endpoints administrativos ainda não estão disponíveis (back-end-funil.md §7).',
-        ),
-      )
+      .catch((err) => {
+        console.error('Falha ao listar funis', err)
+        setError(`Não foi possível conectar à API do Funnel Engine${err instanceof Error ? `: ${err.message}` : ''}`)
+      })
       .finally(() => setIsLoading(false))
   }, [isChecking])
 
@@ -44,8 +43,9 @@ export default function FunnelsListPage() {
     try {
       await funnelAdminApi.remove(funnel.id)
       setFunnels((prev) => prev.filter((item) => item.id !== funnel.id))
-    } catch {
-      alert('Não foi possível excluir o funil agora.')
+    } catch (err) {
+      console.error('Falha ao excluir funil', err)
+      alert(`Não foi possível excluir o funil agora${err instanceof Error ? `: ${err.message}` : ''}`)
     }
   }
 

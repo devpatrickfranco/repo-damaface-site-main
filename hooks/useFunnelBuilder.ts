@@ -5,9 +5,9 @@
 // espírito de `useCourseWizard.ts`: um hook que centraliza o estado local do
 // wizard/editor e expõe handlers `handleAddX/handleUpdateX/handleRemoveX`.
 //
-// Reordenação é feita por botões subir/descer (não drag-and-drop) — suficiente
-// para o "esqueleto" da Fase 2; drag-and-drop real fica pra quando o editor
-// visual entrar em pauta (fora do escopo da V3, back-end-funil.md §12).
+// Reordenação tem dois caminhos: botões subir/descer (handleMoveStep) e
+// drag-and-drop (handleReorderStep, usado pelo @dnd-kit em page.tsx). Ambos
+// convergem no mesmo formato de estado — um array com `position` recalculada.
 
 import { useCallback, useState } from 'react'
 import type { FunnelBlockType, FunnelOption, FunnelStep } from '@/types/funnels'
@@ -71,6 +71,19 @@ export function useFunnelBuilder(initialSteps: FunnelStep[]) {
     })
   }, [])
 
+  const handleReorderStep = useCallback((activeId: string, overId: string) => {
+    setSteps((prev) => {
+      const fromIndex = prev.findIndex((step) => step.id === activeId)
+      const toIndex = prev.findIndex((step) => step.id === overId)
+      if (fromIndex === -1 || toIndex === -1 || fromIndex === toIndex) return prev
+
+      const next = [...prev]
+      const [moved] = next.splice(fromIndex, 1)
+      next.splice(toIndex, 0, moved)
+      return next.map((step, position) => ({ ...step, position }))
+    })
+  }, [])
+
   const handleAddOption = useCallback((stepId: string) => {
     setSteps((prev) =>
       prev.map((step) => {
@@ -115,6 +128,7 @@ export function useFunnelBuilder(initialSteps: FunnelStep[]) {
     handleUpdateStep,
     handleRemoveStep,
     handleMoveStep,
+    handleReorderStep,
     handleAddOption,
     handleUpdateOption,
     handleRemoveOption,

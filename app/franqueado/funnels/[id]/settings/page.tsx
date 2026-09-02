@@ -36,7 +36,10 @@ export default function FunnelSettingsPage() {
         setDescription(data.description ?? '')
         setStatus(data.status)
       })
-      .catch(() => setError('Não foi possível carregar as configurações deste funil.'))
+      .catch((err) => {
+        console.error('Falha ao carregar configurações do funil', err)
+        setError(`Não foi possível carregar as configurações deste funil${err instanceof Error ? `: ${err.message}` : ''}`)
+      })
       .finally(() => setIsLoading(false))
   }, [isChecking, funnelId])
 
@@ -45,8 +48,9 @@ export default function FunnelSettingsPage() {
     setError(null)
     try {
       await funnelAdminApi.update(funnelId, { name, description, status })
-    } catch {
-      setError('Não foi possível salvar agora — os endpoints administrativos ainda não estão disponíveis (back-end-funil.md §7).')
+    } catch (err) {
+      console.error('Falha ao salvar configurações do funil', err)
+      setError(`Não foi possível salvar agora${err instanceof Error ? `: ${err.message}` : ''}`)
     } finally {
       setIsSaving(false)
     }
@@ -57,8 +61,9 @@ export default function FunnelSettingsPage() {
     try {
       await funnelAdminApi.remove(funnelId)
       router.push('/franqueado/funnels')
-    } catch {
-      alert('Não foi possível excluir o funil agora.')
+    } catch (err) {
+      console.error('Falha ao excluir funil', err)
+      alert(`Não foi possível excluir o funil agora${err instanceof Error ? `: ${err.message}` : ''}`)
     }
   }
 

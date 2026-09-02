@@ -4,6 +4,22 @@ import { useEffect, useState } from 'react'
 import { useParams } from 'next/navigation'
 import Link from 'next/link'
 import { ArrowLeft, GripVertical, Plus, Settings, Trash2 } from 'lucide-react'
+import {
+  DndContext,
+  closestCenter,
+  PointerSensor,
+  KeyboardSensor,
+  useSensor,
+  useSensors,
+  type DragEndEvent,
+} from '@dnd-kit/core'
+import {
+  SortableContext,
+  sortableKeyboardCoordinates,
+  useSortable,
+  verticalListSortingStrategy,
+} from '@dnd-kit/sortable'
+import { CSS } from '@dnd-kit/utilities'
 import { useSuperadminGuard } from '@/hooks/useSuperadminGuard'
 import { useFunnelBuilder } from '@/hooks/useFunnelBuilder'
 import { funnelAdminApi } from '@/lib/funnels/admin-api'
@@ -37,7 +53,65 @@ const inputClass =
   'w-full px-3 py-2 bg-gray-900 border border-gray-600 rounded-lg text-white text-sm focus:outline-none focus:border-pink-500 focus:ring-2 focus:ring-pink-500/20 transition-all'
 
 function isLocalId(id: string): boolean {
-  return id.includes('_local_')
+  return String(id).includes('_local_')
+}
+
+function SortableStepRow({
+  step,
+  index,
+  isSelected,
+  onSelect,
+  onMoveUp,
+  onMoveDown,
+  onRemove,
+}: {
+  step: FunnelStep
+  index: number
+  isSelected: boolean
+  onSelect: () => void
+  onMoveUp: () => void
+  onMoveDown: () => void
+  onRemove: () => void
+}) {
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: step.id })
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isDragging ? 0.5 : 1,
+  }
+
+  return (
+    <div
+      ref={setNodeRef}
+      style={style}
+      onClick={onSelect}
+      className={`flex cursor-pointer items-center gap-2 rounded-lg border px-3 py-2 text-sm transition ${
+        isSelected ? 'border-pink-500 bg-pink-500/10 text-white' : 'border-gray-700 text-gray-300 hover:bg-gray-700/50'
+      }`}
+    >
+      <button
+        {...attributes}
+        {...listeners}
+        onClick={(e) => e.stopPropagation()}
+        className="shrink-0 cursor-grab touch-none text-gray-500 hover:text-gray-300 active:cursor-grabbing"
+        aria-label="Arrastar para reordenar"
+      >
+        <GripVertical className="h-4 w-4" />
+      </button>
+      <div className="min-w-0 flex-1">
+        <p className="truncate">{index + 1}. {step.title || '(sem título)'}</p>
+        <p className="text-xs text-gray-500">{step.type}</p>
+      </div>
+      <div className="flex shrink-0 flex-col">
+        <button onClick={(e) => { e.stopPropagation(); onMoveUp() }} className="text-gray-500 hover:text-gray-300" aria-label="Mover para cima">▲</button>
+        <button onClick={(e) => { e.stopPropagation(); onMoveDown() }} className="text-gray-500 hover:text-gray-300" aria-label="Mover para baixo">▼</button>
+      </div>
+      <button onClick={(e) => { e.stopPropagation(); onRemove() }} className="shrink-0 text-red-400 hover:text-red-300" aria-label="Remover step">
+        <Trash2 className="h-4 w-4" />
+      </button>
+    </div>
+  )
 }
 
 export default function FunnelEditorPage() {
@@ -64,14 +138,26 @@ export default function FunnelEditorPage() {
         setName(data.name)
         builder.setSteps(data.steps ?? [])
       })
-      .catch(() =>
-        setLoadError('Não foi possível carregar este funil — os endpoints administrativos ainda não estão disponíveis (back-end-funil.md §7).'),
-      )
+      .catch((err) => {
+        console.error('Falha ao carregar funil', err)
+        setLoadError(`Não foi possível carregar este funil${err instanceof Error ? `: ${err.message}` : ''}`)
+      })
       .finally(() => setIsLoading(false))
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isChecking, funnelId])
 
   const selectedStep = builder.steps.find((step) => step.id === builder.selectedStepId)
+
+  const sensors = useSensors(
+    useSensor(PointerSensor, { activationConstraint: { distance: 4 } }),
+    useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates }),
+  )
+
+  const handleDragEnd = (event: DragEndEvent) => {
+    const { active, over } = event
+    if (!over || active.id === over.id) return
+    builder.handleReorderStep(String(active.id), String(over.id))
+  }
 
   const handleRemoveStep = (step: FunnelStep) => {
     if (!isLocalId(step.id)) setDeletedStepIds((prev) => [...prev, step.id])
@@ -103,8 +189,9 @@ export default function FunnelEditorPage() {
       const refreshed = await funnelAdminApi.get(funnelId)
       setFunnel(refreshed)
       builder.setSteps(refreshed.steps ?? [])
-    } catch {
-      setSaveError('Não foi possível salvar agora — os endpoints administrativos ainda não estão disponíveis (back-end-funil.md §7).')
+    } catch (err) {
+      console.error('Falha ao salvar funil', err)
+      setSaveError(`Não foi possível salvar agora${err instanceof Error ? `: ${err.message}` : ''}`)
     } finally {
       setIsSaving(false)
     }
@@ -115,8 +202,9 @@ export default function FunnelEditorPage() {
     try {
       const updated = await funnelAdminApi.publish(funnel.id)
       setFunnel(updated)
-    } catch {
-      setSaveError('Não foi possível publicar agora.')
+    } catch (err) {
+      console.error('Falha ao publicar funil', err)
+      setSaveError(`Não foi possível publicar agora${err instanceof Error ? `: ${err.message}` : ''}`)
     }
   }
 
@@ -186,32 +274,24 @@ export default function FunnelEditorPage() {
         {/* Coluna 1 — lista de steps */}
         <div className="space-y-3 rounded-lg border border-gray-700 bg-gray-800 p-4">
           <p className="text-xs font-semibold uppercase tracking-wider text-gray-400">Steps</p>
-          <div className="space-y-2">
-            {builder.steps.map((step, index) => (
-              <div
-                key={step.id}
-                onClick={() => builder.setSelectedStepId(step.id)}
-                className={`flex cursor-pointer items-center gap-2 rounded-lg border px-3 py-2 text-sm transition ${
-                  builder.selectedStepId === step.id
-                    ? 'border-pink-500 bg-pink-500/10 text-white'
-                    : 'border-gray-700 text-gray-300 hover:bg-gray-700/50'
-                }`}
-              >
-                <GripVertical className="h-4 w-4 shrink-0 text-gray-500" />
-                <div className="min-w-0 flex-1">
-                  <p className="truncate">{index + 1}. {step.title || '(sem título)'}</p>
-                  <p className="text-xs text-gray-500">{step.type}</p>
-                </div>
-                <div className="flex shrink-0 flex-col">
-                  <button onClick={(e) => { e.stopPropagation(); builder.handleMoveStep(step.id, 'up') }} className="text-gray-500 hover:text-gray-300" aria-label="Mover para cima">▲</button>
-                  <button onClick={(e) => { e.stopPropagation(); builder.handleMoveStep(step.id, 'down') }} className="text-gray-500 hover:text-gray-300" aria-label="Mover para baixo">▼</button>
-                </div>
-                <button onClick={(e) => { e.stopPropagation(); handleRemoveStep(step) }} className="shrink-0 text-red-400 hover:text-red-300" aria-label="Remover step">
-                  <Trash2 className="h-4 w-4" />
-                </button>
+          <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
+            <SortableContext items={builder.steps.map((step) => step.id)} strategy={verticalListSortingStrategy}>
+              <div className="space-y-2">
+                {builder.steps.map((step, index) => (
+                  <SortableStepRow
+                    key={step.id}
+                    step={step}
+                    index={index}
+                    isSelected={builder.selectedStepId === step.id}
+                    onSelect={() => builder.setSelectedStepId(step.id)}
+                    onMoveUp={() => builder.handleMoveStep(step.id, 'up')}
+                    onMoveDown={() => builder.handleMoveStep(step.id, 'down')}
+                    onRemove={() => handleRemoveStep(step)}
+                  />
+                ))}
               </div>
-            ))}
-          </div>
+            </SortableContext>
+          </DndContext>
 
           <details className="rounded-lg border border-dashed border-gray-700 p-2">
             <summary className="flex cursor-pointer items-center gap-2 text-sm text-gray-300">

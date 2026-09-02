@@ -53,8 +53,9 @@ export default function CreateFunnelPage() {
     try {
       const funnel = await funnelAdminApi.create({ name: name.trim(), slug: slug.trim(), description: description.trim() || undefined })
       router.push(`/franqueado/funnels/${funnel.id}`)
-    } catch {
-      setError('Não foi possível criar o funil agora — os endpoints administrativos ainda não estão disponíveis (back-end-funil.md §7).')
+    } catch (err) {
+      console.error('Falha ao criar funil', err)
+      setError(`Não foi possível criar o funil agora${err instanceof Error ? `: ${err.message}` : ''}`)
       setIsSubmitting(false)
     }
   }
