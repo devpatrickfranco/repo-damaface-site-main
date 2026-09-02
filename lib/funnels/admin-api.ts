@@ -19,25 +19,25 @@ export type UpdateStepPayload = Partial<Omit<FunnelStep, 'id'>>
 
 export const funnelAdminApi = {
   list() {
-    return apiBackend.get<Funnel[]>('/api/admin/funnels')
+    return apiBackend.get<Funnel[]>('/admin/funnels')
   },
 
   /** A entidade `Funnel` do contrato (back-end-funil.md §6) não lista `steps` — assume-se
    * que o GET por id os retorna aninhados, já que o Builder precisa da árvore completa. */
   get(id: string) {
-    return apiBackend.get<Funnel & { steps: FunnelStep[] }>(`/api/admin/funnels/${id}`)
+    return apiBackend.get<Funnel & { steps: FunnelStep[] }>(`/admin/funnels/${id}`)
   },
 
   create(payload: CreateFunnelPayload) {
-    return apiBackend.post<Funnel>('/api/admin/funnels', payload)
+    return apiBackend.post<Funnel>('/admin/funnels', payload)
   },
 
   update(id: string, payload: UpdateFunnelPayload) {
-    return apiBackend.patch<Funnel>(`/api/admin/funnels/${id}`, payload)
+    return apiBackend.patch<Funnel>(`/admin/funnels/${id}`, payload)
   },
 
   remove(id: string) {
-    return apiBackend.delete(`/api/admin/funnels/${id}`)
+    return apiBackend.delete(`/admin/funnels/${id}`)
   },
 
   /** Não há endpoint dedicado de publicação no contrato (back-end-funil.md §7) — publicar é um PATCH de status. */
@@ -46,14 +46,14 @@ export const funnelAdminApi = {
   },
 
   createStep(funnelId: string, payload: CreateStepPayload) {
-    return apiBackend.post<FunnelStep>(`/api/admin/funnels/${funnelId}/steps`, payload)
+    return apiBackend.post<FunnelStep>(`/admin/funnels/${funnelId}/steps`, payload)
   },
 
   updateStep(funnelId: string, stepId: string, payload: UpdateStepPayload) {
-    return apiBackend.patch<FunnelStep>(`/api/admin/funnels/${funnelId}/steps/${stepId}`, payload)
+    return apiBackend.patch<FunnelStep>(`/admin/funnels/${funnelId}/steps/${stepId}`, payload)
   },
 
   deleteStep(funnelId: string, stepId: string) {
-    return apiBackend.delete(`/api/admin/funnels/${funnelId}/steps/${stepId}`)
+    return apiBackend.delete(`/admin/funnels/${funnelId}/steps/${stepId}`)
   },
 }

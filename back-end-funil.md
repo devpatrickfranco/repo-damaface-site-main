@@ -566,6 +566,35 @@ O evento `whatsapp_click` deve ser registrado no back-end **antes** de o usuári
 
 ## 11. Integrações futuras
 
+### Notificação automática à clínica via Evolution API (WhatsApp) — ativo, não é "futuro"
+
+Diferente do restante desta seção, esta integração já está em implementação (credenciais — URL, canal/instância, API key — já configuradas no `.env` do back-end).
+
+**Objetivo:** ao criar/atualizar um `Lead` (`POST /api/funnels/sessions/{session_id}/lead`), o back-end dispara automaticamente, via Evolution API, uma mensagem de WhatsApp para o número da **clínica/unidade que o lead selecionou** — com o contato do lead (nome + telefone) e o contexto da conversa. Isso acontece **no servidor, de forma síncrona ao evento de criação do lead**, e é independente do usuário efetivamente clicar no CTA final e enviar mensagem pelo `wa.me` (evento `whatsapp_click`, seção 10) — ou seja, a clínica é notificada mesmo que o lead abandone o funil antes do CTA final ou feche a conversa do WhatsApp sem escrever nada.
+
+```text
+Lead criado (nome + telefone + unit_id)
+        ↓
+Back-end resolve unit_id → WhatsApp da unidade/clínica
+        ↓
+Evolution API envia mensagem para a clínica (não para o lead)
+```
+
+Sugestão de payload da mensagem enviada à clínica (mesmo espírito do exemplo de contexto do Dama.AI logo abaixo):
+
+```text
+Novo lead pelo site — Botox
+Nome: Maria
+WhatsApp: 19999999999
+Objetivo: rugas | Região: testa
+Página de origem: /vinhedo/botox
+UTM: meta / botox-vinhedo
+```
+
+**Pendência a resolver com o back-end:** o front-end hoje envia `unit_id` no payload de `upsertLead` (`lib/funnels/api.ts`) preenchido com o **slug** da unidade (`Unidade.slug`, vindo do endpoint público `GET /unidades/`), não o `id` numérico do model `Franquia`/`Unidade` — o endpoint público não expõe esse id. O back-end precisa ou (a) aceitar slug em `unit_id` e resolver internamente, ou (b) o front-end trocar de fonte. Até decidir, tratar `unit_id` como slug.
+
+O número de destino na Evolution API é o mesmo `whatsapp` já existente no cadastro da unidade/franquia (`Franquia.whatsapp` em `/users/franquias/`, mesmo campo exposto como `Unidade.whatsapp` em `/unidades/`) — não deveria ser necessário um cadastro novo de "número por integração".
+
 ### Dama.AI
 
 O lead criado pelo Funnel Engine poderá alimentar o Dama.AI com contexto completo, evitando um atendimento genérico:
@@ -604,7 +633,7 @@ A V3 não precisa incluir:
 - editor visual completamente livre (drag-and-drop complexo);
 - automação avançada de marketing;
 - CRM completo;
-- disparos de WhatsApp;
+- disparos de WhatsApp em massa/campanha (broadcast de marketing) — **não** inclui a notificação transacional único-lead-para-a-clínica via Evolution API, registrada na seção 11, que é escopo ativo da V3;
 - criação automática de criativos;
 - IA para construir funis;
 - testes A/B avançados;

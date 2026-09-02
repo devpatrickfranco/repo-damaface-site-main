@@ -34,19 +34,19 @@ export interface UpsertLeadPayload {
 
 export const funnelRuntimeApi = {
   createSession(funnelId: string, payload: CreateSessionPayload) {
-    return apiBackend.post<CreateSessionResponse>(`/api/funnels/${funnelId}/sessions`, payload)
+    return apiBackend.post<CreateSessionResponse>(`/funnels/${funnelId}/sessions`, payload)
   },
 
   postEvent(sessionId: string, payload: PostEventPayload) {
-    return apiBackend.post(`/api/funnels/sessions/${sessionId}/events`, payload)
+    return apiBackend.post(`/funnels/sessions/${sessionId}/events`, payload)
   },
 
   postAnswer(sessionId: string, payload: PostAnswerPayload) {
-    return apiBackend.post(`/api/funnels/sessions/${sessionId}/answers`, payload)
+    return apiBackend.post(`/funnels/sessions/${sessionId}/answers`, payload)
   },
 
   upsertLead(sessionId: string, payload: UpsertLeadPayload) {
-    return apiBackend.post(`/api/funnels/sessions/${sessionId}/lead`, payload)
+    return apiBackend.post(`/funnels/sessions/${sessionId}/lead`, payload)
   },
 
   /**
@@ -62,7 +62,7 @@ export const funnelRuntimeApi = {
 
     const blob = new Blob([JSON.stringify(payload)], { type: 'application/json' })
     try {
-      return navigator.sendBeacon(`${baseUrl}/api/funnels/sessions/${sessionId}/events`, blob)
+      return navigator.sendBeacon(`${baseUrl}/funnels/sessions/${sessionId}/events`, blob)
     } catch {
       return false
     }
