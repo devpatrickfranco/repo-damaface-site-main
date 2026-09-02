@@ -5,11 +5,11 @@
 // e não tem NENHUMA pergunta hardcoded (PDI-front-end-funil.md Fase 1, item 1).
 // Isolado do Builder/Analytics: nada aqui importa código de `app/franqueado/**`.
 
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { ChevronLeft, X } from 'lucide-react'
 import type { FunnelConfig, FunnelOption } from '@/types/funnels'
 import { useFunnelEngine } from './useFunnelEngine'
-import { FunnelRuntimeContext, type FunnelRuntimeContextValue } from './FunnelRuntimeContext'
+import { FunnelRuntimeContext, type FunnelRuntimeContextValue, type SelectedFunnelUnit } from './FunnelRuntimeContext'
 import { ProgressIndicator } from './ProgressIndicator'
 import { FUNNEL_BLOCK_REGISTRY } from './blocks'
 import { funnelRuntimeApi } from '@/lib/funnels/api'
@@ -35,6 +35,8 @@ export function FunnelRuntime({ config, whatsappNumber, whatsappMessage, onClose
   const sessionIdRef = useRef<string | null>(null)
   const [sessionId, setSessionId] = useState<string | null>(null)
   const leadSentRef = useRef(false)
+  const [selectedUnit, setSelectedUnit] = useState<SelectedFunnelUnit | null>(null)
+  const selectUnit = useCallback((unit: SelectedFunnelUnit) => setSelectedUnit(unit), [])
 
   const nameStepId = useMemo(() => config.steps.find((step) => step.type === 'text_input')?.id, [config.steps])
   const phoneStepId = useMemo(() => config.steps.find((step) => step.type === 'phone')?.id, [config.steps])
@@ -81,10 +83,19 @@ export function FunnelRuntime({ config, whatsappNumber, whatsappMessage, onClose
     if (!name || !phone) return
 
     leadSentRef.current = true
-    fireAndRetry(() => funnelRuntimeApi.upsertLead(sessionId, { name, phone }))
+    fireAndRetry(() =>
+      funnelRuntimeApi.upsertLead(sessionId, {
+        name,
+        phone,
+        // O contrato (back-end-funil.md §6) espera `unit_id` — o endpoint público
+        // `/unidades/` só expõe `slug`, não o id numérico. Enviando o slug até o
+        // back-end confirmar como resolver essa referência.
+        unit_id: selectedUnit?.slug,
+      }),
+    )
     trackEvent('lead_created', phoneStepId)
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [engine.answers, sessionId, nameStepId, phoneStepId])
+  }, [engine.answers, sessionId, nameStepId, phoneStepId, selectedUnit])
 
   if (!engine.currentStep) {
     return null
@@ -105,10 +116,19 @@ export function FunnelRuntime({ config, whatsappNumber, whatsappMessage, onClose
 
   const BlockComponent = FUNNEL_BLOCK_REGISTRY[engine.currentStep.type]
 
+  // Se o usuário escolheu uma unidade no step `unit_choice`, o CTA final vai pro
+  // WhatsApp DELA, não pro número padrão da página de origem.
+  const finalWhatsappNumber = selectedUnit?.whatsapp || whatsappNumber
+  const finalWhatsappMessage = selectedUnit
+    ? `${whatsappMessage ?? ''} Quero ser atendido(a) na unidade ${selectedUnit.nome}.`.trim()
+    : whatsappMessage
+
   const contextValue: FunnelRuntimeContextValue = {
     sessionId,
-    whatsappUrl: buildWhatsappUrl(whatsappNumber, whatsappMessage),
+    whatsappUrl: buildWhatsappUrl(finalWhatsappNumber, finalWhatsappMessage),
     trackEvent,
+    selectedUnit,
+    selectUnit,
   }
 
   return (

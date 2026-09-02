@@ -7,6 +7,7 @@ export type FunnelBlockType =
   | 'choice'
   | 'image_choice'
   | 'before_after'
+  | 'unit_choice'
   | 'text_input'
   | 'phone'
   | 'video'
@@ -61,7 +62,7 @@ export interface FunnelStep {
   placeholder?: string
   /** Usado por `cta`/`result` — texto do botão. */
   cta_label?: string
-  /** Próximo step quando o bloco não tem opções (video, cta, text_input, phone). */
+  /** Próximo step quando o bloco não tem opções (video, cta, text_input, phone, unit_choice). */
   next_step_id?: string | null
 }
 

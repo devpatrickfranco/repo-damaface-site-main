@@ -10,16 +10,24 @@ import { funnelAdminApi } from '@/lib/funnels/admin-api'
 import type { Funnel, FunnelBlockType, FunnelStep } from '@/types/funnels'
 import { Spinner } from '@/components/ui/spinner'
 import { FUNNEL_BLOCK_REGISTRY } from '@/components/funnel-runtime/blocks'
-import { FunnelRuntimeContext } from '@/components/funnel-runtime/FunnelRuntimeContext'
+import { FunnelRuntimeContext, type FunnelRuntimeContextValue } from '@/components/funnel-runtime/FunnelRuntimeContext'
 
-// Stub para o preview do Builder — CTABlock lê o contexto do Runtime (sessionId,
-// whatsappUrl), que não existe fora do funil real. O clique fica inerte aqui.
-const PREVIEW_RUNTIME_CONTEXT = { sessionId: null, whatsappUrl: '#', trackEvent: () => {} }
+// Stub para o preview do Builder — CTABlock/UnitChoiceBlock leem o contexto do
+// Runtime (sessionId, whatsappUrl, unidade selecionada), que não existe fora do
+// funil real. Clique/seleção ficam inertes aqui — é só visual.
+const PREVIEW_RUNTIME_CONTEXT: FunnelRuntimeContextValue = {
+  sessionId: null,
+  whatsappUrl: '#',
+  trackEvent: () => {},
+  selectedUnit: null,
+  selectUnit: () => {},
+}
 
 const MVP_BLOCK_TYPES: { type: FunnelBlockType; label: string }[] = [
   { type: 'choice', label: 'Choice' },
   { type: 'image_choice', label: 'Image Choice' },
   { type: 'before_after', label: 'Before / After' },
+  { type: 'unit_choice', label: 'Escolha de unidade' },
   { type: 'text_input', label: 'Text Input' },
   { type: 'phone', label: 'Phone' },
   { type: 'cta', label: 'CTA' },
@@ -320,7 +328,10 @@ export default function FunnelEditorPage() {
                 </div>
               )}
 
-              {(selectedStep.type === 'before_after' || selectedStep.type === 'text_input' || selectedStep.type === 'phone') && (
+              {(selectedStep.type === 'before_after' ||
+                selectedStep.type === 'unit_choice' ||
+                selectedStep.type === 'text_input' ||
+                selectedStep.type === 'phone') && (
                 <div>
                   <label className="mb-1 block text-xs font-medium text-gray-400">Próximo step</label>
                   <select

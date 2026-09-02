@@ -22,6 +22,7 @@ const MVP_BLOCK_DEFAULTS: Record<string, Partial<FunnelStep>> = {
   choice: { title: 'Nova pergunta', options: [] },
   image_choice: { title: 'Nova pergunta com imagem', options: [] },
   before_after: { title: 'Antes / depois', pairs: [] },
+  unit_choice: { title: 'Em qual unidade você quer ser atendido(a)?' },
   text_input: { title: 'Como podemos te chamar?', placeholder: 'Seu nome' },
   phone: { title: 'Qual seu WhatsApp?', placeholder: '(19) 99999-9999' },
   cta: { title: 'Seu próximo passo começa aqui.', cta_label: 'Falar com nossa equipe' },

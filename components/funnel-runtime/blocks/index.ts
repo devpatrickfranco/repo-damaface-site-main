@@ -4,6 +4,7 @@ import type { FunnelBlockProps } from './types'
 import { ChoiceBlock } from './ChoiceBlock'
 import { ImageChoiceBlock } from './ImageChoiceBlock'
 import { BeforeAfterBlock } from './BeforeAfterBlock'
+import { UnitChoiceBlock } from './UnitChoiceBlock'
 import { TextInputBlock } from './TextInputBlock'
 import { PhoneBlock } from './PhoneBlock'
 import { VideoBlock } from './VideoBlock'
@@ -15,6 +16,7 @@ export const FUNNEL_BLOCK_REGISTRY: Record<FunnelBlockType, ComponentType<Funnel
   choice: ChoiceBlock,
   image_choice: ImageChoiceBlock,
   before_after: BeforeAfterBlock,
+  unit_choice: UnitChoiceBlock,
   text_input: TextInputBlock,
   phone: PhoneBlock,
   video: VideoBlock,
