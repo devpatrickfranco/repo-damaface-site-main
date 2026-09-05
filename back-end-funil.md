@@ -1,12 +1,12 @@
 # DamaFace Funnel Engine — Back-end
 
-**Status:** Proposed
+**Status:** Implementado (V3.1 Foundation + V3.3 Analytics) — código em `apps/funnels/` (back-end `api-franqueadora`)
 **Versão:** V3
 **Área:** API + banco de dados do Funnel Engine
-**Acesso administrativo:** Exclusivo para `superadmin` (validado no servidor)
-**Documento fonte:** `damaface-funnel-engine-v3.md`
+**Acesso administrativo:** Exclusivo para `superadmin` (validado no servidor via `IsSuperAdminOnly`)
+**Fonte da verdade:** este documento foi atualizado a partir do código real em `apps/funnels/` (models, views, serializers, services, urls) — não da proposta original. A proposta original (`damaface-funnel-engine-v3.md`) permanece como referência histórica de intenção, mas diverge do que foi construído em vários pontos (ver notas "⚠️ Divergência da proposta original" ao longo do documento).
 
-> Este documento contém a fatia de **back-end** da proposta do Funnel Engine: modelo de dados, API, regras de atribuição/tracking, motor de analytics, segurança e integrações futuras. A fatia de front-end (UX do runtime, Builder, componentes de UI, psicologia de conversão) está em `front-end-funil.md`.
+> Este documento contém a fatia de **back-end** do Funnel Engine: modelo de dados, API, regras de atribuição/tracking, motor de analytics, segurança e integrações. A fatia de front-end (UX do runtime, Builder, componentes de UI) está em `PDI-front-end-funil.md`.
 
 ---
 
@@ -16,30 +16,32 @@ O back-end é responsável por:
 
 1. Persistir a configuração dos funis (Funnel Builder, servida ao front-end como JSON);
 2. Registrar sessões, eventos, respostas e leads gerados pelo Runtime público;
-3. Calcular e expor, via API, as métricas de analytics e atribuição consumidas pelo Funnel Center;
-4. Garantir segurança, autorização e integridade dos dados;
-5. Servir de base para integrações futuras (Dama.AI, atribuição de receita).
+3. Publicar versões imutáveis do funil (snapshot), para que edições no draft nunca quebrem sessões em andamento;
+4. Calcular e expor, via API, as métricas de analytics e atribuição consumidas pelo Funnel Center;
+5. Garantir segurança, autorização e integridade dos dados;
+6. Notificar a clínica/unidade via WhatsApp (Evolution API) a cada lead criado;
+7. Servir de base para integrações futuras (Dama.AI, atribuição de receita).
 
 ```text
 Funnel Runtime / Funnel Center (front-end)
                     |
                     ↓
-               Funnel API
+           Funnel API (montada em /funnels/)
                     |
-      ┌─────────────┼─────────────┐
-      ↓             ↓             ↓
-  Sessions        Events         Leads
-      |             |             |
+      ┌─────────────┼─────────────┬─────────────┐
+      ↓             ↓             ↓             ↓
+  Sessions        Events         Leads      FunnelVersion
+      |             |             |         (snapshot publicado)
       └─────────────┼─────────────┘
                      ↓
                   Database
                      |
           ┌──────────┴──────────┐
           ↓                     ↓
-       Analytics             Dama.AI
+       Analytics          Evolution API (WhatsApp)
                                  |
                                  ↓
-                              WhatsApp
+                          Clínica/Unidade
 ```
 
 ---
@@ -50,41 +52,49 @@ Funnel Runtime / Funnel Center (front-end)
 
 ```text
 1. superadmin cria um funil (rascunho)
-2. superadmin adiciona/edita steps e opções
-3. superadmin publica o funil (gera nova versão)
-4. superadmin duplica um funil existente para outra unidade
+2. superadmin adiciona/edita steps e opções (com lógica condicional via option.next_step)
+3. superadmin publica o funil → gera FunnelVersion (snapshot imutável) + valida ausência de ciclos
+4. superadmin duplica um funil existente (steps+options, sempre como novo rascunho)
+5. superadmin arquiva um funil (bloqueia edição até reabrir como draft)
 ```
 
-### Runtime (chamadas públicas)
+### Runtime (chamadas públicas, `AllowAny` + throttle)
 
 ```text
-1. Usuário abre o funil → back-end cria uma FunnelSession com atribuição (source_page, UTM, referrer)
-2. Usuário responde uma pergunta → back-end registra FunnelAnswer + FunnelEvent
-3. Usuário avança de step → back-end registra FunnelEvent (step_view/step_complete)
-4. Usuário informa nome/telefone → back-end cria/atualiza o Lead vinculado à sessão
-5. Usuário clica no CTA de WhatsApp → back-end registra o evento whatsapp_click
+1. Usuário abre o funil → front-end busca GET /funnels/{funnel_id}/ (snapshot publicado, cacheado)
+2. Front-end cria a sessão → POST /funnels/{funnel_id}/sessions/ → back-end grava atribuição
+   (source_page, UTM, referrer, device/browser/os) e emite o evento funnel_view automaticamente
+3. Usuário avança de step → POST /funnels/sessions/{session_id}/events/ (step_view, step_complete, funnel_start, whatsapp_click, ...)
+4. Usuário responde uma pergunta → POST /funnels/sessions/{session_id}/answers/ (upsert por session+step;
+   emite step_answer automaticamente)
+5. Usuário informa nome/telefone → POST /funnels/sessions/{session_id}/lead/ → cria/atualiza o Lead
+   (upsert por session) e dispara a notificação WhatsApp à clínica em background (on_commit)
 ```
 
 ### Analytics (consultas do Funnel Center)
 
 ```text
 1. superadmin acessa /franqueado/funnels/[id]/results
-2. Front-end consulta a API de analytics do funil
-3. Back-end agrega sessões/eventos/leads e retorna métricas por etapa, página, UTM, campanha, criativo e resposta
+2. Front-end consulta GET /funnels/admin/funnels/{id}/analytics(/pages|/utm|/steps|/answers)/
+3. Back-end agrega sessões/eventos/leads (com cache de 5 min) e retorna métricas por etapa,
+   página, UTM/campanha/criativo e resposta
 ```
 
 ---
 
-## 3. Requisitos funcionais
+## 3. Requisitos funcionais (estado atual)
 
-- CRUD completo de funis (`Funnel`) e de seus `FunnelStep`/`FunnelOption`.
-- Endpoints públicos para: criar sessão, registrar evento, registrar resposta, criar/atualizar lead (ver seção 7 — API).
-- **Versionamento de publicação**: publicar um funil gera uma nova versão; sessões já iniciadas continuam usando a versão com a qual começaram.
-- **Duplicação de funil**: permitir copiar um funil inteiro (steps, options, configuração) para agilizar a criação de variações por unidade/procedimento (ex: "Botox - Vinhedo" → "Botox - Campinas").
-- **Vinculação página → funil**: permitir configurar qual funil deve abrir a partir de um determinado CTA/página.
-- **Persistência de UTM** durante a navegação do usuário antes de entrar no funil, com estratégia mínima de `first_touch` e `last_touch`.
-- Endpoints de analytics: overview, por página, por UTM, por etapa, por resposta (ver seção 9).
-- Upload e gestão de `FunnelAsset` (imagens, antes/depois, vídeos, depoimentos), com validação de tipo e tamanho.
+- ✅ CRUD completo de `Funnel` (`FunnelAdminViewSet`) e de `FunnelStep`/`FunnelOption` (nested, com posição automática).
+- ✅ Endpoints públicos: detalhe do funil publicado, criar sessão, registrar evento, registrar resposta, criar/atualizar lead.
+- ✅ **Versionamento de publicação**: `publish()` gera `FunnelVersion.config_json` (snapshot completo com assets resolvidos); sessões guardam `funnel_version` e o runtime público sempre lê do snapshot, nunca das tabelas de draft.
+- ✅ **Duplicação de funil**: action `duplicate()` copia steps+options remapeando `next_step_id`; a cópia nasce sempre como `draft` (não copia `FunnelVersion`).
+- ✅ **Arquivamento**: action `archive()`; um funil arquivado só volta a ser editável via `PATCH status=draft` (reabertura explícita).
+- ⚠️ **Vinculação página → funil**: não existe como relação de banco. `Funnel.target_pages` (JSONField) é só metadado informativo para a UI admin — o front-end decide qual `funnel_id` chamar em cada página, o back-end não valida/roteia essa associação.
+- ✅ **Persistência de UTM**: capturada no `POST /sessions/` e sanitizada (`bleach`); a estratégia de "sobreviver à navegação antes do funil" é responsabilidade do front-end (localStorage/sessionStorage) — o back-end só recebe o que o front enviar nesse payload.
+- ✅ Endpoints de analytics: overview, pages, utm (com `group_by` opcional), steps, answers, além de um dashboard global cross-funil/cross-unidade.
+- ✅ Upload e gestão de `FunnelAsset` (`FunnelAssetAdminViewSet`), com validação de extensão e tamanho (imagem ≤10MB, vídeo ≤50MB) — aceita também `external_url` sem upload.
+- ✅ Auditoria administrativa (`FunnelAuditLog`) em create/update/publish/archive/duplicate/delete.
+- ✅ Job periódico (Celery) `mark_abandoned_sessions` marca sessões inativas há 30min como abandonadas e emite `funnel_abandon`.
 
 ---
 
@@ -92,71 +102,76 @@ Funnel Runtime / Funnel Center (front-end)
 
 ### Segurança
 
-- Validar `superadmin` **no backend** em toda rota administrativa — nunca confiar apenas na checagem do front-end.
-- Validar IDs de funil recebidos em qualquer endpoint.
-- Sanitizar todos os inputs recebidos do runtime público.
-- Validar formato de telefone.
-- Rate limit nos endpoints públicos (sessão, evento, resposta, lead).
-- Impedir spam/flood de eventos por sessão.
-- Evitar duplicação de leads (ex: mesma sessão/telefone gerando múltiplos registros).
-- Registrar auditoria de alterações administrativas (quem criou/editou/publicou um funil e quando).
-- Limitar tamanho de upload de imagens/vídeos.
-- Validar MIME type no upload de assets.
+- ✅ `IsSuperAdminOnly` (`apps/funnels/permissions.py`) valida `request.user.role == Usuario.Role.SUPERADMIN` no servidor em toda rota `admin/*` — réplica local de `apps.dashboard.permissions.IsSuperAdminOnly`.
+- ✅ IDs de funil/step/option validados via `get_object_or_404` / querysets escopados por `funnel_id`/`step_id` (não dá para editar um option de outro funil trocando o ID na URL).
+- ✅ Sanitização de inputs do runtime público via `bleach.clean` (`services/attribution.py`), campos truncados nos `max_length` do model.
+- ✅ Validação/normalização de telefone via `EvolutionAPIService.format_number` — lead é rejeitado (`400`) se o telefone não for válido.
+- ✅ Rate limit nos endpoints públicos, com duas estratégias (`throttles.py`):
+  - por **IP do visitante** (ciente de `X-Forwarded-For`, 1 hop atrás do Traefik): `POST /sessions/` (30/min), `POST /lead/` (10/min);
+  - por **session_id da URL** (não por IP, para não penalizar redes compartilhadas/NAT): `POST /events/` (120/min), `POST /answers/` (60/min).
+- ✅ Anti-duplicação de leads: `Lead.session` é `OneToOneField` (constraint de banco) + `update_or_create(session=...)` na view — upsert, nunca duplica.
+- ✅ Anti-spoofing de atribuição: `source_page`/UTM do `Lead` são **sempre copiados da `FunnelSession`**, nunca aceitos diretamente no corpo de `POST /lead/`.
+- ✅ Auditoria: `FunnelAuditLog` registra quem/quando/o quê em toda alteração administrativa, com snapshot do nome do funil (sobrevive à exclusão via `SET_NULL`).
+- ✅ Limite de tamanho e MIME/extensão no upload de `FunnelAsset` (validado em `FunnelAssetSerializer.validate`).
 
-Exemplo conceitual de validação de autorização:
+Implementação real (não é mais conceitual):
 
 ```python
-if user.role != "superadmin":
-    raise HTTPException(
-        status_code=403,
-        detail="Acesso negado"
-    )
+class IsSuperAdminOnly(BasePermission):
+    def has_permission(self, request, view):
+        if not request.user or not request.user.is_authenticated:
+            return False
+        return request.user.role == Usuario.Role.SUPERADMIN
 ```
 
 ### Auditabilidade
 
-- Toda alteração administrativa (criação, edição, publicação, arquivamento, duplicação de funil) deve ser rastreável.
+- Toda alteração administrativa (`created`, `updated`, `published`, `archived`, `duplicated`, `deleted`) é gravada em `FunnelAuditLog`, com `actor`, `metadata` (ex.: `version_number` na publicação, `source_funnel_id` na duplicação) e `created_at`.
 
 ---
 
-## 5. Regras de negócio
+## 5. Regras de negócio (confirmadas no código)
 
-1. **Session ≠ Lead.** Uma `FunnelSession` representa qualquer visita/interação com o funil e pode existir sem nunca se tornar um `Lead`. Um `Lead` só existe quando os dados mínimos de contato (nome + telefone) são capturados.
+1. **Session ≠ Lead.** Uma `FunnelSession` pode existir sem nunca virar `Lead` (usuário responde e abandona). O `Lead` só é criado no `POST /lead/`.
 
-```text
-usuário entra → responde 3 perguntas → abandona
-```
+2. **Atribuição é obrigatória e imutável após a sessão.** Capturada em `POST /sessions/` (`source_page`, UTM, `referrer`, com fallback de `referrer` no header `HTTP_REFERER`) e nunca reaceita depois — inclusive o `Lead` herda da sessão, não do payload de criação do lead.
 
-Nesse caso existe `FunnelSession`, mas não `Lead`.
+3. **Eventos são first-class citizens.** Além do que o front dispara explicitamente, o back-end emite automaticamente `funnel_view` (na criação da sessão), `step_answer` (a cada resposta) e `funnel_abandon` (job periódico) — reduz dependência de o front-end acertar todas as chamadas manualmente.
 
-2. **Atribuição é obrigatória.** Toda sessão deve tentar armazenar `source_page`, UTM e `referrer` no momento da criação — não depender apenas de parâmetros enviados posteriormente.
+4. **Publicação não pode quebrar sessões em andamento.** `publish_funnel()` grava um snapshot completo (`FunnelVersion.config_json`, com URLs de asset já resolvidas) e associa cada nova sessão à versão vigente no momento da criação (`FunnelSession.funnel_version`). O runtime público (`GET /funnels/{id}/`) sempre lê do snapshot mais recente publicado, nunca das tabelas de draft.
 
-3. **Eventos são first-class citizens.** O sistema deve registrar o comportamento do usuário (visualizações, respostas, abandono), não apenas o resultado final (lead criado ou não).
+5. **Funil é configuração, não código.** `FunnelStep`/`FunnelOption` são a fonte editável (draft); `FunnelVersion.config_json` é a fonte servida ao runtime.
 
-4. **Publicação não pode quebrar sessões em andamento.** Alterações em um funil publicado geram uma nova versão; sessões já iniciadas em uma versão anterior continuam íntegras.
+6. **Admin e público são superfícies separadas**, com `permission_classes` e `throttle_classes` diferentes por view — nunca a mesma classe atende as duas.
 
-5. **Funil é configuração, não código** — o back-end é a fonte de verdade da configuração; o front-end apenas interpreta.
+7. **Publicar exige integridade do fluxo.** `publish()` recusa (`ValidationError`) um funil sem nenhum step, e roda detecção de ciclo (`detect_cycle`, DFS sobre `step → option.next_step`) antes de gerar a versão — um funil com lógica condicional circular nunca é publicado.
 
-6. **Admin e público são superfícies separadas** — as rotas administrativas exigem `superadmin` validado no servidor; as rotas de runtime são públicas mas protegidas por rate limit e sanitização.
+8. **Funil arquivado é somente leitura.** Qualquer tentativa de criar/editar step, option, ou fazer `PATCH` no funil (exceto `status: draft` para reabrir) retorna `409 Conflict` (`FunnelArchivedConflict`).
+
+9. **Exclusão é protegida quando há histórico.** `DELETE /admin/funnels/{id}/` retorna `409` se o funil já tem `FunnelSession` associada (ou `ProtectedError` genérico) — a alternativa é arquivar, nunca excluir com dado real vinculado.
+
+10. **`unit_id` do Lead é slug, não id numérico** (ver §11) — resolvido internamente contra `Franquia.slug`; slug que não bate com nenhuma unidade **não falha a criação do lead** (grava `unit=None` + `unit_slug` bruto e loga aviso), priorizando nunca perder um lead por essa divergência.
 
 ---
 
-## 6. Modelo de dados
+## 6. Modelo de dados (schema real, `apps/funnels/models.py`)
 
 ### Entidades e relacionamento
 
 ```text
 Funnel
  ├── FunnelStep
- │    └── FunnelOption
- │
- └── FunnelAsset
+ │    └── FunnelOption ── (asset: FK opcional para FunnelAsset)
+ ├── FunnelVersion        # snapshot imutável gerado na publicação
+ └── FunnelAuditLog       # trilha de auditoria (funnel pode ser NULL após exclusão)
+
+FunnelAsset               # biblioteca compartilhada entre funis (não pertence a 1 funil só)
 
 Funnel
- └── FunnelSession
+ └── FunnelSession (FK → FunnelVersion usada na sessão)
       ├── FunnelAnswer
       ├── FunnelEvent
-      └── Lead
+      └── Lead (OneToOne — no máx. 1 lead por sessão; FK → users.Franquia como unidade)
 ```
 
 ### Funnel
@@ -164,11 +179,12 @@ Funnel
 ```text
 id
 name
-slug
+slug              # único; auto-gerado via slugify(name) se vazio
 description
-status        # draft | published | archived
-version
-created_by
+status            # draft | published | archived
+version           # nº da última versão publicada (0 enquanto nunca publicado)
+target_pages      # JSONField — metadado informativo p/ UI admin, NÃO usado em roteamento
+created_by        # FK → Usuario (SET_NULL)
 created_at
 updated_at
 published_at
@@ -179,15 +195,19 @@ published_at
 ```text
 id
 funnel_id
-type
+type              # choice | image_choice | before_after | text_input | phone |
+                  # video | testimonial | cta | result
 title
 description
 position
 required
-tracking_key
+tracking_key      # slug estável; único por funil (constraint parcial, ignora vazio);
+                  # sobrevive à exclusão/recriação do step via snapshot em Answer/Event
 created_at
 updated_at
 ```
+
+⚠️ **Divergência da proposta original:** o tipo `unit_choice` citado na proposta e em `types/funnels.ts` (front-end) **não existe** em `FunnelStep.Type` no back-end atual.
 
 ### FunnelOption
 
@@ -196,29 +216,61 @@ id
 step_id
 label
 value
-asset_id
-next_step_id
+asset_id          # FK → FunnelAsset (SET_NULL), não uma URL solta
+next_step_id      # FK → FunnelStep (SET_NULL) — lógica condicional
 position
 ```
+
+⚠️ **Divergência da proposta original:** não existe campo `image_url` solto — a imagem sempre vem resolvida via `asset` (e é o snapshot de publicação, `build_snapshot()`, que resolve a URL absoluta do asset, não o front-end).
 
 ### FunnelAsset
 
 ```text
 id
 name
-type          # image | before_after | video | testimonial
-url
-thumbnail_url
+type              # image | before_after | video | testimonial
+file              # FileField opcional (upload local)
+external_url      # alternativa a `file` — asset por URL externa
+thumbnail         # ImageField opcional
+thumbnail_url     # alternativa a `thumbnail`
 procedure
-metadata
+metadata          # JSONField
+created_by        # FK → Usuario
+created_at
+```
+
+Campos computados expostos pela API (não colunas de banco): `url` (resolve `file` ou `external_url`) e `thumbnail_url_resolved` (resolve `thumbnail` ou `thumbnail_url`), ambos absolutizados quando servidos via upload local.
+
+### FunnelVersion — snapshot imutável (não previsto na proposta original)
+
+```text
+id
+funnel_id
+version_number    # incremental por funil
+config_json        # { funnel: {id,name,slug,description}, steps: [...] } — assets já resolvidos
+published_at
+published_by       # FK → Usuario (SET_NULL)
+```
+
+### FunnelAuditLog — trilha de auditoria (não previsto na proposta original)
+
+```text
+id
+funnel_id          # FK SET_NULL — pode ficar nulo após exclusão do funil
+funnel_name        # snapshot do nome, mantém a auditoria legível mesmo com funnel_id=NULL
+actor              # FK → Usuario (SET_NULL)
+action             # created | updated | published | archived | duplicated | deleted
+metadata           # JSONField
 created_at
 ```
 
 ### FunnelSession
 
 ```text
-id
+id                 # UUID (não sequencial — evita enumeração de sessões públicas)
 funnel_id
+funnel_version_id  # versão publicada vigente no momento da criação da sessão
+is_preview         # reservado p/ preview administrativo; sempre excluído da analytics
 
 source_page
 source_url
@@ -230,7 +282,7 @@ utm_campaign
 utm_content
 utm_term
 
-device
+device             # desktop | mobile | tablet | '' — heurística simples por User-Agent
 browser
 os
 
@@ -247,20 +299,24 @@ A sessão é a entidade responsável pela atribuição.
 ```text
 id
 session_id
-step_id
-option_id
+step_id            # FK SET_NULL
+step_tracking_key  # snapshot do tracking_key no momento da resposta
+option_id          # FK SET_NULL
 value
 created_at
 ```
+
+Constraint: no máximo 1 `FunnelAnswer` por `(session, step)` — respostas subsequentes ao mesmo step fazem upsert (`update_or_create`), nunca duplicam.
 
 ### FunnelEvent
 
 ```text
 id
 session_id
-event
-step_id
-metadata
+event              # ver §10
+step_id            # FK SET_NULL, opcional
+step_tracking_key  # snapshot
+metadata           # JSONField, limitado a 2KB
 created_at
 ```
 
@@ -268,74 +324,89 @@ created_at
 
 ```text
 id
-session_id
+session_id         # OneToOneField — no máx. 1 lead por sessão (constraint de banco)
 funnel_id
 name
-phone
+phone              # normalizado via EvolutionAPIService.format_number
 email
 treatment
-unit_id
-source_page
+unit_id            # FK → users.Franquia (SET_NULL) — resolvida a partir de unit_slug
+unit_slug          # snapshot do valor bruto recebido (slug), sobrevive a slug inválido/deletado
+source_page        # sempre copiado de FunnelSession, nunca do payload
 utm_source
 utm_medium
 utm_campaign
 utm_content
+whatsapp_notified      # true se a Evolution API confirmou o envio à clínica
+whatsapp_notified_at
 created_at
+updated_at
 ```
+
+⚠️ **Divergência da proposta original:** `unit_id` não é o id numérico de `Funil`/`Unidade` — é resolvido contra `Franquia.slug` (ver §11, pendência já resolvida). Os campos `whatsapp_notified`/`whatsapp_notified_at` e `unit_slug` não estavam na proposta original.
 
 ---
 
-## 7. API
+## 7. API (rotas reais — `apps/funnels/urls.py`)
 
-### Público (Runtime)
+O app `funnels` é montado em `/funnels/` (`core/urls.py`: `path('funnels/', include('apps.funnels.urls'))`). **Toda rota administrativa é `/funnels/admin/...`, não `/api/admin/...`** — não existe prefixo `/api/` neste back-end, e `/admin/` sozinho é o Django Admin site (`core/urls.py`), uma superfície totalmente diferente que devolve HTML, não JSON. Confundir os dois foi a causa da tela "Resposta JSON inválida em /admin/funnels/" no Funnel Center (ver nota no `lib/funnels/admin-api.ts` do front-end).
 
-```http
-POST /api/funnels/{funnel_id}/sessions
-```
-Cria uma sessão.
+### Admin — Funis (`IsSuperAdminOnly`)
 
 ```http
-POST /api/funnels/sessions/{session_id}/events
+GET    /funnels/admin/funnels/
+POST   /funnels/admin/funnels/
+GET    /funnels/admin/funnels/{id}/
+PATCH  /funnels/admin/funnels/{id}/
+PUT    /funnels/admin/funnels/{id}/
+DELETE /funnels/admin/funnels/{id}/
+POST   /funnels/admin/funnels/{id}/publish/
+POST   /funnels/admin/funnels/{id}/duplicate/
+POST   /funnels/admin/funnels/{id}/archive/
 ```
-Registra evento.
+
+`PATCH`/`PUT` só aceitam `status` quando o valor é `draft` (reabertura); `published`/`archived` só através das actions dedicadas.
+
+### Admin — Analytics (`IsSuperAdminOnly`)
 
 ```http
-POST /api/funnels/sessions/{session_id}/answers
+GET /funnels/admin/funnels/{id}/analytics/
+GET /funnels/admin/funnels/{id}/analytics/pages/
+GET /funnels/admin/funnels/{id}/analytics/utm/          # aceita ?group_by=utm_source|utm_campaign|utm_content
+GET /funnels/admin/funnels/{id}/analytics/steps/
+GET /funnels/admin/funnels/{id}/analytics/answers/
+GET /funnels/admin/dashboard/                            # cross-funil/cross-unidade, não é por {id}
 ```
-Registra resposta.
+
+Todos os endpoints de analytics aceitam `?date_from=YYYY-MM-DD&date_to=YYYY-MM-DD` (opcionais).
+
+### Admin — Steps / Options (nested, `IsSuperAdminOnly`)
 
 ```http
-POST /api/funnels/sessions/{session_id}/lead
+GET/POST            /funnels/admin/funnels/{funnel_id}/steps/
+GET/PATCH/PUT/DELETE /funnels/admin/funnels/{funnel_id}/steps/{step_id}/
+GET/POST            /funnels/admin/funnels/{funnel_id}/steps/{step_id}/options/
+GET/PATCH/PUT/DELETE /funnels/admin/funnels/{funnel_id}/steps/{step_id}/options/{option_id}/
 ```
-Cria/atualiza lead.
 
-### Admin — Funis
+### Admin — Assets (`IsSuperAdminOnly`)
 
 ```http
-GET    /api/admin/funnels
-POST   /api/admin/funnels
-GET    /api/admin/funnels/{id}
-PATCH  /api/admin/funnels/{id}
-DELETE /api/admin/funnels/{id}
+GET/POST             /funnels/admin/assets/       # aceita ?type=image|before_after|video|testimonial
+GET/PATCH/PUT/DELETE  /funnels/admin/assets/{id}/
 ```
 
-### Admin — Steps
+### Público (Runtime, `AllowAny` + throttle)
 
 ```http
-POST   /api/admin/funnels/{id}/steps
-PATCH  /api/admin/funnels/{id}/steps/{step_id}
-DELETE /api/admin/funnels/{id}/steps/{step_id}
+GET  /funnels/{funnel_id}/                          # config publicada (snapshot), cacheada
+POST /funnels/{funnel_id}/sessions/                 # cria sessão
+POST /funnels/sessions/{session_id}/events/         # registra evento
+POST /funnels/sessions/{session_id}/answers/        # registra resposta (upsert)
+POST /funnels/sessions/{session_id}/lead/           # cria/atualiza lead (upsert) + notifica clínica
 ```
 
-### Admin — Analytics
-
-```http
-GET /api/admin/funnels/{id}/analytics
-GET /api/admin/funnels/{id}/analytics/pages
-GET /api/admin/funnels/{id}/analytics/utm
-GET /api/admin/funnels/{id}/analytics/steps
-GET /api/admin/funnels/{id}/analytics/answers
-```
+⚠️ **Divergência da proposta original:** a proposta descrevia tudo sob `/api/...`; o back-end real não usa esse prefixo em nenhuma rota. `funnelAdminApi` (`lib/funnels/admin-api.ts`) hoje só cobre list/get/create/update/remove/publish/createStep/updateStep/deleteStep — **duplicate, archive, analytics (5 endpoints), assets admin e options nested ainda não têm client no front-end**, apesar de já existirem e funcionarem no back-end.
 
 ---
 
@@ -343,359 +414,232 @@ GET /api/admin/funnels/{id}/analytics/answers
 
 ### Captura no disparo do funil
 
-Ao disparar o funil, capturar imediatamente (sem depender de dados enviados depois):
+Capturado em `POST /funnels/{funnel_id}/sessions/`, sanitizado via `bleach.clean` (sem tags, truncado no `max_length` de cada campo):
 
 ```text
-funnel_id
 source_page
 source_url
-referrer
+referrer          # fallback: header HTTP_REFERER, se o corpo não trouxer
 utm_source
 utm_medium
 utm_campaign
 utm_content
 utm_term
-timestamp
 ```
+
+`funnel_id`, `device`, `browser`, `os` são derivados no servidor (URL da rota e `User-Agent`, respectivamente), não enviados pelo front.
 
 ### Page-to-Funnel Attribution
 
-Permite analisar a transição `Página → Clique → Funil → Lead`, por página de origem:
+Calculada por `services/analytics.get_pages()` — sessões e `funnel_start` (evento) agrupados por `source_page`, e leads agrupados por `Lead.source_page`. Exemplo de shape de resposta:
 
-```text
-/vinhedo/botox
-Visitas:              12.400
-Entradas no funil:     3.120
-Taxa de entrada:      25,16%
-Leads:                   721
-Conversão em lead:     23,11%
+```json
+[
+  {
+    "source_page": "/vinhedo/botox",
+    "sessions": 12400,
+    "entries": 3120,
+    "leads": 721,
+    "entry_rate": 25.16,
+    "conversion_rate": 5.81
+  }
+]
 ```
 
 ### UTM Attribution
 
-Além da página, armazenar na sessão:
-
-```text
-utm_source
-utm_medium
-utm_campaign
-utm_content
-utm_term
-```
-
-### Exemplo completo de atribuição ponta a ponta
-
-Usuário acessa `/vinhedo/botox` via `utm_source=meta&utm_medium=paid&utm_campaign=botox-vinhedo&utm_content=video-rugas-01` e clica no CTA. O back-end cria:
-
-```json
-{
-  "session_id": "abc123",
-  "source_page": "/vinhedo/botox",
-  "utm_source": "meta",
-  "utm_medium": "paid",
-  "utm_campaign": "botox-vinhedo",
-  "utm_content": "video-rugas-01",
-  "funnel_id": "botox-vinhedo"
-}
-```
-
-O usuário responde (`objective = rugas`, `region = testa`) e informa `name = Maria`, `phone = ...`. O lead resultante mantém toda a atribuição original.
+Armazenada na sessão e copiada ao lead: `utm_source`, `utm_medium`, `utm_campaign`, `utm_content`, `utm_term` (este último só na sessão — `Lead` não guarda `utm_term`).
 
 ### Persistência de UTM entre navegação
 
-A UTM deve sobreviver à navegação do usuário antes de entrar no funil:
-
-```text
-Meta Ad → /vinhedo/botox?utm_source=meta... → usuário navega → clica no CTA → funil
-```
-
-Estratégia mínima na V3: registrar `first_touch` e `last_touch` (estratégia completa poderia incluir também `current_session`).
+Responsabilidade do **front-end** (não implementada no back-end): o back-end só recebe o que vier no `POST /sessions/`. A estratégia `first_touch`/`last_touch` citada na proposta original ainda não tem contrapartida no schema — não há colunas para isso.
 
 ---
 
-## 9. Motor de analytics
+## 9. Motor de analytics (`apps/funnels/services/analytics.py`)
 
-### Overview (por funil)
+Estratégia: várias queries `.values().annotate(Count(...))` pequenas, mergeadas em Python (evita fan-out de JOIN em `Count` combinados sobre relações reversas diferentes). Todo resultado é cacheado por **5 minutos** via `django.core.cache.cache`, sem invalidação por signal (o volume de escrita pública tornaria a invalidação inútil na prática). Sessões `is_preview=True` são sempre excluídas.
 
-```text
-Sessões: 12.842
-Inícios: 9.341
-Leads: 2.183
-Conversão: 23,37%
-WhatsApp: 1.421
-```
-
-### Funil de conversão por etapa
-
-```text
-9.341  Funnel Started
-   ↓
-7.654  Step 1
-   ↓
-5.664  Step 2
-   ↓
-3.455  Lead Started
-   ↓
-2.183  Lead Created
-   ↓
-1.421  WhatsApp Click
-```
-
-### Conversão por etapa (detalhado)
-
-```text
-Step 1 — Visualizações: 9.341, Respostas: 7.654, Abandono: 1.687 → 82%
-Step 3 — Visualizações: 5.664, Respostas: 3.455, Abandono: 2.209 → 61%
-```
-
-### Conversão por página
-
-| Página | Sessões | Entradas | Leads | Conversão |
-|---|---:|---:|---:|---:|
-| `/vinhedo/botox` | 12.400 | 3.120 | 721 | 23,11% |
-| `/campinas/botox` | 9.800 | 2.870 | 680 | 23,69% |
-| `/vinhedo/preenchimento-facial` | 8.100 | 1.900 | 510 | 26,84% |
-
-### Conversão por UTM source
-
-| Source | Sessões | Leads | Conversão |
-|---|---:|---:|---:|
-| meta | 6.421 | 1.421 | 22,1% |
-| google | 1.823 | 521 | 28,6% |
-| instagram | 821 | 173 | 21,1% |
-| organic | 276 | 68 | 24,6% |
-
-### Conversão por campanha
-
-```text
-botox-vinhedo-setembro
-Sessões: 3.821
-Leads: 847
-Conversão: 22,2%
-```
-
-### Conversão por criativo (`utm_content`)
-
-| Criativo | Sessões | Leads | Conversão |
-|---|---:|---:|---:|
-| video-rugas-01 | 1.200 | 377 | 31,4% |
-| antes-depois-02 | 1.100 | 306 | 27,8% |
-| ugc-mulher-03 | 980 | 188 | 19,2% |
-
-### Conversão por resposta
-
-```text
-Qual seu principal objetivo?
-Rugas     47%
-Flacidez  28%
-Volume    17%
-Outro      8%
-
-Conversão por objetivo
-Rugas        31,4%
-Flacidez     24,1%
-Volume       18,7%
-Outro        11,2%
-```
-
-### Rankings globais (dashboard `/franqueado/funnels`)
-
-```text
-FUNNEL CENTER
-Total de sessões: 48.321
-Total de leads: 9.421
-Conversão média: 19,49%
-WhatsApp: 5.812
-```
-
-Rankings de páginas, fontes, campanhas e criativos seguem o mesmo padrão das tabelas acima, ordenados por leads gerados.
-
-### Categorias de métricas
-
-```text
-Acquisition   → page_views, funnel_entries
-Engagement    → step_views, step_answers, completion
-Lead          → lead_started, lead_created
-Intent        → whatsapp_click
-Futuro        → appointment_created, appointment_attended, sale_created, revenue
-```
-
-### Métrica crítica
-
-Não usar apenas **CTR**. O indicador principal deve ser a **Lead Conversion Rate**, evoluindo depois para **Qualified Lead Rate** e, por fim, **Revenue per Visitor**:
-
-```text
-Visitante → Entrada no funil → Lead → Lead qualificado → WhatsApp → Agendamento → Comparecimento → Venda → Receita
-```
-
----
-
-## 10. Eventos
-
-Tabela/event stream mínima:
-
-```text
-funnel_view
-funnel_start
-step_view
-step_answer
-step_complete
-lead_started
-lead_created
-whatsapp_click
-funnel_abandon
-```
-
-Exemplo:
+### Overview (`analytics_overview`)
 
 ```json
 {
-  "session_id": "abc123",
-  "event": "step_answer",
-  "step_id": "step_02",
-  "timestamp": "2026-09-01T15:30:00-03:00",
-  "metadata": {
-    "answer": "rugas"
-  }
+  "sessions": 12842,
+  "starts": 9341,
+  "leads": 2183,
+  "whatsapp_clicks": 1421,
+  "conversion_rate": 17.0
 }
 ```
 
-O evento `whatsapp_click` deve ser registrado no back-end **antes** de o usuário ser efetivamente redirecionado ao WhatsApp, permitindo medir a taxa `Leads → WhatsApp`.
+`conversion_rate` = leads / sessions (não leads / starts). `starts` conta sessões distintas com evento `funnel_start` — que **precisa ser emitido pelo front-end** (o back-end não gera esse evento sozinho, só `funnel_view`).
+
+### Funil por etapa (`analytics_steps`)
+
+Cada step do draft atual (por `tracking_key`, ordenado por `position`) recebe `views`/`answers`/`abandonment`/`answer_rate`; `tracking_key`s órfãos (steps já apagados mas com histórico) aparecem ao final, ordenados alfabeticamente:
+
+```json
+[
+  {"tracking_key": "objective", "title": "Qual seu objetivo?", "position": 0,
+   "views": 9341, "answers": 7654, "abandonment": 1687, "answer_rate": 81.94}
+]
+```
+
+### Conversão por página (`analytics_pages`)
+
+Ver exemplo em §8. Ordenado por `leads` desc.
+
+### Conversão por UTM (`analytics_utm`)
+
+Sem `group_by`, retorna as três dimensões de uma vez: `{"by_source": [...], "by_campaign": [...], "by_content": [...]}`. Com `?group_by=utm_source` (ou `utm_campaign`/`utm_content`), retorna só a lista daquela dimensão.
+
+### Conversão por resposta (`analytics_answers`)
+
+Agrupado por `step_tracking_key`, com `distribution_rate` (participação da opção dentro do step) e `conversion_rate` (leads / sessões que escolheram aquela opção):
+
+```json
+{
+  "objective": [
+    {"label": "Rugas", "total": 3592, "distribution_rate": 47.0, "conversion_rate": 31.4}
+  ]
+}
+```
+
+### Dashboard global (`GET /funnels/admin/dashboard/`)
+
+Cross-funil e cross-unidade, não escopado a um `{id}`:
+
+```json
+{
+  "sessions": 48321, "leads": 9421, "whatsapp_clicks": 5812, "conversion_rate": 19.49,
+  "by_funnel": [{"id": 3, "name": "Botox — Vinhedo", "slug": "botox-vinhedo", "status": "published", "sessions_count": 12400, "leads_count": 721}],
+  "by_unit": [{"unit__slug": "vinhedo", "unit__nome": "DamaFace Vinhedo", "leads": 721}],
+  "by_page": [{"source_page": "/vinhedo/botox", "sessions": 12400, "leads": 721, "conversion_rate": 5.81}]
+}
+```
+
+⚠️ **Divergência da proposta original:** não existem endpoints de ranking por campanha/criativo isolados — essas dimensões estão dentro de `analytics_utm` (`by_campaign`, `by_content`), não em rotas próprias. Métricas de "receita"/"agendamento" (Revenue per Visitor, Qualified Lead Rate) continuam **não implementadas** — nenhum model/campo relacionado existe ainda.
 
 ---
 
-## 11. Integrações futuras
-
-### Notificação automática à clínica via Evolution API (WhatsApp) — ativo, não é "futuro"
-
-Diferente do restante desta seção, esta integração já está em implementação (credenciais — URL, canal/instância, API key — já configuradas no `.env` do back-end).
-
-**Objetivo:** ao criar/atualizar um `Lead` (`POST /api/funnels/sessions/{session_id}/lead`), o back-end dispara automaticamente, via Evolution API, uma mensagem de WhatsApp para o número da **clínica/unidade que o lead selecionou** — com o contato do lead (nome + telefone) e o contexto da conversa. Isso acontece **no servidor, de forma síncrona ao evento de criação do lead**, e é independente do usuário efetivamente clicar no CTA final e enviar mensagem pelo `wa.me` (evento `whatsapp_click`, seção 10) — ou seja, a clínica é notificada mesmo que o lead abandone o funil antes do CTA final ou feche a conversa do WhatsApp sem escrever nada.
+## 10. Eventos (`FunnelEvent.Event`, confirmado no model)
 
 ```text
-Lead criado (nome + telefone + unit_id)
-        ↓
-Back-end resolve unit_id → WhatsApp da unidade/clínica
-        ↓
-Evolution API envia mensagem para a clínica (não para o lead)
+funnel_view      # emitido automaticamente na criação da sessão
+funnel_start     # o back-end NÃO emite sozinho — depende do front-end chamar /events/
+step_view
+step_answer      # emitido automaticamente em toda POST /answers/
+step_complete
+lead_started
+lead_created     # emitido automaticamente em POST /lead/ bem-sucedido
+whatsapp_click
+funnel_abandon   # emitido pelo job periódico mark_abandoned_sessions (30min de inatividade)
 ```
 
-Sugestão de payload da mensagem enviada à clínica (mesmo espírito do exemplo de contexto do Dama.AI logo abaixo):
+Exemplo de payload de `POST /funnels/sessions/{session_id}/events/`:
+
+```json
+{
+  "event": "step_answer",
+  "step_id": 12,
+  "metadata": {"answer": "rugas"}
+}
+```
+
+`metadata` é limitado a 2KB (validado no serializer). O evento `whatsapp_click` deve ser registrado pelo front-end **antes** do redirect ao WhatsApp, para medir `Leads → WhatsApp`.
+
+---
+
+## 11. Integrações
+
+### Notificação automática à clínica via Evolution API (WhatsApp) — implementado
+
+Ao criar um `Lead` (`POST /funnels/sessions/{session_id}/lead/`), o back-end dispara — via `transaction.on_commit`, fora da transação de escrita — uma mensagem de WhatsApp (`EvolutionAPIService.send_text_message`) para o número da **clínica/unidade** (`Franquia.whatsapp`) resolvida a partir de `unit_id`. Só dispara na **criação** (não em updates subsequentes do mesmo lead) e nunca para `session.is_preview=True`. É best-effort: qualquer falha é logada (`logger.exception`) e nunca reverte a criação do lead; o resultado fica registrado em `Lead.whatsapp_notified`/`whatsapp_notified_at`.
+
+```text
+Lead criado (nome + telefone + unit_id=slug)
+        ↓
+Back-end resolve unit_id (slug) → Franquia.whatsapp
+        ↓
+Evolution API envia mensagem para a clínica (não para o lead)
+        ↓
+Lead.whatsapp_notified = True/False conforme confirmação da API
+```
+
+Mensagem enviada (montada dinamicamente a partir das respostas com `tracking_key` preenchido — `services/notifications._build_message`):
 
 ```text
 Novo lead pelo site — Botox
 Nome: Maria
 WhatsApp: 19999999999
-Objetivo: rugas | Região: testa
+Objective: rugas | Region: testa
 Página de origem: /vinhedo/botox
 UTM: meta / botox-vinhedo
 ```
 
-**Pendência a resolver com o back-end:** o front-end hoje envia `unit_id` no payload de `upsertLead` (`lib/funnels/api.ts`) preenchido com o **slug** da unidade (`Unidade.slug`, vindo do endpoint público `GET /unidades/`), não o `id` numérico do model `Franquia`/`Unidade` — o endpoint público não expõe esse id. O back-end precisa ou (a) aceitar slug em `unit_id` e resolver internamente, ou (b) o front-end trocar de fonte. Até decidir, tratar `unit_id` como slug.
+**Pendência da proposta original — RESOLVIDA.** O front-end envia `unit_id` preenchido com o slug da unidade (`Unidade.slug`); o back-end aceita isso de forma explícita: resolve `Franquia.objects.filter(slug=unit_slug).first()`, e se o slug não bater com nenhuma franquia **não falha a criação do lead** — grava `unit=None` + `unit_slug` bruto e loga um aviso. Não é necessário nenhum cadastro novo de "número por integração": o número usado é o mesmo `Franquia.whatsapp` já existente (exposto também como `Unidade.whatsapp` em `/unidades/`).
 
-O número de destino na Evolution API é o mesmo `whatsapp` já existente no cadastro da unidade/franquia (`Franquia.whatsapp` em `/users/franquias/`, mesmo campo exposto como `Unidade.whatsapp` em `/unidades/`) — não deveria ser necessário um cadastro novo de "número por integração".
+### Dama.AI — ainda não implementado
 
-### Dama.AI
+Nenhum código de integração existe hoje em `apps/funnels/`. O lead criado tem todos os dados (`treatment`, respostas via `session.answers`, `source_page`, UTMs) para alimentar o Dama.AI no futuro, mas não há chamada/serviço fazendo isso.
 
-O lead criado pelo Funnel Engine poderá alimentar o Dama.AI com contexto completo, evitando um atendimento genérico:
+### Revenue Attribution (futuro) — não implementado
 
-```json
-{
-  "name": "Maria",
-  "phone": "19999999999",
-  "treatment": "botox",
-  "objective": "rugas",
-  "region": "testa",
-  "source_page": "/vinhedo/botox",
-  "utm_source": "meta",
-  "utm_campaign": "botox-vinhedo"
-}
-```
-
-### Revenue Attribution (futuro)
-
-A visão final não deve parar em leads. A cadeia completa a ser suportada futuramente:
-
-```text
-Meta Ad → Página → Funil → Lead → WhatsApp → Agendamento → Procedimento → Venda
-```
-
-Isso deve permitir responder "qual criativo gerou mais **receita**?" em vez de apenas "qual criativo gerou mais **leads**?" — um criativo pode gerar menos leads e ainda assim mais receita, dependendo da taxa de conversão em vendas.
+Nenhum model ou campo de venda/agendamento/receita existe em `apps/funnels/`. A cadeia completa (`Meta Ad → Página → Funil → Lead → WhatsApp → Agendamento → Procedimento → Venda`) segue como visão de V4.
 
 ---
 
 ## 12. Escopo e definição de sucesso do produto
 
-### Não objetivos da V3
+### O que já foi construído (fora do escopo original da V3, adicionado durante a implementação)
 
-A V3 não precisa incluir:
+- Versionamento por snapshot (`FunnelVersion`) com detecção de ciclo na publicação;
+- Duplicação de funil (`duplicate()`);
+- Arquivamento com bloqueio de edição (`archive()` + `FunnelArchivedConflict`);
+- Auditoria administrativa completa (`FunnelAuditLog`);
+- Dashboard global cross-funil/cross-unidade;
+- Cache de analytics (5 min) e cache do snapshot público, com invalidação por signal;
+- Rate limiting diferenciado por IP (sessão/lead) e por `session_id` (evento/resposta);
+- Job periódico de abandono de sessão (Celery, 30 min de inatividade);
+- Notificação WhatsApp síncrona (best-effort) à clínica em toda criação de lead.
 
-- editor visual completamente livre (drag-and-drop complexo);
-- automação avançada de marketing;
-- CRM completo;
-- disparos de WhatsApp em massa/campanha (broadcast de marketing) — **não** inclui a notificação transacional único-lead-para-a-clínica via Evolution API, registrada na seção 11, que é escopo ativo da V3;
-- criação automática de criativos;
-- IA para construir funis;
+### Não objetivos (ainda não implementados)
+
+- editor visual drag-and-drop complexo (o front-end tem uma versão própria, não vem do back-end);
+- automação avançada de marketing / CRM completo;
+- disparos de WhatsApp em massa/campanha (a notificação da seção 11 é transacional, único-lead);
+- criação automática de criativos / IA para construir funis;
 - testes A/B avançados;
-- atribuição de receita;
-- scoring sofisticado de leads.
+- atribuição de receita e scoring de leads.
 
-### Definição de sucesso
+### Definição de sucesso — status real
 
-A V3 é bem-sucedida quando o back-end consegue responder, via API consumida pelo `/franqueado`:
-
-1. Quantas pessoas entraram nos funis?
-2. Quantos leads foram gerados?
-3. Qual a conversão?
-4. Em qual etapa existe maior abandono?
-5. Qual página gera mais entradas / mais leads / maior conversão?
-6. Qual `utm_source` gera mais leads?
-7. Qual campanha gera mais leads?
-8. Qual `utm_content` gera mais leads?
-9. Qual resposta é mais comum / possui maior conversão?
-10. Quantos leads clicaram no WhatsApp?
-11. Qual funil converte melhor?
-12. Qual unidade possui melhor desempenho?
-
-Visão futura a responder: **qual página + campanha + criativo + funil + comportamento gerou mais agendamentos e receita?**
+O back-end já responde, via API, às 12 perguntas originais da V3 (sessões, leads, conversão, abandono por etapa, ranking por página/UTM/campanha/criativo/resposta, cliques no WhatsApp, funil que mais converte, unidade com melhor desempenho) — os endpoints de `analytics_*` e o dashboard cobrem todas elas. A pergunta futura (página+campanha+criativo+funil+comportamento → agendamentos e receita) segue sem suporte de dados.
 
 ---
 
-## 13. Roadmap relevante ao back-end
+## 13. Roadmap relevante ao back-end — status real
 
-### V3.1 — Foundation
+### V3.1 — Foundation — ✅ concluído
 
-- banco de dados;
-- API;
-- autenticação;
-- Funnel CRUD;
-- Sessions;
-- Leads;
-- eventos;
-- UTM;
-- source page.
+banco de dados, API, autenticação/autorização, Funnel CRUD, Sessions, Leads, eventos, UTM, source page.
 
-### V3.3 — Analytics
+### V3.3 — Analytics — ✅ concluído
 
-- dashboard (dados/API);
-- funil de conversão;
-- páginas;
-- UTMs;
-- campanhas;
-- criativos;
-- respostas;
-- abandono.
+dashboard (API), funil de conversão por etapa, páginas, UTMs/campanhas/criativos (via `analytics_utm`), respostas, abandono (via job Celery + evento `funnel_abandon`).
 
-### V3.5 — Dama.AI
+### V3.5 — Dama.AI — ⬜ não iniciado
 
 ```text
 Lead → Dama.AI → WhatsApp → Agendamento
 ```
 
-### V4
+### V4 — ⬜ não iniciado
 
-- atribuição de receita;
-- ROI por campanha;
-- receita por página;
-- receita por criativo;
-- scoring de leads.
+atribuição de receita; ROI por campanha; receita por página; receita por criativo; scoring de leads.
+
+---
+
+## Apêndice — testes automatizados existentes
+
+`apps/funnels/tests/`: `test_admin_funnel_crud.py`, `test_analytics.py`, `test_models.py`, `test_permissions.py`, `test_public_runtime.py`, `test_publish_versioning.py`, `test_throttling.py`. Único arquivo de migração até o momento: `0001_initial.py` (app novo, ainda sem histórico de alterações incrementais de schema).

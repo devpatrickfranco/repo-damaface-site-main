@@ -18,43 +18,44 @@ export type CreateStepPayload = Omit<FunnelStep, 'id'>
 export type UpdateStepPayload = Partial<Omit<FunnelStep, 'id'>>
 
 export const funnelAdminApi = {
+  /** Rotas reais em `apps/funnels/urls.py` (back-end `api-franqueadora`) — o app é
+   * montado em `/funnels/` (core/urls.py) e internamente expõe `admin/funnels/...`,
+   * então o caminho completo é sempre `/funnels/admin/funnels/...`. Não confundir com
+   * `/admin/` (Django admin site, core/urls.py) — os dois existem e um 404 num não
+   * cai silenciosamente no outro. */
   list() {
-    return apiBackend.get<Funnel[]>('/admin/funnels/')
+    return apiBackend.get<Funnel[]>('/funnels/admin/funnels/')
   },
 
-  /** A entidade `Funnel` do contrato (back-end-funil.md §6) não lista `steps` — assume-se
-   * que o GET por id os retorna aninhados, já que o Builder precisa da árvore completa. */
   get(id: string) {
-    return apiBackend.get<Funnel & { steps: FunnelStep[] }>(`/admin/funnels/${id}/`)
+    return apiBackend.get<Funnel & { steps: FunnelStep[] }>(`/funnels/admin/funnels/${id}/`)
   },
 
   create(payload: CreateFunnelPayload) {
-    return apiBackend.post<Funnel>('/admin/funnels/', payload)
+    return apiBackend.post<Funnel>('/funnels/admin/funnels/', payload)
   },
 
   update(id: string, payload: UpdateFunnelPayload) {
-    return apiBackend.patch<Funnel>(`/admin/funnels/${id}/`, payload)
+    return apiBackend.patch<Funnel>(`/funnels/admin/funnels/${id}/`, payload)
   },
 
   remove(id: string) {
-    return apiBackend.delete(`/admin/funnels/${id}/`)
+    return apiBackend.delete(`/funnels/admin/funnels/${id}/`)
   },
 
-  /** Endpoint dedicado — o back-end rejeita `status: 'published'` via PATCH genérico
-   * (apps/funnels/views.py `FunnelAdminViewSet.update`), só aceita via esta action. */
   publish(id: string) {
-    return apiBackend.post<Funnel>(`/admin/funnels/${id}/publish/`)
+    return apiBackend.post<Funnel>(`/funnels/admin/funnels/${id}/publish/`)
   },
 
   createStep(funnelId: string, payload: CreateStepPayload) {
-    return apiBackend.post<FunnelStep>(`/admin/funnels/${funnelId}/steps/`, payload)
+    return apiBackend.post<FunnelStep>(`/funnels/admin/funnels/${funnelId}/steps/`, payload)
   },
 
   updateStep(funnelId: string, stepId: string, payload: UpdateStepPayload) {
-    return apiBackend.patch<FunnelStep>(`/admin/funnels/${funnelId}/steps/${stepId}/`, payload)
+    return apiBackend.patch<FunnelStep>(`/funnels/admin/funnels/${funnelId}/steps/${stepId}/`, payload)
   },
 
   deleteStep(funnelId: string, stepId: string) {
-    return apiBackend.delete(`/admin/funnels/${funnelId}/steps/${stepId}/`)
+    return apiBackend.delete(`/funnels/admin/funnels/${funnelId}/steps/${stepId}/`)
   },
 }
